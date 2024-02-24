@@ -1,0 +1,66 @@
+from django.db import models
+
+# Create your models here.
+class User(models.Model):
+    name = models.CharField(max_length=100)
+    username = models.CharField(max_length=100)
+    password = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+class Project(models.Model):
+    name = models.CharField(max_length=100)
+    creation_date = models.DateField()
+    description = models.TextField()
+    creator = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+    
+class Sprint(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    start_date = models.DateField()
+    end_date = models.DateField()
+
+    def __str__(self):
+        return f"Sprint({self.start_date},{self.end_date})"
+
+class UserStory(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    sprint = models.ForeignKey(Sprint, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+class Task(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    user_story = models.ForeignKey(UserStory, on_delete=models.CASCADE)
+    assigned_user = models.ForeignKey(User, on_delete=models.CASCADE)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    time_spent = models.PositiveIntegerField(default=0)
+    # STATUS_CHOICES = (
+    #     ('To-Do', 'To-Do'),
+    #     ('In Progress', 'In Progress'),
+    #     ('Done', 'Done'),
+    # )
+    # status = models.CharField(max_length=20, choices=STATUS_CHOICES)
+    def __str__(self):
+        return self.name
+
+class ProjectWall(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    post = models.ForeignKey(User, on_delete=models.CASCADE)
+    text = models.TextField()
+    post_date = models.DateTimeField()
+
+class Documentation(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    title = models.CharField(max_length=100)
+    content = models.TextField()
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    last_edit_date = models.DateTimeField()
