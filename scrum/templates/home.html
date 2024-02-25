@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home</title>
+    
+</head>
+<body>
+    <p><a href="{% url 'login' %}">Prijava</a> ali <a href="{% url 'register' %}">Registracija</a>.</p>
+    <!-- {% if user1 %} -->
+        <p>Pozdravljen, {{user1}}!</p>
+        <!-- <form action="{% url 'logout' %}" method="post">
+            {% csrf_token %}
+            <button type="submit">Odjava</button>
+        </form> -->
+    <!-- {% else %} -->
+        <p>Niste prijavljeni.</p>
+        <p><a href="{% url 'login' %}">Prijava</a> ali <a href="{% url 'register' %}">Registracija</a>.</p>
+    <!-- {% endif %} -->
+</body>
+</html>
