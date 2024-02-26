@@ -1,0 +1,41 @@
+
+{% extends 'base.html' %}
+
+{% block title %}
+Assign Roles
+{% endblock %}
+
+{% block content %}
+
+<h2>Assign Roles</h2>
+<form method="post">
+    <h1>Project: {{project_name}}</h1>
+    {% csrf_token %}
+    <label for="product_owner">Product Owner:</label>
+    <select name="product_owner" id="product_owner">
+        <!-- Možnosti za izbiro lastnika izdelka -->
+        {% for user in allusers %}
+            <option value="{{ user.id }}">{{ user.username }}</option>
+        {% endfor %}
+    </select>
+    <br>
+    <label for="methodology_manager">Methodology Manager:</label>
+    <select name="methodology_manager" id="methodology_manager">
+        <!-- Možnosti za izbiro upravitelja metodologije -->
+        {% for user in allusers %}
+            <option value="{{ user.id }}">{{ user.username }}</option>
+        {% endfor %}
+    </select>
+    <br>
+    <label>Development Team Members:</label><br>
+    <!-- Možnosti za izbiro članov razvojne skupine -->
+    {% for user in allusers %}
+        <input type="checkbox" id="member_{{ user.id }}" name="development_team_members" value="{{ user.id }}">
+        <label for="member_{{ user.id }}">{{ user.username }}</label><br>
+    {% endfor %}
+    <br>
+    <button type="submit">Submit</button>
+</form>
+
+
+{% endblock %}

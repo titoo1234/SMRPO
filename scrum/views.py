@@ -2,58 +2,70 @@ from django.shortcuts import render,redirect
 from  django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 from django.http.response import JsonResponse
-from scrum.models import User
+from scrum.models import User,Project,AssignedRole
 from scrum.serializers import UserSerializer
-from .forms import UserLoginForm,UserRegisterForm
+from .forms import UserLoginForm,UserRegisterForm,ProjectForm,RoleAssignmentForm
 from django.contrib import messages
 # from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login
 from django.http import HttpResponse,request
+from django.urls import reverse
 # Create your views here.
-def set_cookie(ime):
-    # request.
-    response = HttpResponse('blah')
-    response.set_cookie('uporabnik', ime)
-    uporabniskoIme = request.COOKIES.get('uporabnik')
-    print('imee',uporabniskoIme)
-def delete_cookie():
-    response = HttpResponse()
-    response.delete_cookie('uporabnik')
-
-def get_user():
-    '''
-    Pogleda, kdo je uporabnik
-    '''
-
-    uporabniskoIme = request.COOKIES.get('uporabnik')
-    print('ime',uporabniskoIme)
-    # print("kaze da je od ccokia",uporabniskoIme)
-    return uporabniskoIme
-def home(request):
+def get_context(request):
+    try:
+        uporabnik = request.session.get('uporabnik')
+        admin = request.session.get('admin')
+        up_id = request.session.get('uporabnik_id')
+    except:
+        uporabnik = None
+        admin = False
+        up_id = None
     context = {}
-    us = 'us'#get_user()
-    if us:
-        context['user1'] = 'us'
+    context['user1'] = uporabnik
+    context['admin'] = admin
+    context['id'] = up_id
+    return context
 
+
+def logout(request):
+    try:
+        del request.session['uporabnik']
+        del request.session['admin']
+    except:
+        pass
+    return redirect('home')
+def get_projects(uporabnik_id):
+    projects = AssignedRole.objects.filter(user_id=uporabnik_id).values_list('project', flat=True).distinct()
+    print('das')
+    print(projects)
+    return list(projects)
+    
+def home(request):
+    messages.error(request, '')  
+    context = get_context(request)
+    try:
+        projects = get_projects(context['id'])
+    except:
+        projects = []
+    context['projects'] = projects
     return render(request, 'home.html',context)
-
-
+def test(request):
+    return render(request, 'index.html')
 
 def user_login(request):
     if request.method == 'POST':
+        messages.error(request, '')
         form = UserLoginForm(request.POST)
         username = form.data['username']
         password = form.data['password']
             # user = UserLoginForm(request, username=username, password=password)
         existing_user = User.objects.filter(username=username,password=password).first()
-        if  existing_user:
-            
-
-            
+        if  existing_user:  
+            request.session['uporabnik'] = existing_user.username
+            request.session['admin'] = existing_user.admin_user
+            request.session['uporabnik_id'] = existing_user.id
             # set_cookie(existing_user.name)
-            
             return redirect('home')
-        
             # if user is not None:
             #     login(request, user)
             #     return redirect('home')
@@ -81,40 +93,102 @@ def user_register(request):
             else:
                 # Ustvari novega uporabnika
                 form.save()
-                # new_user = User.objects.create(username=username, password=password, name=name)
- 
-                # new_user.save()
-                # set_cookie(name)
+                #KO SE REGISTRIRA NOV UPORABNIK POTEM NE ZAMENJAJ KUKIJA
+                # request.session['uporabnik'] = username
+                # user = authenticate(request, username=username, password=password)
                 return redirect('home')
 
     else:
         form = UserRegisterForm()
     return render(request, 'register.html', {'form': form})
 
-@csrf_exempt
-def userApi(request,user_id=0):
-    if request.method =='GET':
-        users = User.objects.all()
-        user_serializer = UserSerializer(users,many=True)
-        return render(request, 'login.html')
-        return JsonResponse(user_serializer.data,safe=False)
-    elif request.method == 'POST':
-        # ime = request.POST['username']
-        user_data = JSONParser().parse(request)
-        user_serializer = UserSerializer(data = user_data)
-        if user_serializer.is_valid():
-            user_serializer.save()
-            return JsonResponse("Added succesfully",safe=False)
-        return JsonResponse("Failed to add",safe=False)
-    elif request.method == 'PUT':
-        user_data = JSONParser().parse(request)
-        user = User.objects.get(id=user_data['id'])
-        user_serializer = UserSerializer(user,data = user_data)
-        if user_serializer.is_valid():
-            user_serializer.save()
-            return JsonResponse("Updated succesfully",safe=False)
-        return JsonResponse("Failed to update",safe=False)
-    elif request.method == 'DELETE':
-        user = User.objects.get(id=user_id)
-        user.delete()
-        return JsonResponse("Deleted succesfully")
+def allusers(request):
+    context = get_context(request)
+    context['users'] = User.objects.all()
+    return render(request,'all_users.html',context)
+
+def user_detail(request, user_id):
+    user = User.objects.get(user_id=user_id)
+    return render(request, 'user_detail.html', {'user': user})
+
+def edit_user(request, user_id):
+    user = User.objects.get(id=user_id)
+    context = get_context(request)
+    if request.method == 'POST':
+        # Tukaj dodajte logiko za posodobitev podatkov uporabnika
+        form = UserRegisterForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            return redirect('allusers')
+        else:
+            messages.error(request,"Neveljavna sprememba!")   
+    else:
+        form = UserRegisterForm(instance=user)
+        context['form'] = form
+        return render(request, 'edit_user.html', context)
+    
+
+def new_project(request):  
+     if request.method == 'POST':
+        # Project.objects.all().delete()
+        form = ProjectForm(request.POST)
+        print(1)
+        if form.is_valid(): 
+            name = form.data['name']
+            existing_project = Project.objects.filter(name=name).first()
+            if existing_project:
+                print(4)
+                messages.error(request,"Projekt s tem imenom že obstaja!")
+                return redirect(request.path)
+            else:
+                print(5)
+                form.save()
+                #TODO preusemri ga v assign roles
+                # return redirect('home')
+                return redirect(reverse('assign_roles', kwargs={'ime_projekta': name}))
+        else:
+            print(3)
+            messages.error(request,"Napačni podatki!")
+            return redirect(request.path)
+     else:
+        context = get_context(request)
+        user = User.objects.get(username = context['user1'])
+        all_users = User.objects.all()
+        context['form'] = ProjectForm(initial={'creator': user}) 
+        # context['formAssignment'] = RoleAssignmentForm()
+        context['allusers'] = all_users
+        return render(request,'new_project.html',context=context)
+     
+def assign_roles(request,ime_projekta):
+    if request.method == 'POST':
+        project1 = Project.objects.get(name=ime_projekta)
+        product_owner_id = request.POST.get('product_owner')
+        methodology_manager_id = request.POST.get('methodology_manager')
+        development_team_members = request.POST.getlist('development_team_members')
+        # project_name = request.POST.get('project_name')
+        existing_project = Project.objects.get(name=ime_projekta)
+        if existing_project:
+            u = User.objects.get(id = product_owner_id)
+            nov = AssignedRole.objects.create(user = u,role = 'product_owner',project = project1)
+            nov.save()
+            u = User.objects.get(id = methodology_manager_id)
+            nov = AssignedRole.objects.create(user = u,role = 'methodology_manager',project = project1)
+            nov.save()
+            for user_id in development_team_members:
+                u = User.objects.get(id = user_id)
+                nov = AssignedRole.objects.create(user = u,role = 'development_team_member',project = project1)
+                nov.save()
+            #TODO POŠLJI GA NA PROJEKT    
+            return redirect('home')
+        else:
+            #TODO NEVEM KAJ TUKAJ
+            messages.error(request,"Napačni podatki!")
+            redirect('home')
+    else:
+        context = get_context(request)
+        all_users = User.objects.all()
+        # context['form'] = ProjectForm(initial={'creator': user})
+        context['project_name'] =  ime_projekta
+        # context['formAssignment'] = RoleAssignmentForm()
+        context['allusers'] = all_users
+        return render(request,'assign_roles.html',context=context)
