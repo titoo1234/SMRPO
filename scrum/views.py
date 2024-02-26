@@ -4,7 +4,7 @@ from rest_framework.parsers import JSONParser
 from django.http.response import JsonResponse
 from scrum.models import User,Project,AssignedRole
 from scrum.serializers import UserSerializer
-from .forms import UserLoginForm,UserRegisterForm,ProjectForm,RoleAssignmentForm
+from .forms import UserLoginForm,UserRegisterForm,ProjectForm,RoleAssignmentForm,ProjectDisabledForm
 from django.contrib import messages
 # from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login
@@ -35,9 +35,8 @@ def logout(request):
         pass
     return redirect('home')
 def get_projects(uporabnik_id):
-    projects = AssignedRole.objects.filter(user_id=uporabnik_id).values_list('project', flat=True).distinct()
-    print('das')
-    print(projects)
+    project_ids = AssignedRole.objects.filter(user_id=uporabnik_id).values_list('project', flat=True).distinct()
+    projects = Project.objects.filter(id__in=project_ids)
     return list(projects)
     
 def home(request):
@@ -192,3 +191,36 @@ def assign_roles(request,ime_projekta):
         # context['formAssignment'] = RoleAssignmentForm()
         context['allusers'] = all_users
         return render(request,'assign_roles.html',context=context)
+    
+
+
+def project_view(request,project_name):
+    context = get_context(request)
+    project = Project.objects.get(name=project_name)
+    context['project'] = project
+    form = ProjectDisabledForm(instance=project)
+    context['form'] = form
+    is_creator = (project.creator.id == context['id'])
+    context['is_creator'] = is_creator
+    return render(request, 'project.html', context)
+
+def project_edit(request,project_name):
+    project = Project.objects.get(name=project_name)
+    if request.method == 'POST':
+        form = ProjectForm(request.POST, instance=project)
+        if form.is_valid():
+            form.save()
+            project_name = form.cleaned_data['name']
+            return redirect('project_name',project_name=project_name)
+        else:
+            messages.error(request,"Neveljavna sprememba!")
+    else:
+        context = get_context(request)
+        context['project'] = project
+        form = ProjectForm(instance=project)
+        context['form'] = form
+        return render(request, 'project_edit.html', context)
+
+        
+
+

@@ -51,10 +51,10 @@ Začetna stran
  <h1>Your projects:</h1>
 
     <div class="project-container">
-        {% for project_id in projects %}
-            <a href="">
+        {% for proj_name in projects %}
+            <a href="project/{{proj_name}}/">
                 <div class="project-rectangle">
-                    Projekt ID: {{ project_id }}
+                    Project: {{ proj_name }}
                 </div>
             </a>
         {% endfor %}

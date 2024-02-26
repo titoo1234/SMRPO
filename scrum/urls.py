@@ -13,6 +13,8 @@ urlpatterns = [
     path('user/<int:user_id>/edit/', views.edit_user, name='edit_user'),
     path('new_project/', views.new_project, name='new_project'),
     path('/project/<str:ime_projekta>/assign_roles/', views.assign_roles, name='assign_roles'),
+    path('project/<str:project_name>/', views.project_view, name='project_name'),
+    path('project/<str:project_name>/edit/', views.project_edit, name='project_edit'),
     
 
     # re_path(r'^login/$', views.userApi, name='user_login')

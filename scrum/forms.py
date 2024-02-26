@@ -22,6 +22,16 @@ class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
         fields = ['name','creation_date','description', 'creator']
+class ProjectDisabledForm(forms.ModelForm):
+    class Meta:
+        model = Project
+        fields = ['name', 'creation_date', 'description', 'creator']
+        widgets = {
+            'name': forms.TextInput(attrs={'disabled': 'disabled'}),
+            'creation_date': forms.DateInput(attrs={'disabled': 'disabled'}),
+            'description': forms.Textarea(attrs={'disabled': 'disabled'}),
+            'creator': forms.TextInput(attrs={'disabled': 'disabled'}),
+        }
 
 
 class RoleAssignmentForm(forms.ModelForm):
