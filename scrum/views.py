@@ -10,6 +10,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.http import HttpResponse,request
 from django.urls import reverse
+from django import forms
 # Create your views here.
 def get_context(request):
     try:
@@ -118,11 +119,15 @@ def edit_user(request, user_id):
         form = UserRegisterForm(request.POST, instance=user)
         if form.is_valid():
             form.save()
-            return redirect('allusers')
+            return redirect('home')
         else:
             messages.error(request,"Neveljavna sprememba!")   
     else:
         form = UserRegisterForm(instance=user)
+        if not context['admin']:
+            form.fields['admin_user'].widget.attrs['disabled'] = True
+            print('asd')
+        print('asd1')
         context['form'] = form
         return render(request, 'edit_user.html', context)
     

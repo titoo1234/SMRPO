@@ -110,6 +110,9 @@
             color: red;
             margin-top: 10px;
         }
+        .profile-link {
+           float: right; /* Poravnavanje povezave do profila na desno stran */
+}
     </style>
 </head>
 <body>
@@ -128,8 +131,12 @@
                 <li><a href="/login">Login</a></li>
                 
             {% endif %}
+            {% if user1 %}
+            <li><a href="{% url 'edit_user' user.id %}">My Profile</a></li>
+            {% endif %}
         </ul>
     </div>
+
 </header>
 
 {% block content %}
