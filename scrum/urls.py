@@ -15,6 +15,7 @@ urlpatterns = [
     path('/project/<str:ime_projekta>/assign_roles/', views.assign_roles, name='assign_roles'),
     path('project/<str:project_name>/', views.project_view, name='project_name'),
     path('project/<str:project_name>/edit/', views.project_edit, name='project_edit'),
+    path('user/<int:user_id>/delete/', views.delete_user, name='delete_user'),
     
 
     # re_path(r'^login/$', views.userApi, name='user_login')
