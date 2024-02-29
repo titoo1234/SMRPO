@@ -132,7 +132,7 @@
                 
             {% endif %}
             {% if user1 %}
-            <li><a href="{% url 'edit_user' user.id %}">My Profile</a></li>
+            <li><a href="/user/{{id}}/edit">My Profile</a></li>
             {% endif %}
         </ul>
     </div>

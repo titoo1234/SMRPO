@@ -1,9 +1,6 @@
 from django.shortcuts import render,redirect
 from  django.views.decorators.csrf import csrf_exempt
-from rest_framework.parsers import JSONParser
-from django.http.response import JsonResponse
 from scrum.models import User,Project,AssignedRole
-from scrum.serializers import UserSerializer
 from .forms import UserLoginForm,UserRegisterForm,ProjectForm,RoleAssignmentForm,ProjectDisabledForm
 from django.contrib import messages
 # from django.contrib.auth.decorators import login_required
