@@ -123,11 +123,16 @@ def edit_user(request, user_id):
         form = UserRegisterForm(instance=user)
         if not context['admin']:
             form.fields['admin_user'].widget.attrs['disabled'] = True
-            print('asd')
-        print('asd1')
+
         context['form'] = form
+        context['id_delete'] = user.id
         return render(request, 'edit_user.html', context)
     
+def delete_user(request, user_id):
+    user = User.objects.get(id=user_id)
+    user.active = False
+    user.save()
+    return redirect("home")
 
 def new_project(request):  
      if request.method == 'POST':
