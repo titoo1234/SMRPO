@@ -167,8 +167,8 @@ def edit_user(request, user_id):
             form.fields['admin_user'].widget.attrs['disabled'] = True
         context['form'] = form
         context['id_delete'] = user.id
-        if context['id'] != user.id:
-            form.fields['password'].disabled = True
+        # if context['id'] != user.id:
+        #     form.fields['password'].disabled = True
         return render(request, 'edit_user.html', context)
     
 
