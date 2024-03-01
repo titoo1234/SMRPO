@@ -68,7 +68,9 @@ def user_login(request):
             #     return redirect('home')
         else:
             # messages.error(request.messages)
-            messages.error(request, 'Neuspešna prijava. Prosimo, poskusite znova.')
+            form = UserLoginForm()
+            # form.add_error(None, 'Neuspešna prijava. Prosimo, poskusite znova.')
+            messages.error(request, "Invalid username or password.")
     else:
         form = UserLoginForm()
     return render(request, 'login.html', {'form': form})
