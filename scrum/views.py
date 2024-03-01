@@ -56,7 +56,7 @@ def user_login(request):
         username = form.data['username']
         password = form.data['password']
             # user = UserLoginForm(request, username=username, password=password)
-        existing_user = User.objects.filter(username=username,password=password).first()
+        existing_user = User.objects.filter(username=username,password=password,active=True).first()
         if  existing_user:  
             request.session['uporabnik'] = existing_user.username
             request.session['admin'] = existing_user.admin_user
@@ -88,7 +88,7 @@ def user_register(request):
             if existing_user:
                 
                 # Uporabnik že obstaja, tukaj lahko dodate dodatno obdelavo ali vrnete napako
-                messages.error(request,"Uporabnik že obstaja!")
+                messages.error(request,"User already exists!")
             else:
                 # Ustvari novega uporabnika
                 form.save()
@@ -122,17 +122,20 @@ def edit_user(request, user_id):
             if existing_user == user:
                 if form.is_valid():
                     form.save()
+                    request.session['uporabnik'] = form.data['username']
                     return redirect('home',)
-            messages.error(request,"Neveljavna sprememba!")  
+            messages.error(request,"Invalid change!")  
             return redirect('edit_user',user_id)
         else:
-        # if existing_user:
+        
             if form.is_valid():
                 form.save()
+                if user_id == context['id']:
+                    request.session['uporabnik'] = form.data['username']
                 return redirect('home')
             else:
                 form = UserRegisterForm(instance=user)
-                messages.error(request,"Neveljavna sprememba!")   
+                messages.error(request,"Invalid change!")   
     else:
         messages.error(request, '')
         form = UserRegisterForm(instance=user)
