@@ -38,7 +38,7 @@ def get_projects(uporabnik_id):
     return list(projects)
     
 def home(request):
-    messages.error(request, '')  
+    messages.error(request, '')
     context = get_context(request)
     try:
         projects = get_projects(context['id'])
