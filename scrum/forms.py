@@ -3,6 +3,7 @@ from .models import User,Project,AssignedRole
 from django.utils import timezone
 
 class UserLoginForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput)
     class Meta:
         model = User
         fields = ['username', 'password']
@@ -11,6 +12,7 @@ class UserLoginForm(forms.ModelForm):
 
 
 class UserRegisterForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput, required=False)
     class Meta:
         model = User
         fields = ['name','surname','mail', 'username', 'password','admin_user']

@@ -99,6 +99,7 @@ def user_register(request):
 
     else:
         form = UserRegisterForm()
+        form.fields['password'].required = True
     return render(request, 'register.html', {'form': form})
 
 def allusers(request):
@@ -116,26 +117,49 @@ def edit_user(request, user_id):
     if request.method == 'POST':
         # Tukaj dodajte logiko za posodobitev podatkov uporabnika
         form = UserRegisterForm(request.POST, instance=user)
-        
-        existing_user = User.objects.filter(username=form.data['username']).first()
-        if existing_user:
-            if existing_user == user:
-                if form.is_valid():
-                    form.save()
-                    request.session['uporabnik'] = form.data['username']
-                    return redirect('home',)
+        password = request.POST.get('password')
+        if not password:
+                # Če je polje gesla prazno, nastavi na neko privzeto vrednost
+                request.POST = request.POST.copy()
+                request.POST['password'] = user.password
+        form = UserRegisterForm(request.POST, instance=user)
+
+        if form.is_valid():
+            form.save()
+        else:
             messages.error(request,"Invalid change!")  
             return redirect('edit_user',user_id)
-        else:
+        #Preveri če urejaš samega sebe:
+        if user_id == context['id']:
+                request.session['uporabnik'] = form.data['username']
+                
+        return redirect('home')
         
-            if form.is_valid():
-                form.save()
-                if user_id == context['id']:
-                    request.session['uporabnik'] = form.data['username']
-                return redirect('home')
-            else:
-                form = UserRegisterForm(instance=user)
-                messages.error(request,"Invalid change!")   
+
+
+        # existing_user = User.objects.filter(username=form.data['username']).first()
+        # if existing_user:
+        #     if existing_user.id == context['id']:
+        #         if form.is_valid():
+        #             if form.cleaned_data['password'] == '':
+        #                 form.cleaned_data['password'] = user.password
+        #             form.save()
+        #             request.session['uporabnik'] = form.data['username']
+        #             return redirect('home',)
+        #     messages.error(request,"Invalid change!")  
+        #     return redirect('edit_user',user_id)
+        # else:
+        
+        #     if form.is_valid():
+        #         if form.cleaned_data['password'] == '':
+        #                 form.cleaned_data['password'] = user.password
+        #         form.save()
+        #         if user_id == context['id']:
+        #             request.session['uporabnik'] = form.data['username']
+        #         return redirect('home')
+        #     else:
+        #         form = UserRegisterForm(instance=user)
+        #         messages.error(request,"Invalid change!")   
     else:
         messages.error(request, '')
         form = UserRegisterForm(instance=user)
@@ -143,6 +167,8 @@ def edit_user(request, user_id):
             form.fields['admin_user'].widget.attrs['disabled'] = True
         context['form'] = form
         context['id_delete'] = user.id
+        if context['id'] != user.id:
+            form.fields['password'].disabled = True
         return render(request, 'edit_user.html', context)
     
 
