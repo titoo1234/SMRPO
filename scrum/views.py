@@ -116,19 +116,51 @@ def edit_user(request, user_id):
     if request.method == 'POST':
         # Tukaj dodajte logiko za posodobitev podatkov uporabnika
         form = UserRegisterForm(request.POST, instance=user)
-        if form.is_valid():
-            form.save()
-            return redirect('home')
+        
+        existing_user = User.objects.filter(username=form.data['username']).first()
+        if existing_user:
+            if existing_user == user:
+                if form.is_valid():
+                    form.save()
+                    return redirect('home',)
+            messages.error(request,"Neveljavna sprememba!")  
+            return redirect('edit_user',user_id)
         else:
-            messages.error(request,"Neveljavna sprememba!")   
+        # if existing_user:
+            if form.is_valid():
+                form.save()
+                return redirect('home')
+            else:
+                form = UserRegisterForm(instance=user)
+                messages.error(request,"Neveljavna sprememba!")   
     else:
+        messages.error(request, '')
         form = UserRegisterForm(instance=user)
+        if not context['admin']:
+            form.fields['admin_user'].widget.attrs['disabled'] = True
+        context['form'] = form
+        context['id_delete'] = user.id
+        return render(request, 'edit_user.html', context)
+    
+
+
+def edit_deleted_user(request, user_id):
+    user = User.objects.get(id=user_id)
+    context = get_context(request)
+    if request.method == 'POST':
+        # Tukaj dodajte logiko za posodobitev podatkov uporabnika
+        user.active = True
+        user.save()
+        return redirect("home")
+        
+    else:
+        form = UserRegisterForm(instance=user)    
         if not context['admin']:
             form.fields['admin_user'].widget.attrs['disabled'] = True
 
         context['form'] = form
         context['id_delete'] = user.id
-        return render(request, 'edit_user.html', context)
+        return render(request, 'edit_deleted_user.html', context)
     
 def delete_user(request, user_id):
     user = User.objects.get(id=user_id)
