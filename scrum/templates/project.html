@@ -13,5 +13,15 @@ Project {{project.name}}
     {% if is_creator %}
     <a href= '/project/{{project.name}}/edit'><button type='submit'>Edit</button></a>
     {% endif %}
-
+    <h3>Sprints</h3>
+    <a href= '/project/{{project.name}}/new_sprint/'><button type='submit'>Create Sprint</button></a>
+    {% for sprint in sprints %}
+    <a href='/project/{{project.name}}/sprint/{{sprint.id}}'>
+        <div class="card d-flex justify-content-between align-items-center">
+            <p class="mb-0">Start Date: <span class="font-weight-bold">{{ sprint.start_date }}</span></p>
+            <p class="mb-0">End Date: <span class="font-weight-bold">{{ sprint.end_date }}</span></p>
+        </div>
+    </a>
+{% endfor %}
 {% endblock %}
+

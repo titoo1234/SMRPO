@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %}
+New Sprint
+{% endblock %}
+
+{% block content %}
+<h2>New Sprint</h2>
+    <form method="post" action="/project/{{project.name}}/sprints">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Submit</button>
+        {% for message in messages %}
+        <p class="error-message">{{ message }}</p>
+        {% endfor %}
+    </form>
+   
+
+{% endblock %}
