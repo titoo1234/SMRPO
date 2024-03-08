@@ -26,6 +26,7 @@ class Sprint(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField()
+    duration = models.PositiveIntegerField(default=14)
 
     def __str__(self):
         return f"Sprint({self.start_date},{self.end_date})"

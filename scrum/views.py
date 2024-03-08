@@ -1,15 +1,19 @@
 from django.shortcuts import render,redirect
 from  django.views.decorators.csrf import csrf_exempt
-from scrum.models import User,Project,AssignedRole
-from .forms import UserLoginForm,UserRegisterForm,ProjectForm,RoleAssignmentForm,ProjectDisabledForm
+from django.views.decorators.http import require_http_methods
+
+from scrum.models import User,Project,AssignedRole, Sprint
+from .forms import UserLoginForm,UserRegisterForm,ProjectForm,RoleAssignmentForm,ProjectDisabledForm,SprintForm
 from django.contrib import messages
 # from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login
-from django.http import HttpResponse,request
+from django.http import HttpResponse,request, JsonResponse
 from django.urls import reverse
 from django import forms
+
 # Create your views here.
 def get_context(request):
+    '''
     try:
         uporabnik = request.session.get('uporabnik')
         admin = request.session.get('admin')
@@ -18,10 +22,11 @@ def get_context(request):
         uporabnik = None
         admin = False
         up_id = None
+        '''
     context = {}
-    context['user1'] = uporabnik
-    context['admin'] = admin
-    context['id'] = up_id
+    context['user1'] = "ad"#uporabnik
+    context['admin'] = "ad"#admin
+    context['id'] = 1#up_id
     return context
 
 
@@ -51,6 +56,7 @@ def test(request):
 
 def user_login(request):
     if request.method == 'POST':
+        print("LOGIN")
         messages.error(request, '')
         form = UserLoginForm(request.POST)
         username = form.data['username']
@@ -272,6 +278,9 @@ def project_view(request,project_name):
     context['form'] = form
     is_creator = (project.creator.id == context['id'])
     context['is_creator'] = is_creator
+    sprints = Sprint.objects.filter(project=project)
+    print('Sprints: ',sprints)
+    context['sprints'] = sprints
     return render(request, 'project.html', context)
 
 def project_edit(request,project_name):
@@ -291,6 +300,65 @@ def project_edit(request,project_name):
         context['form'] = form
         return render(request, 'project_edit.html', context)
 
-        
+@require_http_methods(["POST", "GET"])
+def sprints_list_handler(request, project_name):
+    if request.method == 'POST':
+        print("POST: ",project_name)
+        try:
+            project = Project.objects.get(name=project_name)
+           
+            # get start and end date and check for regularity
+            start_date = request.POST.get('start_date')
+            end_date = request.POST.get('end_date')
+            sprint = Sprint.objects.create(project=project, start_date=start_date, end_date=end_date)
+            sprint.save()
+            return redirect('home')#JsonResponse({'message': 'Sprint created successfully'})
+        except Project.DoesNotExist:
+            return JsonResponse({'message': 'Project does not exist'}, status=404)
+        except Exception as e:
+            return JsonResponse({'message': str(e)}, status=400)
+    if request.method == 'GET':
+        try:
+            project_name = request.GET.get('project_name')
+            project = Project.objects.get(name=project_name)
+            sprints = Sprint.objects.filter(project=project)
+            return JsonResponse({'sprints': list(sprints.values())})
+        except Project.DoesNotExist:
+            return JsonResponse({'message': 'Project does not exist'}, status=404)
+        except Exception as e:
+            return JsonResponse({'message': str(e)}, status=400)
 
+@require_http_methods(["GET", "PUT", "DELETE"])
+def sprint_details_handler(request, project_name, sprint_id):
+    if request.method == 'GET':
+        try:
+            sprint = Sprint.objects.get(id=sprint_id)
+            return render(request, 'sprint_details.html', context={'sprint': sprint})
+        except Sprint.DoesNotExist:
+            return JsonResponse({'message': 'Sprint does not exist'}, status=404)
+    if request.method == 'PUT':
+        try: 
+            sprint = Sprint.objects.get(id=sprint_id)
+            start_date = request.data.get('start_date')
+            end_date = request.data.get('end_date')
+            sprint.start_date = start_date
+            sprint.end_date = end_date
+            sprint.save()
+            return JsonResponse({'message': 'Sprint updated successfully'})
+        except Sprint.DoesNotExist:
+            return JsonResponse({'message': 'Sprint does not exist'}, status=404)
+    if request.method == 'DELETE':
+        sprint = Sprint.objects.get(id=sprint_id)
+        sprint.delete()
+        return JsonResponse({'message': 'Sprint deleted successfully'})
 
+def new_sprint(request,project_name):
+    context = get_context(request)
+    project = Project.objects.get(name=project_name)
+    user = User.objects.get(username = context['user1'])
+    all_users = User.objects.all()
+    context['form'] = SprintForm(initial={'project': project}) 
+    # context['formAssignment'] = RoleAssignmentForm()
+    context['allusers'] = all_users
+    context['project'] = project
+    return render(request,'new_sprint.html',context=context)

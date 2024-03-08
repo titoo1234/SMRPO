@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Sprint {{sprint.id}}
+{% endblock %}
+
+{% block content %}
+<p>Začetek: {{sprint.start_date}}</p>
+<p>Konec: {{sprint.end_date}}</p>
+<div class="row">
+    <div class="col-md-4">
+        <!-- First column content -->
+        <p>Sprint</p>
+    </div>
+    <div class="col-md-4">
+        <!-- Second column content -->
+        <p>V procesu razvijanja</p>
+    </div>
+    <div class="col-md-4">
+        <!-- Third column content -->
+        <p>Končan</p>
+    </div>
+</div>
+{% endblock %}

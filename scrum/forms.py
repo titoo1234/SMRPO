@@ -1,5 +1,5 @@
 from django import forms
-from .models import User,Project,AssignedRole
+from .models import User,Project,AssignedRole, Sprint
 from django.utils import timezone
 
 class UserLoginForm(forms.ModelForm):
@@ -37,6 +37,23 @@ class ProjectDisabledForm(forms.ModelForm):
             'creator': forms.TextInput(attrs={'disabled': 'disabled'}),
         }
 
+class SprintForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['start_date'].initial = timezone.now().date()
+        self.fields['end_date'].initial = timezone.now().date() + timezone.timedelta(days=14)
+    class Meta:
+        model = Sprint
+        fields = ['project','start_date','end_date','duration']
+        widgets = {
+            'start_date': forms.DateInput(attrs={'type': 'date'}),
+            'end_date': forms.DateInput(attrs={'type': 'date'}),
+        }
+        '''widgets = {
+            'name': forms.TextInput(attrs={'disabled': 'disabled'}),
+            'start_date': forms.DateInput(attrs={'disabled': 'disabled'}),
+            'end_date': forms.Textarea(attrs={'disabled': 'disabled'}),
+        }'''
 
 class RoleAssignmentForm(forms.ModelForm):
     class Meta:
