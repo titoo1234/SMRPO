@@ -13,7 +13,7 @@ from django import forms
 
 # Create your views here.
 def get_context(request):
-    '''
+    
     try:
         uporabnik = request.session.get('uporabnik')
         admin = request.session.get('admin')
@@ -22,11 +22,11 @@ def get_context(request):
         uporabnik = None
         admin = False
         up_id = None
-        '''
+        
     context = {}
-    context['user1'] = "ad"#uporabnik
-    context['admin'] = "ad"#admin
-    context['id'] = 1#up_id
+    context['user1'] = uporabnik #"ad"#
+    context['admin'] = admin #"ad"#
+    context['id'] = up_id #1#
     return context
 
 
