@@ -207,22 +207,21 @@ def new_project(request):
      if request.method == 'POST':
         # Project.objects.all().delete()
         form = ProjectForm(request.POST)
-        print(1)
+        #print(1)
         if form.is_valid(): 
             name = form.data['name']
             existing_project = Project.objects.filter(name=name).first()
             if existing_project:
-                print(4)
+                #print(4)
                 messages.error(request,"Projekt s tem imenom že obstaja!")
                 return redirect(request.path)
             else:
-                print(5)
-                form.save()
-                #TODO preusemri ga v assign roles
-                # return redirect('home')
-                return redirect(reverse('assign_roles', kwargs={'ime_projekta': name}))
+                #form.save()
+                request.session["forma"] = request.POST# v assign_roles jo shranimo, ker neželimo da se ustvari prej
+                # treba je shranit celo POST metodo ker ima zraven token za validacijo
+                return redirect(reverse('assign_roles',kwargs={'ime_projekta': name}))
         else:
-            print(3)
+            #print(3)
             messages.error(request,"Napačni podatki!")
             return redirect(request.path)
      else:
@@ -236,6 +235,11 @@ def new_project(request):
      
 def assign_roles(request,ime_projekta):
     if request.method == 'POST':
+        #nalozim projekt
+        data = request.session.get("forma")
+        forma = ProjectForm(data)
+        forma.save()
+        #
         project1 = Project.objects.get(name=ime_projekta)
         product_owner_id = request.POST.get('product_owner')
         methodology_manager_id = request.POST.get('methodology_manager')
