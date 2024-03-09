@@ -1,9 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <meta charset="UTF-8">
     <title>{% block title %}Home{% endblock %}</title>
     <style>
+        
+        /* CSS za pojavno okno dokumentacije */
+#documentation-popup-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Zatemni ozadje */
+    display: none; /* Privzeto skrito */
+    justify-content: center;
+    align-items: center;
+}
+
+
         body {
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
@@ -142,6 +158,12 @@
             {% if user1 %}
             <li><a href="/user/{{id}}/edit">My Profile</a></li>
             {% endif %}
+           
+
+<!-- Vključitev pojavno okno dokumentacije -->
+            
+            <li style="float: right; color: white;"><a  onclick="openDocumentationPopup()"><i class="fas fa-book"></i> Documentation</a></li>
+            {% include 'documentation_popup.html' %}
         </ul>
     </div>
 
@@ -151,4 +173,19 @@
 {% endblock %}
 
 </body>
+<script>
+    // JavaScript za upravljanje pojavno okno dokumentacije
+    var currentPosition;
+
+function openDocumentationPopup() {
+    currentPosition = window.pageYOffset || document.documentElement.scrollTop;
+    document.getElementById("documentation-popup-container").style.display = "flex";
+}
+
+function closeDocumentationPopup() {
+    document.getElementById("documentation-popup-container").style.display = "none";
+    // Vrnite se na shranjeno pozicijo strani
+    window.scrollTo(0, currentPosition);
+}
+</script>
 </html>

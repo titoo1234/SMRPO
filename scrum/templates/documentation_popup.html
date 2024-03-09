@@ -1,0 +1,105 @@
+<!-- HTML za pojavno okno dokumentacije -->
+<div id="documentation-popup-container">
+    <div id="fixed-content">
+        <!-- Vsebina vašega pojavno okna dokumentacije -->
+        <h2>Dokumentacija</h2>
+        <div class="category">
+            <h3 onclick="toggleCategory('category1')">Prijava in dodajanje novega uporabnika</h3>
+            <div id="category1" style="display: none">
+                <p>Uporabnik se prijavi v zavihku »Login«. Ob neuspeli prijavi dobi opozorilo. </p>
+                <p>Če ima uporabnik admin pravice lahko doda nove uporabnike, ki jim dodeli ime, priimer, uporabniško ime, mail in geslo. Doda jih v zavihku "Register".</p>
+                <p>Mail mora biti pravilno generiran, uporabniško ime mora biti unikatno.</p>
+            </div>
+        </div>
+        <div class="category">
+            <h3 onclick="toggleCategory('category2')">Vzdrževanje uporabniških računov</h3>
+            <div id="category2" style="display: none">
+                <p>Uporabnik, ki ima admin pravice, lahko dostopa do vseh uporabniških računov in ureja njihove podatke. Te najde pod zavitkom »All Users«.</p>
+                <p>Spremeni lahko vse podatke, pri tem pa se preverja, da je uporabniško ime še neuporabljeno.</p>
+                <p>Možnost ima tudi brisati račune. Račun, ki je zbrisan, je še vedno lahko dostopen. Najdemo ga pod »Deleted users«</p>
+                <p>Zbrisane račune je možno ponovno aktivirati.</p>
+            </div>
+        </div>
+        <div class="category">
+            <h3 onclick="toggleCategory('category3')">Spreminjanje lastnih uporabniških podatkov</h3>
+            <div id="category3" style="display: none">
+                <p>Vsak uporabnik lahko spreminja svoje podatke(uporabniško ime, geslo, ime, priimek, mail). Podatka o pravicah admina ne more spreminjat, če le ta ni admin.</p>
+                <p>Podatke lahko spreminja le v dovoljenih mejah. Držati se mora oblike, prav tako pa se ne dovoljuje, da imata dva uporabnika isto uporabniško ime.</p>
+                <p>Podatke spreminja v zavihku »My Profile«</p>
+            </div>
+        </div>
+        <!-- Dodajte gumb za zapiranje okna -->
+        <button class="close-button" onclick="closeDocumentationPopup()">Close</button>
+    </div>
+</div>
+
+<script>
+    function toggleCategory(categoryId) {
+        var category = document.getElementById(categoryId);
+        if (category.style.display === "none" || category.style.display === "") {
+            category.style.display = "block";
+        } else {
+            category.style.display = "none";
+        }
+    }
+</script>
+
+<style>
+    /* CSS za izboljšanje videza pojavno okno dokumentacije */
+    #documentation-popup-container {
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+
+        padding: 20px;
+        /* overflow-y: auto; */
+        z-index: 9999;
+    }
+    #fixed-content {
+    position: absolute;
+    top: 20%; /* Prilagodite glede na vaše potrebe */
+    left: 20%; /* Prilagodite glede na vaše potrebe */
+    right: 20%; /* Prilagodite glede na vaše potrebe */
+    bottom: 20%; /* Prilagodite glede na vaše potrebe */
+    overflow-y: auto; /* Omogoči vertikalno pomikanje, če je vsebina prevelika */
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+    #documentation-popup-content {
+        padding: 10px;
+    }
+
+    h2 {
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    .category {
+        margin-bottom: 20px;
+        
+    }
+
+    .category h3 {
+        color: #007bff;
+        cursor: pointer;
+        margin-bottom: 10px;
+    }
+
+    .category p {
+        margin-bottom: 20px;
+    }
+
+    .close-button {
+        background-color: #007bff;
+        color: #fff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        margin-top: 20px;
+    }
+
+    .close-button:hover {
+        background-color: #0056b3;
+    }
+</style>
