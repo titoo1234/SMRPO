@@ -302,9 +302,9 @@ def project_edit(request,project_name):
         context['form'] = form
         return render(request, 'project_edit.html', context)
 
-def check_sprint_dates(start_date, end_date, duration, project):
-    start = datetime.strptime(start_date, '%Y-%m-%d')
-    end = datetime.strptime(end_date, '%Y-%m-%d')
+def check_sprint_dates(start_date, end_date, duration, sprints):
+    start = datetime.strptime(start_date, '%Y-%m-%d').replace(tzinfo=timezone.get_current_timezone())
+    end = datetime.strptime(end_date, '%Y-%m-%d').replace(tzinfo=timezone.get_current_timezone())
 
     # Preveri za primer, ko je končni datum pred začetnim.
     if start > end:
@@ -319,10 +319,9 @@ def check_sprint_dates(start_date, end_date, duration, project):
         return False
     
     # Preveri za primer, ko se dodani Sprint prekriva s katerim od obstoječih.
-    sprints = Sprint.objects.filter(project=project)
     for sprint in sprints:
-        sprint_start = datetime.strptime(sprint.start_date, '%Y-%m-%d')
-        sprint_end = datetime.strptime(sprint.end_date, '%Y-%m-%d')
+        sprint_start = datetime.strptime(sprint.start_date, '%Y-%m-%d').replace(tzinfo=timezone.get_current_timezone())
+        sprint_end = datetime.strptime(sprint.end_date, '%Y-%m-%d').replace(tzinfo=timezone.get_current_timezone())
         if start >= sprint_start and start <= sprint_end:
             return False
 
@@ -344,7 +343,8 @@ def sprints_list_handler(request, project_name):
             start_date = request.POST.get('start_date')
             end_date = request.POST.get('end_date')
             duration = request.POST.get('duration')
-            if check_sprint_dates(start_date, end_date, duration, project):
+            sprints = Sprint.objects.filter(project=project)
+            if check_sprint_dates(start_date, end_date, duration, sprints):
                 return JsonResponse({'message': 'Sprint dates are not regular'}, status=400)
             sprint = Sprint.objects.create(project=project, start_date=start_date, end_date=end_date)
             sprint.save()
