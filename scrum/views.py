@@ -11,6 +11,9 @@ from django.http import HttpResponse,request, JsonResponse
 from django.urls import reverse
 from django import forms
 
+from datetime import datetime
+from django.utils import timezone
+
 # Create your views here.
 def get_context(request):
     
@@ -56,7 +59,6 @@ def test(request):
 
 def user_login(request):
     if request.method == 'POST':
-        print("LOGIN")
         messages.error(request, '')
         form = UserLoginForm(request.POST)
         username = form.data['username']
@@ -207,21 +209,18 @@ def new_project(request):
      if request.method == 'POST':
         # Project.objects.all().delete()
         form = ProjectForm(request.POST)
-        #print(1)
         if form.is_valid(): 
             name = form.data['name']
             existing_project = Project.objects.filter(name=name).first()
             if existing_project:
-                #print(4)
                 messages.error(request,"Projekt s tem imenom že obstaja!")
                 return redirect(request.path)
             else:
-                #form.save()
-                request.session["forma"] = request.POST# v assign_roles jo shranimo, ker neželimo da se ustvari prej
-                # treba je shranit celo POST metodo ker ima zraven token za validacijo
-                return redirect(reverse('assign_roles',kwargs={'ime_projekta': name}))
+                form.save()
+                #TODO preusemri ga v assign roles
+                # return redirect('home')
+                return redirect(reverse('assign_roles', kwargs={'ime_projekta': name}))
         else:
-            #print(3)
             messages.error(request,"Napačni podatki!")
             return redirect(request.path)
      else:
@@ -283,7 +282,6 @@ def project_view(request,project_name):
     is_creator = (project.creator.id == context['id'])
     context['is_creator'] = is_creator
     sprints = Sprint.objects.filter(project=project)
-    print('Sprints: ',sprints)
     context['sprints'] = sprints
     return render(request, 'project.html', context)
 
@@ -304,16 +302,50 @@ def project_edit(request,project_name):
         context['form'] = form
         return render(request, 'project_edit.html', context)
 
+def check_sprint_dates(start_date, end_date, duration, project):
+    start = datetime.strptime(start_date, '%Y-%m-%d')
+    end = datetime.strptime(end_date, '%Y-%m-%d')
+
+    # Preveri za primer, ko je končni datum pred začetnim.
+    if start > end:
+        return False
+
+    # Preveri za primer, ko je začetni datum v preteklosti.
+    if start < timezone.now():
+        return False
+
+    # Preveri za neregularno vrednost hitrosti Sprinta.
+    if start + timezone.timedelta(days=duration) != end:
+        return False
+    
+    # Preveri za primer, ko se dodani Sprint prekriva s katerim od obstoječih.
+    sprints = Sprint.objects.filter(project=project)
+    for sprint in sprints:
+        sprint_start = datetime.strptime(sprint.start_date, '%Y-%m-%d')
+        sprint_end = datetime.strptime(sprint.end_date, '%Y-%m-%d')
+        if start >= sprint_start and start <= sprint_end:
+            return False
+
+        if end >= sprint_start and end <= sprint_end:
+            return False
+
+        if start <= sprint_start and end >= sprint_end:
+            return False
+    
+    return True
+
 @require_http_methods(["POST", "GET"])
 def sprints_list_handler(request, project_name):
     if request.method == 'POST':
-        print("POST: ",project_name)
         try:
             project = Project.objects.get(name=project_name)
            
             # get start and end date and check for regularity
             start_date = request.POST.get('start_date')
             end_date = request.POST.get('end_date')
+            duration = request.POST.get('duration')
+            if check_sprint_dates(start_date, end_date, duration, project):
+                return JsonResponse({'message': 'Sprint dates are not regular'}, status=400)
             sprint = Sprint.objects.create(project=project, start_date=start_date, end_date=end_date)
             sprint.save()
             return redirect('home')#JsonResponse({'message': 'Sprint created successfully'})
