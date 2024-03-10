@@ -1,16 +1,13 @@
 from django.shortcuts import render,redirect
 from  django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-
-from scrum.models import User,Project,AssignedRole, Sprint
-from .forms import UserLoginForm,UserRegisterForm,ProjectForm,RoleAssignmentForm,ProjectDisabledForm,SprintForm
+from scrum.models import User,Project,AssignedRole, Sprint, UserStory
+from .forms import UserLoginForm,UserRegisterForm,ProjectForm,RoleAssignmentForm,ProjectDisabledForm,SprintForm,UserStoryForm
 from django.contrib import messages
-# from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login
 from django.http import HttpResponse,request, JsonResponse
 from django.urls import reverse
 from django import forms
-
 from datetime import datetime
 from django.utils import timezone
 
@@ -32,7 +29,6 @@ def get_context(request):
     context['id'] = up_id #1#
     return context
 
-
 def logout(request):
     try:
         del request.session['uporabnik']
@@ -40,6 +36,7 @@ def logout(request):
     except:
         pass
     return redirect('home')
+
 def get_projects(uporabnik_id):
     project_ids = AssignedRole.objects.filter(user_id=uporabnik_id).values_list('project', flat=True).distinct()
     projects = Project.objects.filter(id__in=project_ids)
@@ -54,6 +51,7 @@ def home(request):
         projects = []
     context['projects'] = projects
     return render(request, 'home.html',context)
+
 def test(request):
     return render(request, 'index.html')
 
@@ -270,8 +268,6 @@ def assign_roles(request,ime_projekta):
         # context['formAssignment'] = RoleAssignmentForm()
         context['allusers'] = all_users
         return render(request,'assign_roles.html',context=context)
-    
-
 
 def project_view(request,project_name):
     context = get_context(request)
@@ -305,7 +301,6 @@ def project_edit(request,project_name):
 def check_sprint_dates(start_date, end_date, duration, sprints):
     start = datetime.strptime(start_date, '%Y-%m-%d').replace(tzinfo=timezone.get_current_timezone())
     end = datetime.strptime(end_date, '%Y-%m-%d').replace(tzinfo=timezone.get_current_timezone())
-
     # Preveri za primer, ko je končni datum pred začetnim.
     if start > end:
         return False
@@ -416,3 +411,23 @@ def edit_sprint(request,project_name,sprint_id):
         except Exception as e:
             print(e)
             return JsonResponse({'message': str(e)}, status=400)
+        
+# User story
+# ======================================================
+def new_user_story(request):
+    if request.method == "POST":
+        form = UserStoryForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Uporabniška zgodba uspešno dodana!!")
+            return redirect('new_user_story')
+        else:
+            messages.error(request, "Neveljavni podatki. Vnesi pravilne podatke.")
+            return redirect('new_user_story')
+    else:
+        context = get_context(request)
+        user = User.objects.get(username = context['user1'])
+        all_users = User.objects.all()
+        context['form'] = UserStoryForm(initial={'creator': user}) 
+        context['allusers'] = all_users
+        return render(request,'new_user_story.html',context=context)

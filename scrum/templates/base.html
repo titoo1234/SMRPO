@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+
+<!doctype html>
 <html lang="en">
 <head>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -148,8 +149,12 @@
             {% if user1 %}
                 <li><a href="/logout">Odjava: {{ user1 }}</a></li>
                 {% if admin %}
-                    <li><a href="/register">Register</a></li>
-                    <li><a href="/allusers">All Users</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/register">Registriraj se</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/allusers">Vsi uporabniki</a>
+                    </li>
                 {% endif %}
             {% else %}
                 <li><a href="/login">Login</a></li>
