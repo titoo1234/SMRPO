@@ -18,9 +18,9 @@ urlpatterns = [
     path('user/<int:user_id>/delete/', views.delete_user, name='delete_user'),
     path('deleted_user/<int:user_id>/edit/', views.edit_deleted_user, name='edit_deleted_user'),
     path('project/<str:project_name>/sprints', views.sprints_list_handler, name='create_sprint'),
-    path('project/<str:project_name>/sprint/<int:sprint_id>/', views.sprint_details_handler, name='sprint_details'),
+    path('project/<str:project_name>/sprint/<int:sprint_id>', views.sprint_details_handler, name='sprint_details'),
     path('project/<str:project_name>/new_sprint/', views.new_sprint, name='new_sprint'),
-
+    path('project/<str:project_name>/sprint/<int:sprint_id>/edit', views.edit_sprint, name='sprint_edit'),
     # re_path(r'^login/$', views.userApi, name='user_login')
     # re_path(r'user/[0-9]+$', views.userApi,name='test1'),
     # path('user/', views.userApi),
