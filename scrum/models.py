@@ -14,7 +14,7 @@ class User(models.Model):
         return self.name
 
 class Project(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100,unique=True)
     creation_date = models.DateField()
     description = models.TextField()
     creator = models.ForeignKey(User, on_delete=models.CASCADE)

@@ -14,6 +14,51 @@ Project {{project.name}}
         <p class="error-message">{{ message }}</p>
         {% endfor %}
     </form>
-   
+    <table>
+        <thead>
+            {% if users_to_add %}
+            <tr>
+                <td colspan="2">
+                    <select name="add_member" id="add_member">
+                        <!-- Možnosti za izbiro lastnika izdelka -->
+                        {% for user in users_to_add %}
+                            <option value="{{ user.id }}">{{ user.username }}</option>
+                        {% endfor %}
+                    </select>
+                    <a href="#" onclick="addMember()">Add Member</a>
+                    <!-- <a href="/project/{{project}}/add_member/">Add Member</a> -->
+                </td>
+            </tr>
+            {% endif %}
+            <tr>
+                <th>Username</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Celica za gumb Add member -->
 
+            <!-- Ostali člani projekta -->
+            {% for member in project_members %}
+            <tr>
+                <td>{{ member }}</td>
+                <td>
+                    <a href="/project/{{project}}/remove_member/{{member.id}}/">Remove</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <button type = "submit" href = > Edit Roles</button>
+
+
+
+    <script>
+        function addMember() {
+            var selectedUserId = document.getElementById('add_member').value;
+            var url = '/project/{{ project }}/add_member/' + selectedUserId;
+            window.location.href = url;
+        }
+    </script>
 {% endblock %}

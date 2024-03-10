@@ -318,8 +318,33 @@ def project_edit(request,project_name):
         context = get_context(request)
         context['project'] = project
         form = ProjectForm(instance=project)
+        all_users = User.objects.all()
+        context['allusers'] = all_users
+        
+        project_members1 = ProjectMember.objects.filter(project=project)
+        project_members = [User.objects.get(id = obj.user.id) for obj in project_members1]
+        users_to_add = [user for user in all_users if user not in project_members]
+        context['project_members'] = project_members
+        context['users_to_add'] = users_to_add
         context['form'] = form
         return render(request, 'project_edit.html', context)
+    
+def add_member_to_project(request,project,user_id):
+    # member_id = request.POST.get('add_member') 
+    user = User.objects.get(id=user_id)
+    project = Project.objects.get(name = project)
+    nov = ProjectMember.objects.create(project = project,user = user)
+    nov.save()
+    return redirect('project_edit',project_name = project)
+
+def remove_member(request,project,user):
+    # product_owner_id = request.POST.get('add_member') 
+    project = Project.objects.get(name = project)
+    user = User.objects.get(id=user)
+    nov = ProjectMember.objects.get(project = project.id,user = user.id)
+    nov.delete()
+    return redirect('project_edit',project_name = project)
+
 
 def check_sprint_dates(start_date, end_date, duration, sprints):
     start = datetime.strptime(start_date, '%Y-%m-%d').replace(tzinfo=timezone.get_current_timezone())
