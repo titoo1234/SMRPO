@@ -10,7 +10,8 @@ from django.urls import reverse
 from django import forms
 from datetime import datetime
 from django.utils import timezone
-
+from .tables import ProjectTable
+from django_tables2 import RequestConfig
 # Create your views here.
 def get_context(request):
     
@@ -50,6 +51,10 @@ def home(request):
     except:
         projects = []
     context['projects'] = projects
+    queryset = Project.objects.all()
+    tabela = ProjectTable(queryset)
+    RequestConfig(request).configure(tabela)
+    context['tabela'] = tabela
     return render(request, 'home.html',context)
 
 def test(request):

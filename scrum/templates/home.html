@@ -1,3 +1,12 @@
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#tabela').DataTable();
+    });
+</script>
+
 <style>
 
 .project-container {
@@ -39,13 +48,14 @@
     }
 </style>
 {% extends 'base.html' %}
-
+{% load render_table from django_tables2 %}
 {% block title %}
 Home
 {% endblock %}
 
 {% block content %}
-
+{% load django_tables2 %}
+{% render_table tabela  %}
 {% if user1 %}
  <h1>Your projects:</h1>
 
@@ -58,6 +68,7 @@ Home
             </a>
         {% endfor %}
     </div>
+    
 
  <h1>New Project</h1>
  <a href="{% url 'new_project' %}"><button type='submit'>New Project</button></a>
