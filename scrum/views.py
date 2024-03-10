@@ -214,10 +214,10 @@ def new_project(request):
                 messages.error(request,"Projekt s tem imenom že obstaja!")
                 return redirect(request.path)
             else:
-                form.save()
-                #TODO preusemri ga v assign roles
-                # return redirect('home')
-                return redirect(reverse('assign_roles', kwargs={'ime_projekta': name}))
+                #form.save()
+                request.session["forma"] = request.POST# v assign_roles jo shranimo, ker neželimo da se ustvari prej
+                # treba je shranit celo POST metodo ker ima zraven token za validacijo
+                return redirect(reverse('assign_roles',kwargs={'ime_projekta': name}))
         else:
             messages.error(request,"Napačni podatki!")
             return redirect(request.path)
