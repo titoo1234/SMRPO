@@ -1,7 +1,7 @@
 from django.shortcuts import render,redirect
 from  django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from scrum.models import User,Project,AssignedRole, Sprint, UserStory
+from scrum.models import User,Project,AssignedRole, Sprint, UserStory,ProjectMember
 from .forms import UserLoginForm,UserRegisterForm,ProjectForm,RoleAssignmentForm,ProjectDisabledForm,SprintForm,UserStoryForm
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
@@ -217,7 +217,7 @@ def new_project(request):
                 #form.save()
                 request.session["forma"] = request.POST# v assign_roles jo shranimo, ker neželimo da se ustvari prej
                 # treba je shranit celo POST metodo ker ima zraven token za validacijo
-                return redirect(reverse('assign_roles',kwargs={'ime_projekta': name}))
+                return redirect(reverse('add_members',kwargs={'ime_projekta': name}))
         else:
             messages.error(request,"Napačni podatki!")
             return redirect(request.path)
@@ -229,6 +229,22 @@ def new_project(request):
         # context['formAssignment'] = RoleAssignmentForm()
         context['allusers'] = all_users
         return render(request,'new_project.html',context=context)
+     
+def add_members(request,ime_projekta):
+    if request.method == 'POST':
+        project_members = request.POST.getlist('project_members')
+        request.session["project_members"] = project_members
+        if len(project_members) == 0: #MORAŠ IZBRATI VSAJ ENEGA!
+            messages.error(request,"Izbrati moraš vsaj enega člana!")
+            return redirect(request.path)
+        else:
+            return redirect(reverse('assign_roles',kwargs={'ime_projekta': ime_projekta}))
+    else:
+        context = get_context(request)
+        all_users = User.objects.all()
+        context['project_name'] =  ime_projekta
+        context['allusers'] = all_users
+        return render(request,'add_members.html',context=context)
      
 def assign_roles(request,ime_projekta):
     if request.method == 'POST':
@@ -244,6 +260,10 @@ def assign_roles(request,ime_projekta):
         # project_name = request.POST.get('project_name')
         existing_project = Project.objects.get(name=ime_projekta)
         if existing_project:
+            for member in request.session.get("project_members"):
+                u1 = User.objects.get(id = member)
+                nov = ProjectMember.objects.create(user = u1,project = project1)
+                nov.save()
             u = User.objects.get(id = product_owner_id)
             nov = AssignedRole.objects.create(user = u,role = 'product_owner',project = project1)
             nov.save()
@@ -258,11 +278,14 @@ def assign_roles(request,ime_projekta):
             return redirect('home')
         else:
             #TODO NEVEM KAJ TUKAJ
-            messages.error(request,"Napačni podatki!")
-            redirect('home')
+            messages.error(request,"Ojoj, Napaka!")
+            return redirect(request.path)
     else:
         context = get_context(request)
         all_users = User.objects.all()
+        project_members1 = request.session.get("project_members")
+        project_members = [User.objects.get(id = user_id) for user_id in project_members1]
+        context['project_members'] = project_members
         # context['form'] = ProjectForm(initial={'creator': user})
         context['project_name'] =  ime_projekta
         # context['formAssignment'] = RoleAssignmentForm()
