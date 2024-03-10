@@ -291,6 +291,55 @@ def assign_roles(request,ime_projekta):
         # context['formAssignment'] = RoleAssignmentForm()
         context['allusers'] = all_users
         return render(request,'assign_roles.html',context=context)
+    
+def edit_assign_roles(request,ime_projekta):
+    all_users = User.objects.all()
+    project = Project.objects.get(name=ime_projekta)
+    project_members1 = ProjectMember.objects.filter(project=project)
+    project_members = [User.objects.get(id = obj.user.id) for obj in project_members1]
+    methodology_manager_role = AssignedRole.objects.get(project = project,role = 'methodology_manager')
+    methodology_manager = methodology_manager_role.user
+    product_owner_role = AssignedRole.objects.get(project = project,role = 'product_owner')
+    product_owner = product_owner_role.user
+    development_team_members_roles = AssignedRole.objects.filter(project = project,role = 'development_team_member')
+    development_team_members = [obj.user for obj in development_team_members_roles]
+    if request.method == 'POST':
+        # preverimo kateri podatki se razlikujejo in jih spremenimo 
+        product_owner_new = request.POST.get('product_owner')
+        u = User.objects.get(id = product_owner_new)
+        product_owner_role.user = u
+        product_owner_role.save()
+        methodology_manager_new = request.POST.get('methodology_manager')
+        u = User.objects.get(id = methodology_manager_new)
+        methodology_manager_role.user = u
+        methodology_manager_role.save()
+        development_team_members_new = request.POST.getlist('development_team_members')
+        development_team_members_new = [User.objects.get(id = obj_id) for obj_id in development_team_members_new]
+        # Pogledamo če kakega starega ni v novih -> tega moremo zbrisati
+        for obj in development_team_members_roles:
+            if obj.user not in development_team_members_new:
+                obj.delete()
+        # Dodamo še nove:
+        for user in development_team_members_new:
+            print(user)
+            if user not in development_team_members:
+                print(user)
+                nov = AssignedRole.objects.create(project = project,user = user,role = 'development_team_member')
+                nov.save()
+
+        return redirect('project_edit',project_name= ime_projekta)
+        
+        
+    else:
+        # methodology_manager,product_owner,project_members
+        context = get_context(request)
+        context['methodology_manager'] = methodology_manager
+        context['product_owner'] = product_owner
+        context['development_team_members'] = development_team_members
+        context['project_members'] = project_members
+        context['project_name'] =  ime_projekta
+        context['allusers'] = all_users
+        return render(request,'assign_roles_edit.html',context=context)
 
 def project_view(request,project_name):
     context = get_context(request)
@@ -300,8 +349,11 @@ def project_view(request,project_name):
     context['form'] = form
     is_creator = (project.creator.id == context['id'])
     context['is_creator'] = is_creator
+    user = User.objects.get(id = context['id'])
+    methodology_manager = AssignedRole.objects.get(project = project,role = 'methodology_manager').user
+    context['editable'] = (user.admin_user or (user == methodology_manager))
     sprints = Sprint.objects.filter(project=project)
-    context['sprints'] = sprints
+    context['sprints'] = (sprints)
     return render(request, 'project.html', context)
 
 def project_edit(request,project_name):
@@ -341,6 +393,11 @@ def remove_member(request,project,user):
     # product_owner_id = request.POST.get('add_member') 
     project = Project.objects.get(name = project)
     user = User.objects.get(id=user)
+    #Preverimo če ima kakšen role, če ga ima vrni napako da mora najprej mu odstraniti role!!
+    assigned_roles = AssignedRole.objects.filter(project = project,user=user)
+    if assigned_roles:
+        messages.error(request,"Člana ne moreš izbrisati, ker ima dodeljeno funkcijo. Najprej mu odstrani funkijo, potem pa ga lahko odstraniš!")
+        return redirect('project_edit',project_name = project)
     nov = ProjectMember.objects.get(project = project.id,user = user.id)
     nov.delete()
     return redirect('project_edit',project_name = project)

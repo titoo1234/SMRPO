@@ -18,6 +18,7 @@ urlpatterns = [
     path('project/<str:project_name>/edit/', views.project_edit, name='project_edit'),
     path('project/<str:project>/add_member/<str:user_id>/', views.add_member_to_project, name='add_member_to_project'),
     path('project/<str:project>/remove_member/<str:user>/', views.remove_member, name='remove_member'),
+    path('project/<str:ime_projekta>/edit_assign_roles/', views.edit_assign_roles, name='edit_assign_roles'),
     path('user/<int:user_id>/delete/', views.delete_user, name='delete_user'),
     path('deleted_user/<int:user_id>/edit/', views.edit_deleted_user, name='edit_deleted_user'),
     path('project/<str:project_name>/sprints', views.sprints_list_handler, name='create_sprint'),
