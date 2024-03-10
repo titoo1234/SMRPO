@@ -1,13 +1,14 @@
 from django.shortcuts import render,redirect
 from  django.views.decorators.csrf import csrf_exempt
-from scrum.models import User,Project,AssignedRole
-from .forms import UserLoginForm,UserRegisterForm,ProjectForm,RoleAssignmentForm,ProjectDisabledForm
+from scrum.models import User,Project,AssignedRole, UserStory
+from .forms import UserLoginForm,UserRegisterForm,ProjectForm,RoleAssignmentForm,ProjectDisabledForm,UserStoryForm
 from django.contrib import messages
 # from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login
 from django.http import HttpResponse,request
 from django.urls import reverse
 from django import forms
+
 # Create your views here.
 def get_context(request):
     try:
@@ -24,7 +25,6 @@ def get_context(request):
     context['id'] = up_id
     return context
 
-
 def logout(request):
     try:
         del request.session['uporabnik']
@@ -32,6 +32,7 @@ def logout(request):
     except:
         pass
     return redirect('home')
+
 def get_projects(uporabnik_id):
     project_ids = AssignedRole.objects.filter(user_id=uporabnik_id).values_list('project', flat=True).distinct()
     projects = Project.objects.filter(id__in=project_ids)
@@ -46,6 +47,7 @@ def home(request):
         projects = []
     context['projects'] = projects
     return render(request, 'home.html',context)
+
 def test(request):
     return render(request, 'index.html')
 
@@ -198,8 +200,6 @@ def assign_roles(request,ime_projekta):
         # context['formAssignment'] = RoleAssignmentForm()
         context['allusers'] = all_users
         return render(request,'assign_roles.html',context=context)
-    
-
 
 def project_view(request,project_name):
     context = get_context(request)
@@ -228,6 +228,41 @@ def project_edit(request,project_name):
         context['form'] = form
         return render(request, 'project_edit.html', context)
 
-        
+# User story
+# ======================================================
+def new_user_story(request):
+    if request.method == "POST":
+        form = UserStoryForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Uporabniška zgodba uspešno dodana!!")
+            return redirect('new_user_story')
+        else:
+            messages.error(request, "Neveljavni podatki. Vnesi pravilne podatke.")
+            return redirect('new_user_story')
+    else:
+        context = get_context(request)
+        user = User.objects.get(username = context['user1'])
+        all_users = User.objects.all()
+        context['form'] = UserStoryForm(initial={'creator': user}) 
+        context['allusers'] = all_users
+        return render(request,'new_user_story.html',context=context)
+
+# def new_acceptance_test(request, user_story_id):
+#     user_story = UserStory.objects.get(pk=user_story_id)
+#     formset = AcceptanceTestForm(request.POST or None)
+
+#     if request.method == "POST":
+#         if formset.is_valid():
+#             formset.instance=user_story
+#             formset.save
+#             return redirect('new_acceptance_test', pk=user_story.id)
+#     else:
+#         context = get_context(request)
+#         # user = User.objects.get(username = context['user1'])
+#         # all_users = User.objects.all()
+#         context['formset'] = formset
+#         # context['allusers'] = all_users
+#         return render(request, 'new_acceptance_test.html', context=context)
 
 

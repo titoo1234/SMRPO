@@ -31,10 +31,24 @@ class Sprint(models.Model):
         return f"Sprint({self.start_date},{self.end_date})"
 
 class UserStory(models.Model):
-    name = models.CharField(max_length=100)
+    must_have = 'must_have'
+    could_have = 'could_have'
+    should_have = 'should_have'
+    wont_have_this_time = "wont_have_this_time"
+    PRIORITY_CHOICES = [
+        (must_have, 'Must have'),
+        (could_have, 'Could have'),
+        (should_have, 'Should have'),
+        (wont_have_this_time, "Won't have this time"),
+    ]
+    name = models.CharField(max_length=100, unique=True)
     description = models.TextField()
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     sprint = models.ForeignKey(Sprint, on_delete=models.CASCADE)
+    priority = models.CharField(max_length=50, choices=PRIORITY_CHOICES)
+    size = models.IntegerField()
+    business_value = models.IntegerField()
+    acceptance_tests = models.TextField()
 
     def __str__(self):
         return self.name

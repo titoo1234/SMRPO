@@ -16,8 +16,7 @@ urlpatterns = [
     path('project/<str:project_name>/', views.project_view, name='project_name'),
     path('project/<str:project_name>/edit/', views.project_edit, name='project_edit'),
     path('user/<int:user_id>/delete/', views.delete_user, name='delete_user'),
-    
-
+    path('new_user_story', views.new_user_story, name='new_user_story')
     # re_path(r'^login/$', views.userApi, name='user_login')
     # re_path(r'user/[0-9]+$', views.userApi,name='test1'),
     # path('user/', views.userApi),
