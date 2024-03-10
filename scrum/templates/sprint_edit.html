@@ -6,7 +6,7 @@ Edit Sprint
 
 {% block content %}
 <h2>Edit Sprint</h2>
-    <form method="post" action="project/{{project_name}}/sprint/{{sprint.id}}/edit">
+    <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit">Edit</button>

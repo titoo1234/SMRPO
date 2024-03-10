@@ -404,10 +404,15 @@ def edit_sprint(request,project_name,sprint_id):
             sprint = Sprint.objects.get(id=sprint_id)
             start_date = request.POST.get('start_date')
             end_date = request.POST.get('end_date')
+            duration = request.POST.get('duration')
             sprint.start_date = start_date
             sprint.end_date = end_date
+            sprint.duration = duration
             sprint.save()
             print(sprint)
-            return redirect('sprint_details')
+            return redirect('sprint_details', project_name=project_name, sprint_id=sprint_id)
         except Sprint.DoesNotExist:
             return JsonResponse({'message': 'Sprint does not exist'}, status=404)
+        except Exception as e:
+            print(e)
+            return JsonResponse({'message': str(e)}, status=400)
