@@ -364,25 +364,15 @@ def sprints_list_handler(request, project_name):
         except Exception as e:
             return JsonResponse({'message': str(e)}, status=400)
 
-@require_http_methods(["GET", "PUT", "DELETE"])
+@require_http_methods(["GET", "POST", "DELETE"])
 def sprint_details_handler(request, project_name, sprint_id):
     if request.method == 'GET':
         try:
             sprint = Sprint.objects.get(id=sprint_id)
-            return render(request, 'sprint_details.html', context={'sprint': sprint})
+            return render(request, 'sprint_details.html', context={'sprint': sprint, 'project_name': project_name})
         except Sprint.DoesNotExist:
             return JsonResponse({'message': 'Sprint does not exist'}, status=404)
-    if request.method == 'PUT':
-        try: 
-            sprint = Sprint.objects.get(id=sprint_id)
-            start_date = request.data.get('start_date')
-            end_date = request.data.get('end_date')
-            sprint.start_date = start_date
-            sprint.end_date = end_date
-            sprint.save()
-            return JsonResponse({'message': 'Sprint updated successfully'})
-        except Sprint.DoesNotExist:
-            return JsonResponse({'message': 'Sprint does not exist'}, status=404)
+    
     if request.method == 'DELETE':
         sprint = Sprint.objects.get(id=sprint_id)
         sprint.delete()
@@ -398,3 +388,26 @@ def new_sprint(request,project_name):
     context['allusers'] = all_users
     context['project'] = project
     return render(request,'new_sprint.html',context=context)
+
+def edit_sprint(request,project_name,sprint_id):
+    if request.method == 'GET':
+        sprint = Sprint.objects.get(id=sprint_id)
+        context = get_context(request)
+        context['sprint'] = sprint
+        context['project_name'] = project_name
+        form = SprintForm(instance=sprint)
+        context['form'] = form
+        return render(request, 'sprint_edit.html', context)
+    if request.method == 'POST':
+        print("POST")
+        try: 
+            sprint = Sprint.objects.get(id=sprint_id)
+            start_date = request.POST.get('start_date')
+            end_date = request.POST.get('end_date')
+            sprint.start_date = start_date
+            sprint.end_date = end_date
+            sprint.save()
+            print(sprint)
+            return redirect('sprint_details')
+        except Sprint.DoesNotExist:
+            return JsonResponse({'message': 'Sprint does not exist'}, status=404)

@@ -7,6 +7,8 @@ Sprint {{sprint.id}}
 {% block content %}
 <p>Začetek: {{sprint.start_date}}</p>
 <p>Konec: {{sprint.end_date}}</p>
+<p>Trajanje: {{sprint.duration}} dni</p>
+<a role="button" href="/project/{{project_name}}/sprint/{{sprint.id}}/edit" class="btn btn-primary">Uredi</a>
 <div class="row">
     <div class="col-md-4">
         <!-- First column content -->
