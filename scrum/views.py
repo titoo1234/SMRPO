@@ -10,7 +10,7 @@ from django.urls import reverse
 from django import forms
 from datetime import datetime
 from django.utils import timezone
-from .tables import ProjectTable
+from .tables import ProjectTable,UserTable
 from django_tables2 import RequestConfig
 # Create your views here.
 def get_context(request):
@@ -52,7 +52,7 @@ def home(request):
         projects = []
     context['projects'] = projects
     queryset = Project.objects.all()
-    tabela = ProjectTable(queryset)
+    tabela = ProjectTable(queryset, admin = True)
     RequestConfig(request).configure(tabela)
     context['tabela'] = tabela
     return render(request, 'home.html',context)
@@ -115,6 +115,15 @@ def user_register(request):
 
 def allusers(request):
     context = get_context(request)
+    active_users = User.objects.filter(active=True)
+    active_users = UserTable(active_users, admin = True)
+    RequestConfig(request).configure(active_users)
+    context['active_users'] = active_users
+
+    no_active_users = User.objects.filter(active=False)
+    no_active_users = UserTable(no_active_users, admin = True)
+    RequestConfig(request).configure(no_active_users)
+    context['no_active_users'] = no_active_users
     context['users'] = User.objects.all()
     return render(request,'all_users.html',context)
 

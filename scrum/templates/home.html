@@ -1,52 +1,4 @@
-<link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
-<script>
-    $(document).ready(function() {
-        $('#tabela').DataTable();
-    });
-</script>
 
-<style>
-
-.project-container {
-        display: flex; /* Uporaba CSS fleksibilnega kontejnerja */
-        justify-content: space-between; /* Porazdelitev prostora med elementi */
-        flex-wrap: nowrap; /* Preprečevanje zavijanja elementov v naslednjo vrstico */
-    }
-
-    .project-rectangle {
-        width: 150px;
-        height: 80px;
-        color: #fff; /* Bela */
-        text-align: center;
-        line-height: 80px; /* Spremenjeno, da ustreza višini pravokotnika */
-        font-weight: bold;
-        margin: 10px;
-        cursor: pointer;
-        animation: color-change 5s infinite alternate; /* Uporaba animacije */
-    }
-
-    @keyframes color-change {
-        0% {
-            background-color: #f1c40f; /* Rumena */
-            border: 2px solid #f39c12; /* Oranžna */
-        }
-        50% {
-            background-color: #3498db; /* Modra */
-            border: 2px solid #2980b9; /* Temno modra */
-        }
-        100% {
-            background-color: #ff6347; /* Rdeča */
-            border: 2px solid #dc143c; /* Vijolična */
-        }
-    }
-
-    .project-rectangle:hover {
-        background-color: #ff6347; /* Rdeča */
-        border-color: #dc143c; /* Vijolična */
-    }
-</style>
 {% extends 'base.html' %}
 {% load render_table from django_tables2 %}
 {% block title %}
@@ -54,26 +6,21 @@ Home
 {% endblock %}
 
 {% block content %}
-{% load django_tables2 %}
-{% render_table tabela  %}
-{% if user1 %}
- <h1>Your projects:</h1>
+<h1>Your projects:</h1>
 
-    <div class="project-container">
-        {% for proj_name in projects %}
-            <a href="project/{{proj_name}}/">
-                <div class="project-rectangle">
-                    Project: {{ proj_name }}
-                </div>
-            </a>
-        {% endfor %}
-    </div>
-    
+
+<div class="container">
+    {% load django_tables2 %}
+    {% render_table tabela  %}
+</div>
+
+
+{% if user1 %}
+
 
  <h1>New Project</h1>
  <a href="{% url 'new_project' %}"><button type='submit'>New Project</button></a>
 
- <h1>Uporabniška zgodba</h1>
- <a href="{% url 'new_user_story' %}"><button type='submit'>Uporabniška zgodba</button></a>
+
 {% endif %}
 {% endblock %}
