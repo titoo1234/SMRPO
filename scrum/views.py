@@ -10,7 +10,7 @@ from django.urls import reverse
 from django import forms
 from datetime import datetime
 from django.utils import timezone
-from .tables import ProjectTable,UserTable
+from .tables import ProjectTable,UserTable,DeletedUserTable
 from django_tables2 import RequestConfig
 # Create your views here.
 def get_context(request):
@@ -39,12 +39,12 @@ def logout(request):
     return redirect('home')
 
 def get_projects(uporabnik_id):
-    project_ids = AssignedRole.objects.filter(user_id=uporabnik_id).values_list('project', flat=True).distinct()
+    project_ids = ProjectMember.objects.filter(user=uporabnik_id).values_list('project', flat=True).distinct()
     projects = Project.objects.filter(id__in=project_ids)
     return list(projects)
     
 def home(request):
-    messages.error(request, '')
+    # messages.error(request, '')
     context = get_context(request)
     try:
         projects = get_projects(context['id'])
@@ -52,9 +52,15 @@ def home(request):
         projects = []
     context['projects'] = projects
     queryset = Project.objects.all()
-    tabela = ProjectTable(queryset, admin = True)
+    tabela = ProjectTable(projects, admin = context['admin'],user_id = context['id'])
     RequestConfig(request).configure(tabela)
     context['tabela'] = tabela
+
+    other = [p for p in queryset if p not in projects]
+    tabela_other = ProjectTable(other, admin = True,user_id = context['id'])
+    RequestConfig(request).configure(tabela_other)
+    context['tabela_other'] = tabela_other
+
     return render(request, 'home.html',context)
 
 def test(request):
@@ -121,7 +127,7 @@ def allusers(request):
     context['active_users'] = active_users
 
     no_active_users = User.objects.filter(active=False)
-    no_active_users = UserTable(no_active_users, admin = True)
+    no_active_users = DeletedUserTable(no_active_users, admin = True)
     RequestConfig(request).configure(no_active_users)
     context['no_active_users'] = no_active_users
     context['users'] = User.objects.all()
@@ -261,6 +267,7 @@ def add_members(request,ime_projekta):
         return render(request,'add_members.html',context=context)
      
 def assign_roles(request,ime_projekta):
+    context = get_context(request)
     if request.method == 'POST':
         #nalozim projekt
         data = request.session.get("forma")
@@ -278,6 +285,13 @@ def assign_roles(request,ime_projekta):
                 u1 = User.objects.get(id = member)
                 nov = ProjectMember.objects.create(user = u1,project = project1)
                 nov.save()
+            if context['id'] not in request.session.get("project_members"): #CREATORJA NASTAVI AVTOMATSKO KOT ČLANA
+                try:
+                    u1 = User.objects.get(id = context['id'])
+                    nov = ProjectMember.objects.create(user = u1,project = project1)
+                    nov.save()
+                except:
+                    pass
             u = User.objects.get(id = product_owner_id)
             nov = AssignedRole.objects.create(user = u,role = 'product_owner',project = project1)
             nov.save()
@@ -295,7 +309,7 @@ def assign_roles(request,ime_projekta):
             messages.error(request,"Ojoj, Napaka!")
             return redirect(request.path)
     else:
-        context = get_context(request)
+        
         all_users = User.objects.all()
         project_members1 = request.session.get("project_members")
         project_members = [User.objects.get(id = user_id) for user_id in project_members1]
@@ -383,13 +397,18 @@ def project_edit(request,project_name):
     else:
         context = get_context(request)
         context['project'] = project
+        methodology_manager = AssignedRole.objects.get(project=project,role = 'methodology_manager').user
+        
+        
         form = ProjectForm(instance=project)
         all_users = User.objects.all()
-        context['allusers'] = all_users
+        
         
         project_members1 = ProjectMember.objects.filter(project=project)
         project_members = [User.objects.get(id = obj.user.id) for obj in project_members1]
         users_to_add = [user for user in all_users if user not in project_members]
+
+        context['allusers'] = all_users
         context['project_members'] = project_members
         context['users_to_add'] = users_to_add
         context['form'] = form
@@ -415,6 +434,18 @@ def remove_member(request,project,user):
     nov = ProjectMember.objects.get(project = project.id,user = user.id)
     nov.delete()
     return redirect('project_edit',project_name = project)
+
+def delete_project(request,project_name):
+    context = get_context(request)
+    project = Project.objects.get(name = project_name)
+    methodology_manager = AssignedRole.objects.get(project=project,role = 'methodology_manager').user
+    if (methodology_manager.id != context['id'] and not context['admin']):
+        messages.error(request,"To pa ne bo šlo! Nisi admin ali methodology manager!")
+        return redirect('home')
+    else:
+        project.delete()
+
+        return redirect('home')
 
 
 def check_sprint_dates(start_date, end_date, duration, sprints):

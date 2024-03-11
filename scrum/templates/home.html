@@ -6,21 +6,21 @@ Home
 {% endblock %}
 
 {% block content %}
-<h1>Your projects:</h1>
-
-
-<div class="container">
-    {% load django_tables2 %}
-    {% render_table tabela  %}
-</div>
-
 
 {% if user1 %}
-
-
- <h1>New Project</h1>
- <a href="{% url 'new_project' %}"><button type='submit'>New Project</button></a>
-
-
+<h1>New Project</h1>
+<a href="{% url 'new_project' %}"><button type='submit'>New Project</button></a>
+<h1>Your projects:</h1>
+{% load django_tables2 %}
+{% render_table tabela  %}
 {% endif %}
+
+{% if admin %}
+<h1>Other projects:</h1>
+{% render_table tabela_other  %}
+{% endif %}
+
+{% for message in messages %}
+<p class="error-message">{{ message }}</p>
+{% endfor %}
 {% endblock %}
