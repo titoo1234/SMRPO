@@ -214,10 +214,10 @@ def new_project(request):
                 messages.error(request,"Projekt s tem imenom že obstaja!")
                 return redirect(request.path)
             else:
-                #form.save()
-                request.session["forma"] = request.POST# v assign_roles jo shranimo, ker neželimo da se ustvari prej
-                # treba je shranit celo POST metodo ker ima zraven token za validacijo
-                return redirect(reverse('assign_roles',kwargs={'ime_projekta': name}))
+                form.save()
+                #TODO preusemri ga v assign roles
+                # return redirect('home')
+                return redirect(reverse('assign_roles', kwargs={'ime_projekta': name}))
         else:
             messages.error(request,"Napačni podatki!")
             return redirect(request.path)
@@ -418,11 +418,11 @@ def new_user_story(request):
     if request.method == "POST":
         form = UserStoryForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Uporabniška zgodba uspešno dodana!!")
+            instance = form.save() 
+            messages.success(request, f"User story \"{instance.name}\" created!!")
             return redirect('new_user_story')
         else:
-            messages.error(request, "Neveljavni podatki. Vnesi pravilne podatke.")
+            messages.error(request, "Invalid input data!!")
             return redirect('new_user_story')
     else:
         context = get_context(request)
@@ -431,3 +431,33 @@ def new_user_story(request):
         context['form'] = UserStoryForm(initial={'creator': user}) 
         context['allusers'] = all_users
         return render(request,'new_user_story.html',context=context)
+    
+def edit_user_story(request, id):
+    user_story = UserStory.objects.get(id=id)
+    form = UserStoryForm(instance=user_story)
+    if request.method == "POST":
+        form = UserStoryForm(request.POST, instance=user_story)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"User story \"{user_story.name}\" updated!!")
+            return redirect('/')
+        else:
+            messages.error(request, "Invalid input data!!")
+            return redirect('new_user_story')
+    context = get_context(request)
+    context = {'form':form}
+    return render(request,'new_user_story.html',context=context)
+
+def delete_user_story(request, id):
+    user_story = UserStory.objects.get(id=id)
+    if request.method == "POST":
+        if user_story.sprint is not None:
+            user_story.delete()
+            return redirect('home')
+        else:
+            messages.error(request, f"User story \"{user_story.name}\" can't be deleted, because it is already in current sprint!!")
+            return redirect('/')
+    context = get_context(request)
+    context["user_story_id"] = user_story.id
+    context["user_story_name"] = user_story.name
+    return render(request, 'delete_user_story.html', context=context)

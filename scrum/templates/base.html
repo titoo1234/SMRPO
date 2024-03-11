@@ -147,13 +147,13 @@
         <ul>
             <li><a href="/">Home</a></li>
             {% if user1 %}
-                <li><a href="/logout">Odjava: {{ user1 }}</a></li>
+                <li><a href="/logout">Logout: {{ user1 }}</a></li>
                 {% if admin %}
                     <li class="nav-item">
-                        <a class="nav-link" href="/register">Registriraj se</a>
+                        <a class="nav-link" href="/register">Register user</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/allusers">Vsi uporabniki</a>
+                        <a class="nav-link" href="/allusers">Users</a>
                     </li>
                 {% endif %}
             {% else %}

@@ -78,23 +78,15 @@ class UserStoryForm(forms.ModelForm):
             'acceptance_tests': ""
         }
         widgets = {
-            'name': forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Ime'}), 
-            'description': forms.Textarea(attrs={'class':'form-control', 'rows':'3', 'placeholder': 'Opis'}), 
-            'project': forms.Select(attrs={'class':'form-control', 'placeholder': 'Izberi projekt'}), 
-            'sprint': forms.Select(attrs={'class':'form-control', 'placeholder': 'Izberi sprint'}), 
-            'priority': forms.Select(attrs={'class':'form-control', 'placeholder': 'Prioriteta'}), 
-            'size': forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Dolžina'}), 
-            'business_value': forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Poslovna vrednost'}), 
-            'acceptance_tests': forms.Textarea(attrs={'class':'form-control', 'rows': 5, 'placeholder': 'Sprejemni testi'}), 
+            'name': forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Name'}), 
+            'description': forms.Textarea(attrs={'class':'form-control', 'rows':'3', 'placeholder': 'Description'}), 
+            'project': forms.Select(attrs={'class':'form-control', 'placeholder': 'Choose project'}), 
+            'sprint': forms.Select(attrs={'class':'form-control', 'placeholder': 'Choose sprint'}), 
+            'priority': forms.Select(attrs={'class':'form-control', 'placeholder': 'Priority'}), 
+            'size': forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Size'}), 
+            'business_value': forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Business value'}), 
+            'acceptance_tests': forms.Textarea(attrs={'class':'form-control', 'rows': 5, 'placeholder': 'Acceptance tests'}), 
         }
-
-    def __init__(self, *args, **kwargs):
-        super(UserStoryForm, self).__init__(*args, **kwargs)
-        self.fields['project'].empty_label = None
-        self.fields['sprint'].empty_label = None
-        self.fields['priority'].empty_label = None
-
-
 
 
 

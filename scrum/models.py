@@ -43,13 +43,13 @@ class UserStory(models.Model):
         (wont_have_this_time, "Won't have this time"),
     ]
     name = models.CharField(max_length=100, unique=True)
-    description = models.TextField()
+    description = models.TextField(blank=True)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    sprint = models.ForeignKey(Sprint, on_delete=models.CASCADE)
-    priority = models.CharField(max_length=50, choices=PRIORITY_CHOICES)
-    size = models.IntegerField()
-    business_value = models.IntegerField()
-    acceptance_tests = models.TextField()
+    sprint = models.ForeignKey(Sprint, on_delete=models.CASCADE, blank=True, null=True)
+    priority = models.CharField(max_length=50, choices=PRIORITY_CHOICES, blank=True)
+    size = models.IntegerField(blank=True, null=True)
+    business_value = models.IntegerField(blank=True, null=True)
+    acceptance_tests = models.TextField(blank=True)
 
     def __str__(self):
         return self.name
