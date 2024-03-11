@@ -10,7 +10,7 @@ Project {{project.name}}
         {% csrf_token %}
         {{ form.as_p }}
     </form>
-    {% if is_creator %}
+    {% if editable %}
     <a href= '/project/{{project.name}}/edit'><button type='submit'>Edit</button></a>
     {% endif %}
     <h3>Sprints</h3>

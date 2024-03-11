@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Add members
+{% endblock %}
+
+{% block content %}
+<h2>Add members to project</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <label>Select project members:</label><br>
+        <!-- Možnosti za izbiro članov razvojne skupine -->
+        {% for user in allusers %}
+            <input type="checkbox" id="member_{{ user.id }}" name="project_members" value="{{ user.id }}">
+            <label for="member_{{ user.id }}">{{ user.username }}</label><br>
+        {% endfor %}
+
+
+        <button type="submit">Next</button>
+        {% for message in messages %}
+        <p class="error-message">{{ message }}</p>
+        {% endfor %}
+    </form>
+   
+
+{% endblock %}

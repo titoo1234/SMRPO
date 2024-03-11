@@ -14,7 +14,7 @@ class User(models.Model):
         return self.name
 
 class Project(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100,unique=True)
     creation_date = models.DateField()
     description = models.TextField()
     creator = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -99,4 +99,16 @@ class AssignedRole(models.Model):
     role = models.CharField(max_length=100, choices=ROLE_CHOICES)
 
     def __str__(self):
-        return f"{self.user.username} - {self.project.name} -"
+        return f"{self.user.username} - {self.project.name} - {self.role}"
+    
+
+#ZA EVIDENCO ČLANOV V PROJEKTU
+class ProjectMember(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    class Meta:
+        # Unikatna kombinacija uporabnika in projekta
+        unique_together = ['user', 'project']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.project.name}"
