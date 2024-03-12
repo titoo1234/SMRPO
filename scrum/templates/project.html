@@ -6,6 +6,7 @@ Project {{project.name}}
 
 {% block content %}
 <h2>Project {{project.name}}</h2>
+    <a href= '/project/{{project.name}}/wall/'><button type='submit'>Wall</button></a>
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}

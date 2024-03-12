@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import User,Project,AssignedRole,UserStory, Sprint
+from .models import User,Project,AssignedRole,UserStory, Sprint, ProjectWall
 from django.utils import timezone
 from django.forms.models import inlineformset_factory
 
@@ -95,6 +95,10 @@ class UserStoryForm(forms.ModelForm):
         self.fields['priority'].empty_label = None
 
 
+class ProjectWallForm(forms.ModelForm):
+    class Meta:
+        model = ProjectWall
+        fields = ["text"]
 
 
 

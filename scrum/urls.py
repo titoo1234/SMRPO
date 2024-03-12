@@ -26,6 +26,7 @@ urlpatterns = [
     path('project/<str:project_name>/sprint/<int:sprint_id>', views.sprint_details_handler, name='sprint_details'),
     path('project/<str:project_name>/new_sprint/', views.new_sprint, name='new_sprint'),
     path('project/<str:project_name>/sprint/<int:sprint_id>/edit', views.edit_sprint, name='sprint_edit'),
+    path('project/<str:project_name>/wall/', views.wall, name='wall'),
     path('new_user_story', views.new_user_story, name='new_user_story')
     # re_path(r'^login/$', views.userApi, name='user_login')
     # re_path(r'user/[0-9]+$', views.userApi,name='test1'),
