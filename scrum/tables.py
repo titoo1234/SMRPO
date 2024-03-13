@@ -1,6 +1,6 @@
 # tables.py
 import django_tables2 as tables
-from .models import Project,User,AssignedRole
+from .models import *
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.html import mark_safe
@@ -94,3 +94,14 @@ class DeletedUserTable(tables.Table):
         model = User
         fields = ('username','name', 'surname','mail','admin_user')
         template_name = "django_tables2/bootstrap5.html"
+
+
+class SprintTable(tables.Table):
+    class Meta:
+        model = Sprint
+        template_name = "django_tables2/bootstrap4.html"
+
+class UserStoryTable(tables.Table):
+    class Meta:
+        model = UserStory
+        template_name = "django_tables2/bootstrap4.html"
