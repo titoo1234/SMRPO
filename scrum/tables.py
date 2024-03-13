@@ -100,13 +100,13 @@ class DeletedUserTable(tables.Table):
 # ==============================================
 class UserStoryTable(tables.Table):
     name = tables.Column()
-    description = tables.Column()
-    project = tables.Column()
-    sprint = tables.Column()
+    # description = tables.Column()
+    # project = tables.Column()
+    # sprint = tables.Column()
     priority = tables.Column()
-    size = tables.Column()
-    business_value = tables.Column()
-    acceptance_tests = tables.Column()
+    # size = tables.Column()
+    # business_value = tables.Column()
+    # acceptance_tests = tables.Column()
     edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
     delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
 
@@ -120,7 +120,7 @@ class UserStoryTable(tables.Table):
 
     class Meta:
         model = UserStory
-        fields = ('name','description','project','sprint','priority','size','business_value','acceptance_tests','edit_button','delete_button')
+        fields = ('name','priority','edit_button','delete_button')
         template_name = "django_tables2/bootstrap5.html"
 
 # Sprint

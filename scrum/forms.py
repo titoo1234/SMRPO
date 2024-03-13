@@ -20,10 +20,11 @@ class ProjectForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['creation_date'].initial = timezone.now().date()
+        self.fields['creator'].widget = forms.HiddenInput() 
         #self.fields['creator'].disabled = True #TODO: zaenkrat je samo disablan, treba spremenit da bo fiksen
     class Meta:
         model = Project
-        fields = ['name','creation_date','description', 'creator']
+        fields = ['name','creation_date','description',"creator"]
 
 class ProjectDisabledForm(forms.ModelForm):
     class Meta:
