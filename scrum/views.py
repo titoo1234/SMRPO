@@ -627,7 +627,7 @@ def edit_user_story(request, id):
 
 def delete_user_story(request, id):
     user_story = UserStory.objects.get(id=id)
-    if request.method == "POST":
+    if request.method == "DELETE":
         if user_story.sprint is not None:
             user_story.delete()
             return redirect('home')
