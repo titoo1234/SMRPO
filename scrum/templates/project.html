@@ -6,13 +6,13 @@ Project {{project.name}}
 
 {% block content %}
 <h2>Project {{project.name}}</h2>
-    <form method="post">
+    <!-- <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
     </form>
     {% if editable %}
     <a href= '/project/{{project.name}}/edit'><button type='submit'>Edit</button></a>
-    {% endif %}
+    {% endif %} -->
     <h3>Sprints</h3>
     <a href= '/project/{{project.name}}/new_sprint/'><button type='submit'>Create Sprint</button></a>
     {% for sprint in sprints %}
@@ -22,6 +22,10 @@ Project {{project.name}}
             <p class="mb-0">End Date: <span class="font-weight-bold">{{ sprint.end_date }}</span></p>
         </div>
     </a>
-{% endfor %}
+    {% endfor %}
+    <h3>User stories</h3>
+    <a href="{% url 'new_user_story' %}"><button type='submit'>New User Story</button></a>
+    {% load django_tables2 %}
+    {% render_table user_story_table  %}
 {% endblock %}
 

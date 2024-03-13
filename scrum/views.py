@@ -1,16 +1,13 @@
 from django.shortcuts import render,redirect
-from  django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from scrum.models import User,Project,AssignedRole, Sprint, UserStory,ProjectMember
-from .forms import UserLoginForm,UserRegisterForm,ProjectForm,RoleAssignmentForm,ProjectDisabledForm,SprintForm,UserStoryForm
+from scrum.models import *
+from .forms import *
 from django.contrib import messages
-from django.contrib.auth import authenticate, login
 from django.http import HttpResponse,request, JsonResponse
 from django.urls import reverse
-from django import forms
 from datetime import datetime
 from django.utils import timezone
-from .tables import ProjectTable,UserTable,DeletedUserTable
+from .tables import *
 from django_tables2 import RequestConfig
 # Create your views here.
 def get_context(request):
@@ -382,6 +379,10 @@ def project_view(request,project_name):
     context['editable'] = (user.admin_user or (user == methodology_manager))
     sprints = Sprint.objects.filter(project=project)
     context['sprints'] = (sprints)
+    user_stories = UserStory.objects.filter(project=project)
+    user_story_table = UserStoryTable(user_stories)
+    RequestConfig(request).configure(user_story_table)
+    context['user_story_table'] = user_story_table
     return render(request, 'project.html', context)
 
 def project_edit(request,project_name):
