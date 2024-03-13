@@ -1,19 +1,17 @@
 from django.shortcuts import render,redirect
-from  django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-
-from scrum.models import User,Project,AssignedRole, Sprint
-from .forms import UserLoginForm,UserRegisterForm,ProjectForm,RoleAssignmentForm,ProjectDisabledForm,SprintForm
+from scrum.models import *
+from .forms import *
 from django.contrib import messages
-# from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login
 from django.http import HttpResponse,request, JsonResponse
 from django.urls import reverse
+
 from django import forms
 
 from datetime import datetime, time
 from django.utils import timezone
-
+from .tables import *
+from django_tables2 import RequestConfig
 # Create your views here.
 def get_context(request):
     
@@ -32,7 +30,6 @@ def get_context(request):
     context['id'] = up_id #1#
     return context
 
-
 def logout(request):
     try:
         del request.session['uporabnik']
@@ -40,20 +37,32 @@ def logout(request):
     except:
         pass
     return redirect('home')
+
 def get_projects(uporabnik_id):
-    project_ids = AssignedRole.objects.filter(user_id=uporabnik_id).values_list('project', flat=True).distinct()
+    project_ids = ProjectMember.objects.filter(user=uporabnik_id).values_list('project', flat=True).distinct()
     projects = Project.objects.filter(id__in=project_ids)
     return list(projects)
     
 def home(request):
-    messages.error(request, '')
+    # messages.error(request, '')
     context = get_context(request)
     try:
         projects = get_projects(context['id'])
     except:
         projects = []
     context['projects'] = projects
+    queryset = Project.objects.all()
+    tabela = ProjectTable(projects, admin = context['admin'],user_id = context['id'])
+    RequestConfig(request).configure(tabela)
+    context['tabela'] = tabela
+
+    other = [p for p in queryset if p not in projects]
+    tabela_other = ProjectTable(other, admin = True,user_id = context['id'])
+    RequestConfig(request).configure(tabela_other)
+    context['tabela_other'] = tabela_other
+
     return render(request, 'home.html',context)
+
 def test(request):
     return render(request, 'index.html')
 
@@ -112,6 +121,15 @@ def user_register(request):
 
 def allusers(request):
     context = get_context(request)
+    active_users = User.objects.filter(active=True)
+    active_users = UserTable(active_users, admin = True)
+    RequestConfig(request).configure(active_users)
+    context['active_users'] = active_users
+
+    no_active_users = User.objects.filter(active=False)
+    no_active_users = DeletedUserTable(no_active_users, admin = True)
+    RequestConfig(request).configure(no_active_users)
+    context['no_active_users'] = no_active_users
     context['users'] = User.objects.all()
     return render(request,'all_users.html',context)
 
@@ -216,10 +234,10 @@ def new_project(request):
                 messages.error(request,"Projekt s tem imenom že obstaja!")
                 return redirect(request.path)
             else:
-                form.save()
-                #TODO preusemri ga v assign roles
-                # return redirect('home')
-                return redirect(reverse('assign_roles', kwargs={'ime_projekta': name}))
+                #form.save()
+                request.session["forma"] = request.POST# v assign_roles jo shranimo, ker neželimo da se ustvari prej
+                # treba je shranit celo POST metodo ker ima zraven token za validacijo
+                return redirect(reverse('add_members',kwargs={'ime_projekta': name}))
         else:
             messages.error(request,"Napačni podatki!")
             return redirect(request.path)
@@ -232,7 +250,24 @@ def new_project(request):
         context['allusers'] = all_users
         return render(request,'new_project.html',context=context)
      
+def add_members(request,ime_projekta):
+    if request.method == 'POST':
+        project_members = request.POST.getlist('project_members')
+        request.session["project_members"] = project_members
+        if len(project_members) == 0: #MORAŠ IZBRATI VSAJ ENEGA!
+            messages.error(request,"Izbrati moraš vsaj enega člana!")
+            return redirect(request.path)
+        else:
+            return redirect(reverse('assign_roles',kwargs={'ime_projekta': ime_projekta}))
+    else:
+        context = get_context(request)
+        all_users = User.objects.all()
+        context['project_name'] =  ime_projekta
+        context['allusers'] = all_users
+        return render(request,'add_members.html',context=context)
+     
 def assign_roles(request,ime_projekta):
+    context = get_context(request)
     if request.method == 'POST':
         #nalozim projekt
         data = request.session.get("forma")
@@ -246,6 +281,17 @@ def assign_roles(request,ime_projekta):
         # project_name = request.POST.get('project_name')
         existing_project = Project.objects.get(name=ime_projekta)
         if existing_project:
+            for member in request.session.get("project_members"):
+                u1 = User.objects.get(id = member)
+                nov = ProjectMember.objects.create(user = u1,project = project1)
+                nov.save()
+            if context['id'] not in request.session.get("project_members"): #CREATORJA NASTAVI AVTOMATSKO KOT ČLANA
+                try:
+                    u1 = User.objects.get(id = context['id'])
+                    nov = ProjectMember.objects.create(user = u1,project = project1)
+                    nov.save()
+                except:
+                    pass
             u = User.objects.get(id = product_owner_id)
             nov = AssignedRole.objects.create(user = u,role = 'product_owner',project = project1)
             nov.save()
@@ -260,18 +306,68 @@ def assign_roles(request,ime_projekta):
             return redirect('home')
         else:
             #TODO NEVEM KAJ TUKAJ
-            messages.error(request,"Napačni podatki!")
-            redirect('home')
+            messages.error(request,"Ojoj, Napaka!")
+            return redirect(request.path)
     else:
-        context = get_context(request)
+        
         all_users = User.objects.all()
+        project_members1 = request.session.get("project_members")
+        project_members = [User.objects.get(id = user_id) for user_id in project_members1]
+        context['project_members'] = project_members
         # context['form'] = ProjectForm(initial={'creator': user})
         context['project_name'] =  ime_projekta
         # context['formAssignment'] = RoleAssignmentForm()
         context['allusers'] = all_users
         return render(request,'assign_roles.html',context=context)
     
+def edit_assign_roles(request,ime_projekta):
+    all_users = User.objects.all()
+    project = Project.objects.get(name=ime_projekta)
+    project_members1 = ProjectMember.objects.filter(project=project)
+    project_members = [User.objects.get(id = obj.user.id) for obj in project_members1]
+    methodology_manager_role = AssignedRole.objects.get(project = project,role = 'methodology_manager')
+    methodology_manager = methodology_manager_role.user
+    product_owner_role = AssignedRole.objects.get(project = project,role = 'product_owner')
+    product_owner = product_owner_role.user
+    development_team_members_roles = AssignedRole.objects.filter(project = project,role = 'development_team_member')
+    development_team_members = [obj.user for obj in development_team_members_roles]
+    if request.method == 'POST':
+        # preverimo kateri podatki se razlikujejo in jih spremenimo 
+        product_owner_new = request.POST.get('product_owner')
+        u = User.objects.get(id = product_owner_new)
+        product_owner_role.user = u
+        product_owner_role.save()
+        methodology_manager_new = request.POST.get('methodology_manager')
+        u = User.objects.get(id = methodology_manager_new)
+        methodology_manager_role.user = u
+        methodology_manager_role.save()
+        development_team_members_new = request.POST.getlist('development_team_members')
+        development_team_members_new = [User.objects.get(id = obj_id) for obj_id in development_team_members_new]
+        # Pogledamo če kakega starega ni v novih -> tega moremo zbrisati
+        for obj in development_team_members_roles:
+            if obj.user not in development_team_members_new:
+                obj.delete()
+        # Dodamo še nove:
+        for user in development_team_members_new:
+            print(user)
+            if user not in development_team_members:
+                print(user)
+                nov = AssignedRole.objects.create(project = project,user = user,role = 'development_team_member')
+                nov.save()
 
+        return redirect('project_edit',project_name= ime_projekta)
+        
+        
+    else:
+        # methodology_manager,product_owner,project_members
+        context = get_context(request)
+        context['methodology_manager'] = methodology_manager
+        context['product_owner'] = product_owner
+        context['development_team_members'] = development_team_members
+        context['project_members'] = project_members
+        context['project_name'] =  ime_projekta
+        context['allusers'] = all_users
+        return render(request,'assign_roles_edit.html',context=context)
 
 def project_view(request,project_name):
     context = get_context(request)
@@ -281,8 +377,15 @@ def project_view(request,project_name):
     context['form'] = form
     is_creator = (project.creator.id == context['id'])
     context['is_creator'] = is_creator
+    user = User.objects.get(id = context['id'])
+    methodology_manager = AssignedRole.objects.get(project = project,role = 'methodology_manager').user
+    context['editable'] = (user.admin_user or (user == methodology_manager))
     sprints = Sprint.objects.filter(project=project)
-    context['sprints'] = sprints
+    context['sprints'] = (sprints)
+    user_stories = UserStory.objects.filter(project=project)
+    user_story_table = UserStoryTable(user_stories)
+    RequestConfig(request).configure(user_story_table)
+    context['user_story_table'] = user_story_table
     return render(request, 'project.html', context)
 
 def project_edit(request,project_name):
@@ -298,9 +401,56 @@ def project_edit(request,project_name):
     else:
         context = get_context(request)
         context['project'] = project
+        methodology_manager = AssignedRole.objects.get(project=project,role = 'methodology_manager').user
+        
+        
         form = ProjectForm(instance=project)
+        all_users = User.objects.all()
+        
+        
+        project_members1 = ProjectMember.objects.filter(project=project)
+        project_members = [User.objects.get(id = obj.user.id) for obj in project_members1]
+        users_to_add = [user for user in all_users if user not in project_members]
+
+        context['allusers'] = all_users
+        context['project_members'] = project_members
+        context['users_to_add'] = users_to_add
         context['form'] = form
         return render(request, 'project_edit.html', context)
+    
+def add_member_to_project(request,project,user_id):
+    # member_id = request.POST.get('add_member') 
+    user = User.objects.get(id=user_id)
+    project = Project.objects.get(name = project)
+    nov = ProjectMember.objects.create(project = project,user = user)
+    nov.save()
+    return redirect('project_edit',project_name = project)
+
+def remove_member(request,project,user):
+    # product_owner_id = request.POST.get('add_member') 
+    project = Project.objects.get(name = project)
+    user = User.objects.get(id=user)
+    #Preverimo če ima kakšen role, če ga ima vrni napako da mora najprej mu odstraniti role!!
+    assigned_roles = AssignedRole.objects.filter(project = project,user=user)
+    if assigned_roles:
+        messages.error(request,"Člana ne moreš izbrisati, ker ima dodeljeno funkcijo. Najprej mu odstrani funkijo, potem pa ga lahko odstraniš!")
+        return redirect('project_edit',project_name = project)
+    nov = ProjectMember.objects.get(project = project.id,user = user.id)
+    nov.delete()
+    return redirect('project_edit',project_name = project)
+
+def delete_project(request,project_name):
+    context = get_context(request)
+    project = Project.objects.get(name = project_name)
+    methodology_manager = AssignedRole.objects.get(project=project,role = 'methodology_manager').user
+    if (methodology_manager.id != context['id'] and not context['admin']):
+        messages.error(request,"To pa ne bo šlo! Nisi admin ali methodology manager!")
+        return redirect('home')
+    else:
+        project.delete()
+
+        return redirect('home')
+
 
 def check_sprint_dates(start_date, end_date, duration, sprints, sprint_id=-1):
     start = datetime.strptime(start_date, '%Y-%m-%d').replace(tzinfo=timezone.get_current_timezone())
@@ -438,3 +588,79 @@ def edit_sprint(request,project_name,sprint_id):
         except Exception as e:
             print(e)
             return JsonResponse({'message': str(e)}, status=400)
+        
+def wall(request, project_name):
+    context = get_context(request)
+    project = Project.objects.get(name=project_name)
+    context['project'] = project
+    if request.method == "POST":
+        form = ProjectWallForm(request.POST)
+        if form.is_valid():
+            current_datetime = timezone.localtime()
+
+            form.instance.project_id = project.id
+            form.instance.post_id = context['id']
+            form.instance.post_date = current_datetime
+
+            form.save()
+            return redirect(request.path) 
+        else:
+            messages.error(request, "Add text!")
+            #return redirect(request.META.get('HTTP_REFERER', '/'))
+            return redirect(request.path)
+            #return render(request, 'project.html', {'form': form})
+    else:
+        posts = ProjectWall.objects.filter(project=project)
+        context['posts'] = (posts)
+        return render(request, "wall.html", context=context)
+
+        
+# User story
+# ======================================================
+def new_user_story(request):
+    if request.method == "POST":
+        form = UserStoryForm(request.POST)
+        if form.is_valid():
+            instance = form.save() 
+            messages.success(request, f"User story \"{instance.name}\" created!!")
+            return redirect('new_user_story')
+        else:
+            messages.error(request, "Invalid input data!!")
+            return redirect('new_user_story')
+    else:
+        context = get_context(request)
+        user = User.objects.get(username = context['user1'])
+        all_users = User.objects.all()
+        context['form'] = UserStoryForm(initial={'creator': user}) 
+        context['allusers'] = all_users
+        return render(request,'new_user_story.html',context=context)
+    
+def edit_user_story(request, id):
+    user_story = UserStory.objects.get(id=id)
+    form = UserStoryForm(instance=user_story)
+    if request.method == "POST":
+        form = UserStoryForm(request.POST, instance=user_story)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"User story \"{user_story.name}\" updated!!")
+            return redirect('/')
+        else:
+            messages.error(request, "Invalid input data!!")
+            return redirect('new_user_story')
+    context = get_context(request)
+    context = {'form':form}
+    return render(request,'new_user_story.html',context=context)
+
+def delete_user_story(request, id):
+    user_story = UserStory.objects.get(id=id)
+    if request.method == "POST":
+        if user_story.sprint is not None:
+            user_story.delete()
+            return redirect('home')
+        else:
+            messages.error(request, f"User story \"{user_story.name}\" can't be deleted, because it is already in current sprint!!")
+            return redirect('/')
+    context = get_context(request)
+    context["user_story_id"] = user_story.id
+    context["user_story_name"] = user_story.name
+    return render(request, 'delete_user_story.html', context=context)

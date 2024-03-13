@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Delete
+{% endblock %}
+
+{% block content %}
+<p> Do you want to delete "{{user_story_name}}"?</p>
+
+<form action="{% url 'delete_user_story' user_story_id %}" method="POST">
+    {% csrf_token %}
+    <a type="button" href="{% url 'home' %}">Cancel</a>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+{% endblock %}

@@ -14,7 +14,7 @@ class User(models.Model):
         return self.name
 
 class Project(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100,unique=True)
     creation_date = models.DateField()
     description = models.TextField()
     creator = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -32,10 +32,24 @@ class Sprint(models.Model):
         return f"Sprint({self.start_date},{self.end_date})"
 
 class UserStory(models.Model):
-    name = models.CharField(max_length=100)
-    description = models.TextField()
+    must_have = 'must_have'
+    could_have = 'could_have'
+    should_have = 'should_have'
+    wont_have_this_time = "wont_have_this_time"
+    PRIORITY_CHOICES = [
+        (must_have, 'Must have'),
+        (could_have, 'Could have'),
+        (should_have, 'Should have'),
+        (wont_have_this_time, "Won't have this time"),
+    ]
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    sprint = models.ForeignKey(Sprint, on_delete=models.CASCADE)
+    sprint = models.ForeignKey(Sprint, on_delete=models.CASCADE, blank=True, null=True)
+    priority = models.CharField(max_length=50, choices=PRIORITY_CHOICES, blank=True)
+    size = models.IntegerField(blank=True, null=True)
+    business_value = models.IntegerField(blank=True, null=True)
+    acceptance_tests = models.TextField(blank=True)
 
     def __str__(self):
         return self.name
@@ -85,4 +99,16 @@ class AssignedRole(models.Model):
     role = models.CharField(max_length=100, choices=ROLE_CHOICES)
 
     def __str__(self):
-        return f"{self.user.username} - {self.project.name} -"
+        return f"{self.user.username} - {self.project.name} - {self.role}"
+    
+
+#ZA EVIDENCO ČLANOV V PROJEKTU
+class ProjectMember(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    class Meta:
+        # Unikatna kombinacija uporabnika in projekta
+        unique_together = ['user', 'project']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.project.name}"
