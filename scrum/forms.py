@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import User,Project,AssignedRole,UserStory, Sprint
+from .models import User,Project,AssignedRole,UserStory, Sprint, ProjectWall
 from django.utils import timezone
 from django.forms.models import inlineformset_factory
 
@@ -87,6 +87,11 @@ class UserStoryForm(forms.ModelForm):
             'business_value': forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Business value'}), 
             'acceptance_tests': forms.Textarea(attrs={'class':'form-control', 'rows': 5, 'placeholder': 'Acceptance tests'}), 
         }
+
+class ProjectWallForm(forms.ModelForm):
+    class Meta:
+        model = ProjectWall
+        fields = ["text"]
 
 
 

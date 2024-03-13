@@ -8,6 +8,7 @@ from django.utils.html import mark_safe
 class ProjectTable(tables.Table):
     name = tables.Column()
     creation_date = tables.Column()
+    description = tables.Column()
     edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
     delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
 
@@ -42,7 +43,7 @@ class ProjectTable(tables.Table):
             return ''
     class Meta:
         model = Project
-        fields = ('name', 'creation_date')
+        fields = ('name', 'creation_date','description')
         template_name = "django_tables2/bootstrap5.html"
 
 
@@ -121,3 +122,10 @@ class UserStoryTable(tables.Table):
         model = UserStory
         fields = ('name','description','project','sprint','priority','size','business_value','acceptance_tests','edit_button','delete_button')
         template_name = "django_tables2/bootstrap5.html"
+
+# Sprint
+# ==============================================
+class SprintTable(tables.Table):
+    class Meta:
+        model = Sprint
+        template_name = "django_tables2/bootstrap4.html"

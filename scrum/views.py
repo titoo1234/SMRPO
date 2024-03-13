@@ -563,6 +563,32 @@ def edit_sprint(request,project_name,sprint_id):
             print(e)
             return JsonResponse({'message': str(e)}, status=400)
         
+def wall(request, project_name):
+    context = get_context(request)
+    project = Project.objects.get(name=project_name)
+    context['project'] = project
+    if request.method == "POST":
+        form = ProjectWallForm(request.POST)
+        if form.is_valid():
+            current_datetime = timezone.localtime()
+
+            form.instance.project_id = project.id
+            form.instance.post_id = context['id']
+            form.instance.post_date = current_datetime
+
+            form.save()
+            return redirect(request.path) 
+        else:
+            messages.error(request, "Add text!")
+            #return redirect(request.META.get('HTTP_REFERER', '/'))
+            return redirect(request.path)
+            #return render(request, 'project.html', {'form': form})
+    else:
+        posts = ProjectWall.objects.filter(project=project)
+        context['posts'] = (posts)
+        return render(request, "wall.html", context=context)
+
+        
 # User story
 # ======================================================
 def new_user_story(request):

@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Project {{project.name}}
+{% endblock %}
+
+{% block content %}
+<h2>Project {{project.name}}</h2>
+<h3>Posts</h3>
+    {% for post in posts %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <p>{{ post.text }}</p>
+                <p>Posted by: {{ post.post }}</p>
+                <p>Post Date: {{ post.post_date }}</p>
+            </div>
+        </div>
+    {% empty %}
+        <p>No posts available.</p>
+    {% endfor %}
+
+    <h3>Create New Post</h3>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <textarea name="text" rows="4" cols="46"></textarea><br>
+        <button type="submit">Post</button>
+        {% for message in messages %}
+        <p class="error-message">{{ message }}</p>
+        {% endfor %}
+    </form>
+    <!--
+    <form method="post" action="/project/{{project.name}}/wall/">
+        {% csrf_token %}
+        <textarea name="text" rows="4" cols="50"></textarea><br>
+        <button type="submit">Post</button>
+        {% for message in messages %}
+        <p class="error-message">{{ message }}</p>
+        {% endfor %}
+    </form>
+-->
+    {% endblock %}
