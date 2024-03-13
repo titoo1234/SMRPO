@@ -5,7 +5,10 @@ from .forms import *
 from django.contrib import messages
 from django.http import HttpResponse,request, JsonResponse
 from django.urls import reverse
-from datetime import datetime
+
+from django import forms
+
+from datetime import datetime, time
 from django.utils import timezone
 from .tables import *
 from django_tables2 import RequestConfig
@@ -449,7 +452,7 @@ def delete_project(request,project_name):
         return redirect('home')
 
 
-def check_sprint_dates(start_date, end_date, duration, sprints):
+def check_sprint_dates(start_date, end_date, duration, sprints, sprint_id=-1):
     start = datetime.strptime(start_date, '%Y-%m-%d').replace(tzinfo=timezone.get_current_timezone())
     end = datetime.strptime(end_date, '%Y-%m-%d').replace(tzinfo=timezone.get_current_timezone())
     # Preveri za primer, ko je končni datum pred začetnim.
@@ -461,13 +464,19 @@ def check_sprint_dates(start_date, end_date, duration, sprints):
         return False
 
     # Preveri za neregularno vrednost hitrosti Sprinta.
-    if start + timezone.timedelta(days=duration) != end:
+    if start + timezone.timedelta(days=int(duration)) != end:
         return False
     
     # Preveri za primer, ko se dodani Sprint prekriva s katerim od obstoječih.
     for sprint in sprints:
-        sprint_start = datetime.strptime(sprint.start_date, '%Y-%m-%d').replace(tzinfo=timezone.get_current_timezone())
-        sprint_end = datetime.strptime(sprint.end_date, '%Y-%m-%d').replace(tzinfo=timezone.get_current_timezone())
+        if sprint_id == sprint.id:
+            continue
+        #sprint_start_date = datetime.strptime(sprint.start_date, '%Y-%m-%d').replace(tzinfo=timezone.get_current_timezone())
+        sprint_start = datetime.combine(sprint.start_date, time()).replace(tzinfo=timezone.get_current_timezone())
+        #sprint_start = timezone.make_aware(sprint_start, timezone.get_current_timezone())
+        #print(type(sprint.end_date))
+        #sprint_end_date = datetime.strptime(sprint.end_date, '%Y-%m-%d').replace(tzinfo=timezone.get_current_timezone())
+        sprint_end = datetime.combine(sprint.end_date, time()).replace(tzinfo=timezone.get_current_timezone())
         if start >= sprint_start and start <= sprint_end:
             return False
 
@@ -476,7 +485,6 @@ def check_sprint_dates(start_date, end_date, duration, sprints):
 
         if start <= sprint_start and end >= sprint_end:
             return False
-    
     return True
 
 @require_http_methods(["POST", "GET"])
@@ -487,17 +495,19 @@ def sprints_list_handler(request, project_name):
            
             # get start and end date and check for regularity
             start_date = request.POST.get('start_date')
+            print(type(start_date))
             end_date = request.POST.get('end_date')
             duration = request.POST.get('duration')
             sprints = Sprint.objects.filter(project=project)
-            if check_sprint_dates(start_date, end_date, duration, sprints):
+            if not check_sprint_dates(start_date, end_date, duration, sprints):
                 return JsonResponse({'message': 'Sprint dates are not regular'}, status=400)
             sprint = Sprint.objects.create(project=project, start_date=start_date, end_date=end_date)
             sprint.save()
-            return redirect('home')#JsonResponse({'message': 'Sprint created successfully'})
+            return redirect('project_name', project_name=project_name)#JsonResponse({'message': 'Sprint created successfully'})
         except Project.DoesNotExist:
             return JsonResponse({'message': 'Project does not exist'}, status=404)
         except Exception as e:
+            print(e)
             return JsonResponse({'message': str(e)}, status=400)
     if request.method == 'GET':
         try:
@@ -515,7 +525,15 @@ def sprint_details_handler(request, project_name, sprint_id):
     if request.method == 'GET':
         try:
             sprint = Sprint.objects.get(id=sprint_id)
-            return render(request, 'sprint_details.html', context={'sprint': sprint, 'project_name': project_name})
+            show_edit = True
+            #check if sprint has already started, if it has, disable the edit button
+            sprint_start = datetime.combine(sprint.start_date, time()).replace(tzinfo=timezone.get_current_timezone())
+            if sprint_start < timezone.now():
+                print("Sprint has already started")
+                show_edit = False
+            #context['show_edit'] = show_edit
+            #print(context)
+            return render(request, 'sprint_details.html', context={'sprint': sprint, 'project_name': project_name, 'show_edit': show_edit})
         except Sprint.DoesNotExist:
             return JsonResponse({'message': 'Sprint does not exist'}, status=404)
     
@@ -553,10 +571,18 @@ def edit_sprint(request,project_name,sprint_id):
             duration = request.POST.get('duration')
             sprint.start_date = start_date
             sprint.end_date = end_date
-            sprint.duration = duration
-            sprint.save()
-            print(sprint)
-            return redirect('sprint_details', project_name=project_name, sprint_id=sprint_id)
+            sprint.duration = duration  
+
+            project = Project.objects.get(name=project_name)
+            sprints = Sprint.objects.filter(project=project)
+            print("CHECK")
+            if check_sprint_dates(start_date, end_date, duration, sprints, sprint_id):
+                sprint.save()
+                print(sprint)
+                return redirect('sprint_details', project_name=project_name, sprint_id=sprint_id)
+            else:
+                messages.error(request,"Neveljavna sprememba datuma oz. dolžine sprinta!")
+                return redirect(request.path)
         except Sprint.DoesNotExist:
             return JsonResponse({'message': 'Sprint does not exist'}, status=404)
         except Exception as e:

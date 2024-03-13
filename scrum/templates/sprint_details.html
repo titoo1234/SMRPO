@@ -8,7 +8,11 @@ Sprint {{sprint.id}}
 <p>Začetek: {{sprint.start_date}}</p>
 <p>Konec: {{sprint.end_date}}</p>
 <p>Trajanje: {{sprint.duration}} dni</p>
+{% if show_edit %}
 <a role="button" href="/project/{{project_name}}/sprint/{{sprint.id}}/edit" class="btn btn-primary">Uredi</a>
+<a id="delete-button" role="button" href="/project/{{project_name}}/sprint/{{sprint.id}}" class="btn btn-danger">Izbriši sprint</a>
+{% endif %}
+
 <div class="row">
     <div class="col-md-4">
         <!-- First column content -->
@@ -23,4 +27,5 @@ Sprint {{sprint.id}}
         <p>Končan</p>
     </div>
 </div>
+
 {% endblock %}
