@@ -16,7 +16,10 @@ Project {{project.name}}
     </form> -->
     
     <h3>Sprints</h3>
+    {% if create_sprint %}
+
     <a href= '/project/{{project.name}}/new_sprint/'><button type='submit'>Create Sprint</button></a>
+    {% endif %}
     <!-- {% for sprint in sprints %}
     <a href='/project/{{project.name}}/sprint/{{sprint.id}}'>
         <div class="card d-flex justify-content-between align-items-center">
@@ -29,9 +32,9 @@ Project {{project.name}}
 
     {% for sprint, userstory_table, deleteable in sprint_tables %}
         <h3>Sprint: <a href='/project/{{project.name}}/sprint/{{sprint.id}}'> {{ sprint.start_date }} - {{ sprint.end_date }} </a></h3>
-        {% if  deleteable %}
+        <!-- {% if  deleteable %}
         <a href= '/delete_sprint/{{project.name}}/{{sprint.id}}'><button type='submit'>Delete Sprint</button></a>
-        {% endif %}
+        {% endif %} -->
         
         {% render_table userstory_table %}
     {% endfor %}

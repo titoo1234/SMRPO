@@ -271,6 +271,9 @@ def assign_roles(request,ime_projekta):
     if request.method == 'POST':
         #nalozim projekt
         data = request.session.get("forma")
+        #user2 = User.objects.get(id = context['id'])
+        #data['creator_id'] = user2
+        #data['creator'] = user2
         forma = ProjectForm(data)
         forma.save()
         #
@@ -399,8 +402,16 @@ def project_view(request,project_name):
     context['sprint_tables'] = sprint_tables
     Backlog = UserStory.objects.filter(project=project, sprint=None)
     Backlog = UserStoryTable(Backlog)
-    
     context['Backlog'] = Backlog
+    methodology_manager = AssignedRole.objects.get(project = project, role = 'methodology_manager')
+    # methodology_manager = User.objects.get(id = methodology_manager)
+
+    if (methodology_manager.user.id == context['id']) or context['admin']:
+        context['create_sprint'] = True
+    else:
+        context['create_sprint'] = False
+        
+
     return render(request, 'project.html', context)
 
 def project_edit(request,project_name):
@@ -548,7 +559,13 @@ def sprint_details_handler(request, project_name, sprint_id):
                 show_edit = False
             #context['show_edit'] = show_edit
             #print(context)
-            return render(request, 'sprint_details.html', context={'sprint': sprint, 'project_name': project_name, 'show_edit': show_edit})
+            context = get_context(request)
+            context['sprint'] = sprint
+            context['project_name'] = project_name
+            context['show_edit'] = show_edit
+            
+            # context={'sprint': sprint, 'project_name': project_name, 'show_edit': show_edit}
+            return render(request, 'sprint_details.html', context )
         except Sprint.DoesNotExist:
             return JsonResponse({'message': 'Sprint does not exist'}, status=404)
     
