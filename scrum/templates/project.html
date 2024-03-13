@@ -7,13 +7,14 @@ Project {{project.name}}
 {% block content %}
 <h2>Project {{project.name}}</h2>
     <a href= '/project/{{project.name}}/wall/'><button type='submit'>Wall</button></a>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-    </form>
     {% if editable %}
     <a href= '/project/{{project.name}}/edit'><button type='submit'>Edit</button></a>
     {% endif %}
+    <!-- <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+    </form> -->
+    
     <h3>Sprints</h3>
     <a href= '/project/{{project.name}}/new_sprint/'><button type='submit'>Create Sprint</button></a>
     {% for sprint in sprints %}

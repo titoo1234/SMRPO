@@ -7,6 +7,7 @@ from django.utils.html import mark_safe
 class ProjectTable(tables.Table):
     name = tables.Column()
     creation_date = tables.Column()
+    description = tables.Column()
     edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
     delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
 
@@ -41,7 +42,7 @@ class ProjectTable(tables.Table):
             return ''
     class Meta:
         model = Project
-        fields = ('name', 'creation_date')
+        fields = ('name', 'creation_date','description')
         template_name = "django_tables2/bootstrap5.html"
 
 
