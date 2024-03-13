@@ -16,7 +16,7 @@ class SprintTestCase(TestCase):
         for i in range(1, 6):
             # create sprints that each last 14 and do not overlap
             end = tmp + timezone.timedelta(days=14)
-            sprint = Sprint.objects.create(project=project, start_date=tmp.strftime('%Y-%m-%d'), end_date=end.strftime('%Y-%m-%d'), duration=14)
+            sprint = Sprint.objects.create(project=project, start_date=tmp, end_date=end, duration=14)
             tmp = end
             sprints.append(sprint)
         cls.sprints = sprints
