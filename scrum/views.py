@@ -386,6 +386,21 @@ def project_view(request,project_name):
     user_story_table = UserStoryTable(user_stories)
     RequestConfig(request).configure(user_story_table)
     context['user_story_table'] = user_story_table
+    sprint_tables = []
+    for sprint in sprints:
+        userstories = UserStory.objects.filter(project=project, sprint=sprint)
+        deleteable = False
+        print(len(userstories))
+        if len(userstories) == 0:
+            deleteable = True
+        # sprint_table = SprintTable([sprint])
+        userstory_table = UserStoryTable(userstories)
+        sprint_tables.append((sprint, userstory_table, deleteable))
+    context['sprint_tables'] = sprint_tables
+    Backlog = UserStory.objects.filter(project=project, sprint=None)
+    Backlog = UserStoryTable(Backlog)
+    
+    context['Backlog'] = Backlog
     return render(request, 'project.html', context)
 
 def project_edit(request,project_name):
@@ -589,6 +604,14 @@ def edit_sprint(request,project_name,sprint_id):
             print(e)
             return JsonResponse({'message': str(e)}, status=400)
         
+
+def delete_sprint(request,id,project):
+    if request.method == 'POST':
+        sprint = Sprint.objects.get(id = id)
+        sprint.delete()
+        return redirect(request.path) 
+    return redirect('/project/'+project) 
+        
 def wall(request, project_name):
     context = get_context(request)
     project = Project.objects.get(name=project_name)
@@ -664,3 +687,5 @@ def delete_user_story(request, id):
     context["user_story_id"] = user_story.id
     context["user_story_name"] = user_story.name
     return render(request, 'delete_user_story.html', context=context)
+
+
