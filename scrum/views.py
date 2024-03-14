@@ -239,7 +239,7 @@ def new_project(request):
                 # treba je shranit celo POST metodo ker ima zraven token za validacijo
                 return redirect(reverse('add_members',kwargs={'ime_projekta': name}))
         else:
-            messages.error(request, form.errors['__all__'])
+            messages.error(request, form.errors)
             # messages.error(request,"Napačni podatki!")
 
             return redirect(request.path)
@@ -388,7 +388,7 @@ def project_view(request,project_name):
     sprints = Sprint.objects.filter(project=project)
     context['sprints'] = (sprints)
     user_stories = UserStory.objects.filter(project=project)
-    user_story_table = UserStoryTable(user_stories, project=project)
+    user_story_table = UserStoryTable(user_stories)
     RequestConfig(request).configure(user_story_table)
     context['user_story_table'] = user_story_table
     sprint_tables = []
@@ -707,10 +707,9 @@ def delete_user_story(request, project_name, id):
     context = get_context(request)
     user_story = UserStory.objects.get(id=id)
     project = Project.objects.get(name = project_name)
-    print(user_story.name)
     if request.method == "POST":
-        print(user_story.name)
         if user_story.sprint is not None:
+            print(user_story.sprint)
             user_story.delete()
             return redirect('delete_user_story', project_name=project_name, id=id)
         else:
