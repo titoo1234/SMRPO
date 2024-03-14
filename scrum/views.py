@@ -239,7 +239,9 @@ def new_project(request):
                 # treba je shranit celo POST metodo ker ima zraven token za validacijo
                 return redirect(reverse('add_members',kwargs={'ime_projekta': name}))
         else:
-            messages.error(request,"Napačni podatki!")
+            messages.error(request, form.errors['__all__'])
+            # messages.error(request,"Napačni podatki!")
+
             return redirect(request.path)
      else:
         context = get_context(request)

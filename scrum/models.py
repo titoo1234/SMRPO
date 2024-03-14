@@ -1,4 +1,6 @@
 from django.db import models
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 
 # Create your models here.
 class User(models.Model):
@@ -18,7 +20,18 @@ class Project(models.Model):
     creation_date = models.DateField()
     description = models.TextField()
     creator = models.ForeignKey(User, on_delete=models.CASCADE)
+    def clean(self):
+        # Preveri, ali obstaja projekt z enakim imenom (brez razlik v velikosti črk)
+        existing_projects = Project.objects.filter(name__iexact=self.name).exclude(pk=self.pk)
+        if existing_projects.exists():
+            raise ValidationError(_('Project with this name already exists.'))
 
+    def save(self, *args, **kwargs):
+        # Preveri, ali obstaja projekt z enakim imenom (brez razlik v velikosti črk)
+        existing_projects = Project.objects.filter(name__iexact=self.name).exclude(pk=self.pk)
+        if existing_projects.exists():
+            raise ValidationError(_('Project with this name already exists.'))
+        super().save(*args, **kwargs)
     def __str__(self):
         return self.name
     
