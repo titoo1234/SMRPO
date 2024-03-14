@@ -80,7 +80,7 @@ class UserStoryForm(forms.ModelForm):
         widgets = {
             'name': forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Name'}), 
             'description': forms.Textarea(attrs={'class':'form-control', 'rows':'3', 'placeholder': 'Description'}), 
-            'project': forms.Select(attrs={'class':'form-control', 'placeholder': 'Choose project'}), 
+            'project': forms.HiddenInput(), 
             'sprint': forms.Select(attrs={'class':'form-control', 'placeholder': 'Choose sprint'}), 
             'priority': forms.Select(attrs={'class':'form-control', 'placeholder': 'Priority'}), 
             'size': forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Size'}), 

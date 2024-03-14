@@ -7,8 +7,11 @@ Delete
 {% block content %}
 <p> Do you want to delete "{{user_story_name}}"?</p>
 
-<form action="{% url 'delete_user_story' user_story_id %}" method="POST">
+<form action="{% url 'delete_user_story' project_name user_story_id %}" method="POST">
     {% csrf_token %}
+    {% for message in messages %}
+    <p class="error-message">{{ message }}</p>
+    {% endfor %}
     <a type="button" href="{% url 'home' %}">Cancel</a>
     <button type="submit" class="btn btn-primary">Submit</button>
 </form>

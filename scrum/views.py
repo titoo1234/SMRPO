@@ -383,7 +383,7 @@ def project_view(request,project_name):
     sprints = Sprint.objects.filter(project=project)
     context['sprints'] = (sprints)
     user_stories = UserStory.objects.filter(project=project)
-    user_story_table = UserStoryTable(user_stories)
+    user_story_table = UserStoryTable(user_stories, project=project)
     RequestConfig(request).configure(user_story_table)
     context['user_story_table'] = user_story_table
     return render(request, 'project.html', context)
@@ -617,27 +617,36 @@ def wall(request, project_name):
         
 # User story
 # ======================================================
-def new_user_story(request):
+def new_user_story(request, project_name):
+    context = get_context(request)
+    project = Project.objects.get(name = project_name)
+    methodology_manager = AssignedRole.objects.filter(project = project, user=context['id'],role = 'methodology_manager')
+    product_owner = AssignedRole.objects.filter(project = project, user=context['id'],role = 'product_owner')
     if request.method == "POST":
         form = UserStoryForm(request.POST)
         if form.is_valid():
-            instance = form.save() 
-            messages.success(request, f"User story \"{instance.name}\" created!!")
-            return redirect('new_user_story')
+            if methodology_manager or product_owner:
+                instance = form.save() 
+                messages.success(request, f"User story \"{instance.name}\" created!!")
+                return redirect('new_user_story', project_name=project_name)
+            else:
+                messages.error(request, "User story can be created only by Product Owner or Methology Manager")
+                return redirect('new_user_story', project_name=project_name)
         else:
             messages.error(request, "Invalid input data!!")
-            return redirect('new_user_story')
+            return redirect('new_user_story', project_name=project_name)
     else:
-        context = get_context(request)
         user = User.objects.get(username = context['user1'])
         all_users = User.objects.all()
-        context['form'] = UserStoryForm(initial={'creator': user}) 
+        context['form'] = UserStoryForm(initial={'creator': user, 'project':project}) 
         context['allusers'] = all_users
+        context['project'] = project
         return render(request,'new_user_story.html',context=context)
     
-def edit_user_story(request, id):
+def edit_user_story(request, project_name, id):
+    project = Project.objects.get(name = project_name)
     user_story = UserStory.objects.get(id=id)
-    form = UserStoryForm(instance=user_story)
+    form = UserStoryForm(instance=user_story, initial={'project':project})
     if request.method == "POST":
         form = UserStoryForm(request.POST, instance=user_story)
         if form.is_valid():
@@ -648,19 +657,24 @@ def edit_user_story(request, id):
             messages.error(request, "Invalid input data!!")
             return redirect('new_user_story')
     context = get_context(request)
-    context = {'form':form}
+    context['form'] = form
+    context['project'] = project
     return render(request,'new_user_story.html',context=context)
 
-def delete_user_story(request, id):
+def delete_user_story(request, project_name, id):
+    context = get_context(request)
     user_story = UserStory.objects.get(id=id)
-    if request.method == "DELETE":
+    project = Project.objects.get(name = project_name)
+    print(user_story.name)
+    if request.method == "POST":
+        print(user_story.name)
         if user_story.sprint is not None:
             user_story.delete()
-            return redirect('home')
+            return redirect('delete_user_story', project_name=project_name, id=id)
         else:
             messages.error(request, f"User story \"{user_story.name}\" can't be deleted, because it is already in current sprint!!")
-            return redirect('/')
-    context = get_context(request)
+            return redirect('delete_user_story', project_name=project_name, id=id)
     context["user_story_id"] = user_story.id
     context["user_story_name"] = user_story.name
+    context["project_name"] = project.name
     return render(request, 'delete_user_story.html', context=context)

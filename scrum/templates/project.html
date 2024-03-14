@@ -26,7 +26,7 @@ Project {{project.name}}
     </a>
     {% endfor %}
     <h3>User stories</h3>
-    <a href="{% url 'new_user_story' %}"><button type='submit'>New User Story</button></a>
+    <a href='/project/{{project.name}}/new_user_story/'><button type='submit'>New User Story</button></a>
     {% load django_tables2 %}
     {% render_table user_story_table  %}
 {% endblock %}
