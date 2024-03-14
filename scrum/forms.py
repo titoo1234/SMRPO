@@ -68,20 +68,20 @@ class UserStoryForm(forms.ModelForm):
     class Meta:
         model = UserStory
         fields = ('name', 'description', 'project', 'sprint', 'priority', 'size', 'business_value', 'acceptance_tests')
-        labels = {
-            'name': "", 
-            'description': "",
-            'project': "",
-            'sprint': "",
-            'priority': "",
-            'size': "",
-            'business_value': "",
-            'acceptance_tests': ""
-        }
+        # labels = {
+        #     'name': "", 
+        #     'description': "",
+        #     'project': "",
+        #     'sprint': "",
+        #     'priority': "",
+        #     'size': "",
+        #     'business_value': "",
+        #     'acceptance_tests': ""
+        # }
         widgets = {
             'name': forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Name'}), 
             'description': forms.Textarea(attrs={'class':'form-control', 'rows':'3', 'placeholder': 'Description'}), 
-            'project': forms.Select(attrs={'class':'form-control', 'placeholder': 'Choose project'}), 
+            'project': forms.HiddenInput(), 
             'sprint': forms.Select(attrs={'class':'form-control', 'placeholder': 'Choose sprint'}), 
             'priority': forms.Select(attrs={'class':'form-control', 'placeholder': 'Priority'}), 
             'size': forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Size'}), 

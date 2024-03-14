@@ -111,11 +111,11 @@ class UserStoryTable(tables.Table):
     delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
 
     def render_edit_button(self, record):
-        edit_url = reverse('edit_user_story', kwargs={'id': record.id})
+        edit_url = reverse('edit_user_story', kwargs={'project_name': record.project.name,'id': record.id})
         return format_html('<a href="{}" class="btn btn-primary">Edit</a>', edit_url)
         
     def render_delete_button(self, record):
-        edit_url = reverse('delete_user_story', kwargs={'id': record.id})
+        edit_url = reverse('delete_user_story', kwargs={'project_name': record.project.name, 'id': record.id})
         return format_html('<a href="{}" class="btn btn-danger">Delete</a>', edit_url)
 
     class Meta:
