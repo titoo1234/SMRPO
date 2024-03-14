@@ -8,14 +8,19 @@ from django.utils.html import mark_safe
 class ProjectTable(tables.Table):
     name = tables.Column()
     creation_date = tables.Column()
-    description = tables.Column()
+    description = tables.Column(orderable=False, verbose_name='Description')
     edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
     delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
+
 
     def __init__(self, *args, **kwargs):
         self.user_id = kwargs.pop('user_id', 0)
         self.admin = kwargs.pop('admin', False)
         super().__init__(*args, **kwargs)
+    
+    def render_description(self, value):
+        # Uporabi HTML oznake za prikaz odstavkov v opisu
+        return mark_safe(value.replace('\n', '<br>'))
     
     def render_name(self, record):
         project_url = reverse('project_name', kwargs={'project_name': record.name})

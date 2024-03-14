@@ -67,6 +67,7 @@ def test(request):
     return render(request, 'index.html')
 
 def user_login(request):
+    context = get_context(request)
     if request.method == 'POST':
         messages.error(request, '')
         form = UserLoginForm(request.POST)
@@ -88,11 +89,15 @@ def user_login(request):
             form = UserLoginForm()
             # form.add_error(None, 'Neuspešna prijava. Prosimo, poskusite znova.')
             messages.error(request, "Invalid username or password.")
+            return redirect(request.path)
     else:
         form = UserLoginForm()
-    return render(request, 'login.html', {'form': form})
+        
+        context['form'] = form
+        return render(request, 'login.html', context)
 
 def user_register(request):
+    context = get_context(request)
     if request.method == 'POST':
         form = UserRegisterForm(request.POST)
         if form.is_valid():
@@ -106,18 +111,25 @@ def user_register(request):
                 
                 # Uporabnik že obstaja, tukaj lahko dodate dodatno obdelavo ali vrnete napako
                 messages.error(request,"User already exists!")
+                return redirect(request.path)
             else:
                 # Ustvari novega uporabnika
                 form.save()
+                messages.success(request,"Usser added succesfuly!")
                 #KO SE REGISTRIRA NOV UPORABNIK POTEM NE ZAMENJAJ KUKIJA
                 # request.session['uporabnik'] = username
                 # user = authenticate(request, username=username, password=password)
                 return redirect('home')
+        else:
+            messages.error(request, form.errors)
+            return redirect(request.path)
 
     else:
         form = UserRegisterForm()
         form.fields['password'].required = True
-    return render(request, 'register.html', {'form': form})
+        context = get_context(request)
+        context['form'] = form
+        return render(request, 'register.html', context)
 
 def allusers(request):
     context = get_context(request)
@@ -246,7 +258,7 @@ def new_project(request):
      else:
         context = get_context(request)
         user = User.objects.get(username = context['user1'])
-        all_users = User.objects.all()
+        all_users = User.objects.filter(active=True)
         context['form'] = ProjectForm(initial={'creator': user}) 
         # context['formAssignment'] = RoleAssignmentForm()
         context['allusers'] = all_users
@@ -263,7 +275,7 @@ def add_members(request,ime_projekta):
             return redirect(reverse('assign_roles',kwargs={'ime_projekta': ime_projekta}))
     else:
         context = get_context(request)
-        all_users = User.objects.all()
+        all_users = User.objects.filter(active=True)
         context['project_name'] =  ime_projekta
         context['allusers'] = all_users
         return render(request,'add_members.html',context=context)
@@ -315,7 +327,7 @@ def assign_roles(request,ime_projekta):
             return redirect(request.path)
     else:
         
-        all_users = User.objects.all()
+        all_users = User.objects.filter(active=True)
         project_members1 = request.session.get("project_members")
         project_members = [User.objects.get(id = user_id) for user_id in project_members1]
         context['project_members'] = project_members
@@ -326,7 +338,7 @@ def assign_roles(request,ime_projekta):
         return render(request,'assign_roles.html',context=context)
     
 def edit_assign_roles(request,ime_projekta):
-    all_users = User.objects.all()
+    all_users = User.objects.filter(active=True)
     project = Project.objects.get(name=ime_projekta)
     project_members1 = ProjectMember.objects.filter(project=project)
     project_members = [User.objects.get(id = obj.user.id) for obj in project_members1]
@@ -434,7 +446,7 @@ def project_edit(request,project_name):
         
         
         form = ProjectForm(instance=project)
-        all_users = User.objects.all()
+        all_users = User.objects.filter(active=True)
         
         
         project_members1 = ProjectMember.objects.filter(project=project)
@@ -581,7 +593,7 @@ def new_sprint(request,project_name):
     context = get_context(request)
     project = Project.objects.get(name=project_name)
     user = User.objects.get(username = context['user1'])
-    all_users = User.objects.all()
+    all_users = User.objects.filter(active=True)
     context['form'] = SprintForm(initial={'project': project}) 
     # context['formAssignment'] = RoleAssignmentForm()
     context['allusers'] = all_users
@@ -680,7 +692,7 @@ def new_user_story(request, project_name):
             return redirect('new_user_story', project_name=project_name)
     else:
         user = User.objects.get(username = context['user1'])
-        all_users = User.objects.all()
+        all_users = User.objects.filter(active=True)
         context['form'] = UserStoryForm(initial={'creator': user, 'project':project}) 
         context['allusers'] = all_users
         context['project'] = project

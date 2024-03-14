@@ -23,7 +23,7 @@ Assign Roles
         {% endfor %}
     </select>
     <br>
-    <label for="methodology_manager">Methodology Manager:</label>
+    <label for="methodology_manager">Scrum Master:</label>
     <select name="methodology_manager" id="methodology_manager">
         {% for user in project_members %}
         {% if user.id == methodology_manager.id %}

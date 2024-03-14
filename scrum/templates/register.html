@@ -1,4 +1,21 @@
-<!DOCTYPE html>
+{% extends 'base.html' %}
+
+{% block title %}
+Register New User
+{% endblock %}
+
+{% block content %}
+
+<h2>Login</h2>
+<form id="form-container" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Register</button>
+</form>
+{% endblock %}
+
+
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -54,4 +71,5 @@
         {% endfor %}
     </form>
 </body>
-</html>
+</html> -->
+
