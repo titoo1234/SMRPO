@@ -673,7 +673,7 @@ def new_user_story(request, project_name):
                 messages.error(request, "User story can be created only by Product Owner or Methology Manager")
                 return redirect('new_user_story', project_name=project_name)
         else:
-            messages.error(request, "Invalid input data!!")
+            messages.error(request, form.errors)
             return redirect('new_user_story', project_name=project_name)
     else:
         user = User.objects.get(username = context['user1'])
