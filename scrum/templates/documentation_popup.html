@@ -28,6 +28,50 @@
                 <p>Podatke spreminja v zavihku »My Profile«</p>
             </div>
         </div>
+        <div class="category">
+            <h3 onclick="toggleCategory('category4')">Projekt</h3>
+            <div id="category4" style="display: none">
+                <div class="category">
+                    <h4 onclick="toggleCategory('category4_1')">Dodajanje projekta</h4>
+                    <div id="category4_1" style="display: none">
+                        <p>Administrator lahko ustvari nov projekt, izbere uporabnike za delo na tem projektu in določi njihove projektne vloge (produktni vodja, skrbnik metodologije, član razvojne skupine).</p>
+                        <p>To stori na začetni strani s klikom na 'New Project'</p>
+                        <p></p>
+                        <p>Določiti mora univerazlno ime in opis. Datum in kreator sta že izpolnjena.</p>
+                        <p>V naslenjem koraku mora izbrati člane projekta. Izbrati mora vsaj enega. Kreator je član projekta.</p>
+                        <p>V zadnjem koraku je  potrebno določiti še vloge. Potrebno je določiti produktnega vodjo in skrbnika metodologije, člane razvojne skupine pa se lahko določi naknadno.</p>
+
+                    </div>
+                </div>
+                <div class="category">
+                    <h4 onclick="toggleCategory('category4_2')">Vzdrževanje projekta</h4>
+                    <div id="category4_2" style="display: none">
+                        <p>Obstoječe projekte je možno urejati. To lahko počne administrator sistema in skrbnik metodologije.</p>
+                        <p>Do obrazca se lahko dostopa direktno iz kartice projekta ali iz začetne strani. Na obeh straneh preko gumba 'Edit'</p>
+                        <p> Lahko se spreminjajo lastnsoti že obstoječega projekta, dodaja nove člane v projekt, ureja vloge obstoječih članov v projektu in odstranjevanje članov iz projekta. Odstranijo se lahko le člani, ki jim ni dodeljena nobena vloga.</p>
+
+                    </div>
+                </div>
+                <div class="category">
+                    <h4 onclick="toggleCategory('category4_3')">Objavljanje na projektnem zidu</h4>
+                    <div id="category4_3" style="display: none">
+                        <p>Vsi sodelujoči na projektu lahko na projektni zid pripenjajo nove objave.</p>
+                        <p>Do zida lahko dostopate z gumbom "Wall", ki se nahaja na kartici od projekta</p>     
+                    </div>
+                </div>
+                      
+            </div>
+        </div>
+            <div class="category">
+
+                <h3 onclick="toggleCategory('category5')">Dodajanje sprintov v projekt</h3>
+                <div id="category5" style="display: none">
+                    <p>Skrbnik metodologije lahko ustvari nov sprint s klikom na 'Create sprint' znotraj projekta</p>
+                    <p>Datuma začetka in konca sprinta morata biti skladna s trajanjem sprinta. Začetek pa ne sme biti pred trenutnim. Prav tako se preveri, da se ne prekriva z ostalimi sprinti</p>
+                </div>
+            </div>
+        </div>
+    
         <!-- Dodajte gumb za zapiranje okna -->
         <button class="close-button" onclick="closeDocumentationPopup()">Close</button>
     </div>

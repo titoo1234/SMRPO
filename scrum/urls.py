@@ -29,6 +29,7 @@ urlpatterns = [
     path('project/<str:project_name>/new_user_story/', views.new_user_story, name='new_user_story'),
     path('project/<str:project_name>/edit_user_story/<int:id>/', views.edit_user_story, name='edit_user_story'),
     path('project/<str:project_name>/delete_user_story/<int:id>/', views.delete_user_story, name='delete_user_story'),
+    path('delete_sprint/<str:project>/<int:id>', views.delete_sprint, name='delete_sprint'),
     path('project/<str:project_name>/wall/', views.wall, name='wall'),
     # re_path(r'^login/$', views.userApi, name='user_login')
     # re_path(r'user/[0-9]+$', views.userApi,name='test1'),

@@ -8,8 +8,10 @@ Home
 {% block content %}
 
 {% if user1 %}
+{% if admin %}
 <h1>New Project</h1>
 <a href="{% url 'new_project' %}"><button type='submit'>New Project</button></a>
+{% endif %}
 <h1>Your projects:</h1>
 {% load django_tables2 %}
 {% render_table tabela  %}
