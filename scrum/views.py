@@ -202,7 +202,8 @@ def edit_user(request, user_id):
         messages.error(request, '')
         form = UserRegisterForm(instance=user)
         if not context['admin']:
-            form.fields['admin_user'].widget.attrs['disabled'] = True
+            # form.fields['admin_user'].widget.attrs['style'] = 'display: none;'
+            form.fields.pop('admin_user')
         context['form'] = form
         context['id_delete'] = user.id
         # if context['id'] != user.id:
