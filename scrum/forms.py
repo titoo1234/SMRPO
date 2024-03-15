@@ -30,7 +30,7 @@ class UserRegisterForm1(forms.ModelForm):
         confirm_password = cleaned_data.get("confirm_password")
 
         if password != confirm_password:
-            raise forms.ValidationError("Gesli se ne ujemata. Prosim vnesite isto geslo v obeh poljih.")
+            raise forms.ValidationError("Passwords do not match. Please enter the same password in both fields.")
 
     # def save(self, commit=True):
     #     user = super(UserRegisterForm, self).save(commit=False)
@@ -57,7 +57,7 @@ class UserUpdateForm(forms.ModelForm):
 
         # Proverimo, da je novo geslo enako potrjenemu novemu geslu
         if new_password != confirm_new_password:
-            raise forms.ValidationError("Novi gesli se ne ujemata. Prosim vnesite isto geslo v obeh poljih.")
+            raise forms.ValidationError("New passwords do not match. Please enter the same password in both fields.")
 
         # Ako su oba nova gesla prazna, ne radimo provjeru starog gesla
         if not new_password and not confirm_new_password:
@@ -67,7 +67,7 @@ class UserUpdateForm(forms.ModelForm):
         user = self.instance
         # print(user.password)
         if current_password and (current_password != user.password):
-            raise forms.ValidationError("Trenutno geslo ni pravilno. Preverite in poskusite ponovno.")
+            raise forms.ValidationError( "Current password is incorrect. Please try again.")
 
         if new_password:
             user.password = new_password
