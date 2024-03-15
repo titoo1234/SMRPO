@@ -100,7 +100,7 @@ def user_login(request):
 def user_register(request):
     context = get_context(request)
     if request.method == 'POST':
-        form = UserRegisterForm(request.POST)
+        form = UserRegisterForm1(request.POST)
         if form.is_valid():
             
             username = form.data['username']
@@ -126,7 +126,7 @@ def user_register(request):
             return redirect(request.path)
 
     else:
-        form = UserRegisterForm()
+        form = UserRegisterForm1()
         form.fields['password'].required = True
         context = get_context(request)
         context['form'] = form
@@ -155,13 +155,13 @@ def edit_user(request, user_id):
     context = get_context(request)
     if request.method == 'POST':
         # Tukaj dodajte logiko za posodobitev podatkov uporabnika
-        form = UserRegisterForm(request.POST, instance=user)
+        form = UserUpdateForm(request.POST, instance=user)
         password = request.POST.get('password')
         if not password:
                 # Če je polje gesla prazno, nastavi na neko privzeto vrednost
                 request.POST = request.POST.copy()
                 request.POST['password'] = user.password
-        form = UserRegisterForm(request.POST, instance=user)
+        form = UserUpdateForm(request.POST, instance=user)
 
         if form.is_valid():
             form.save()
@@ -202,7 +202,7 @@ def edit_user(request, user_id):
         #         messages.error(request,"Invalid change!")   
     else: #GET
         messages.error(request, '')
-        form = UserRegisterForm(instance=user)
+        form = UserUpdateForm(instance=user)
         if not context['admin']:
             form.fields.pop('admin_user')
         context['form'] = form

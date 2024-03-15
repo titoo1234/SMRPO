@@ -1,5 +1,5 @@
 from django import forms
-
+from django.contrib.auth.hashers import check_password
 from .models import User,Project,AssignedRole,UserStory, Sprint, ProjectWall
 from django.utils import timezone
 from django.forms.models import inlineformset_factory
@@ -15,6 +15,68 @@ class UserRegisterForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['name','surname','mail', 'username', 'password','admin_user']
+
+class UserRegisterForm1(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput)
+    confirm_password = forms.CharField(widget=forms.PasswordInput, label='Confirm password')
+
+    class Meta:
+        model = User
+        fields = ['name', 'surname', 'mail', 'username', 'password', 'confirm_password', 'admin_user']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get("password")
+        confirm_password = cleaned_data.get("confirm_password")
+
+        if password != confirm_password:
+            raise forms.ValidationError("Gesli se ne ujemata. Prosim vnesite isto geslo v obeh poljih.")
+
+    # def save(self, commit=True):
+    #     user = super(UserRegisterForm, self).save(commit=False)
+    #     user.set_password(self.cleaned_data["password"])
+    #     if commit:
+    #         user.save()
+    #     return user
+from django import forms
+
+class UserUpdateForm(forms.ModelForm):
+    current_password = forms.CharField(widget=forms.PasswordInput, label='Current password', required=False)
+    new_password = forms.CharField(widget=forms.PasswordInput, label='New password', required=False)
+    confirm_new_password = forms.CharField(widget=forms.PasswordInput, label='Confirm new password', required=False)
+
+    class Meta:
+        model = User
+        fields = ['name', 'surname', 'mail', 'username', 'current_password', 'new_password', 'confirm_new_password', 'admin_user']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        current_password = cleaned_data.get("current_password")
+        new_password = cleaned_data.get("new_password")
+        confirm_new_password = cleaned_data.get("confirm_new_password")
+
+        # Proverimo, da je novo geslo enako potrjenemu novemu geslu
+        if new_password != confirm_new_password:
+            raise forms.ValidationError("Novi gesli se ne ujemata. Prosim vnesite isto geslo v obeh poljih.")
+
+        # Ako su oba nova gesla prazna, ne radimo provjeru starog gesla
+        if not new_password and not confirm_new_password:
+            return
+
+        # Proverimo da li je staro geslo tačno
+        user = self.instance
+        # print(user.password)
+        if current_password and (current_password != user.password):
+            raise forms.ValidationError("Trenutno geslo ni pravilno. Preverite in poskusite ponovno.")
+
+        if new_password:
+            user.password = new_password
+
+        # Nastavimo posodobljeni objekt uporabnika nazaj v instance
+        self.instance = user
+
+        return cleaned_data
+
 
 class ProjectForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
