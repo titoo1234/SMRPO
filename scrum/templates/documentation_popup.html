@@ -1,5 +1,7 @@
 <!-- HTML za pojavno okno dokumentacije -->
+
 <div id="documentation-popup-container">
+    
     <div id="fixed-content">
         <!-- Vsebina vašega pojavno okna dokumentacije -->
         <h2>Dokumentacija</h2>
@@ -69,11 +71,13 @@
                     <p>Skrbnik metodologije lahko ustvari nov sprint s klikom na 'Create sprint' znotraj projekta</p>
                     <p>Datuma začetka in konca sprinta morata biti skladna s trajanjem sprinta. Začetek pa ne sme biti pred trenutnim. Prav tako se preveri, da se ne prekriva z ostalimi sprinti</p>
                 </div>
+                
             </div>
+            <button class="close-button" onclick="closeDocumentationPopup()">Close</button>
         </div>
     
-        <!-- Dodajte gumb za zapiranje okna -->
-        <button class="close-button" onclick="closeDocumentationPopup()">Close</button>
+
+        
     </div>
 </div>
 
@@ -147,3 +151,10 @@
         background-color: #0056b3;
     }
 </style>
+<script>
+    function closeDocumentationPopup() {
+    document.getElementById("documentation-popup-container").style.display = "none";
+    // Vrnite se na shranjeno pozicijo strani
+    window.scrollTo(0, currentPosition);
+}
+</script>

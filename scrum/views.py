@@ -232,6 +232,11 @@ def edit_deleted_user(request, user_id):
     
 def delete_user(request, user_id):
     user = User.objects.get(id=user_id)
+    # Preverimo ali je user v katerem projektu:
+    projects = ProjectMember.objects.filter(user=user)
+    if len(projects) > 0:
+        messages.error(request,"User is member of at least one project!")
+        return redirect(edit_user,user_id)
     user.active = False
     user.save()
     messages.success(request,"User " + user.username + " successfully deactivated.")
@@ -443,7 +448,7 @@ def project_edit(request,project_name):
         if form.is_valid():
             form.save()
             project_name = form.cleaned_data['name']
-            messages.success(request,"User details successfully updated.")
+            messages.success(request,"Project details successfully updated.")
             return redirect('project_name',project_name=project_name)
         else:
             messages.error(request,form.errors)
