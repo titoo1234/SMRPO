@@ -80,6 +80,7 @@ def user_login(request):
             request.session['admin'] = existing_user.admin_user
             request.session['uporabnik_id'] = existing_user.id
             # set_cookie(existing_user.name)
+            messages.success(request,"User " + existing_user.username +" successfully logged in.")
             return redirect('home')
             # if user is not None:
             #     login(request, user)
@@ -164,13 +165,14 @@ def edit_user(request, user_id):
 
         if form.is_valid():
             form.save()
+            
         else:
-            messages.error(request,"Invalid change!")  
+            messages.error(request,form.errors)  
             return redirect('edit_user',user_id)
         #Preveri če urejaš samega sebe:
         if user_id == context['id']:
                 request.session['uporabnik'] = form.data['username']
-                
+        messages.success(request,"User details successfully updated.")     
         return redirect('home')
         
 
@@ -198,16 +200,13 @@ def edit_user(request, user_id):
         #     else:
         #         form = UserRegisterForm(instance=user)
         #         messages.error(request,"Invalid change!")   
-    else:
+    else: #GET
         messages.error(request, '')
         form = UserRegisterForm(instance=user)
         if not context['admin']:
-            # form.fields['admin_user'].widget.attrs['style'] = 'display: none;'
             form.fields.pop('admin_user')
         context['form'] = form
         context['id_delete'] = user.id
-        # if context['id'] != user.id:
-        #     form.fields['password'].disabled = True
         return render(request, 'edit_user.html', context)
     
 
@@ -219,9 +218,10 @@ def edit_deleted_user(request, user_id):
         # Tukaj dodajte logiko za posodobitev podatkov uporabnika
         user.active = True
         user.save()
+        messages.success(request,"User " + user.username + " successfully reactivated.")
         return redirect("home")
         
-    else:
+    else:#GET
         form = UserRegisterForm(instance=user)    
         if not context['admin']:
             form.fields['admin_user'].widget.attrs['disabled'] = True
@@ -234,6 +234,7 @@ def delete_user(request, user_id):
     user = User.objects.get(id=user_id)
     user.active = False
     user.save()
+    messages.success(request,"User " + user.username + " successfully deactivated.")
     return redirect("home")
 
 def new_project(request):  
@@ -244,19 +245,18 @@ def new_project(request):
             name = form.data['name']
             existing_project = Project.objects.filter(name=name).first()
             if existing_project:
-                messages.error(request,"Projekt s tem imenom že obstaja!")
+                messages.error(request,"Project with this name already exists!")
                 return redirect(request.path)
             else:
                 #form.save()
                 request.session["forma"] = request.POST# v assign_roles jo shranimo, ker neželimo da se ustvari prej
                 # treba je shranit celo POST metodo ker ima zraven token za validacijo
+                #TUKAJ NE IZPISUJ ŠE MESSAGE.SUCESS !
                 return redirect(reverse('add_members',kwargs={'ime_projekta': name}))
         else:
             messages.error(request, form.errors)
-            # messages.error(request,"Napačni podatki!")
-
             return redirect(request.path)
-     else:
+     else:#GET
         context = get_context(request)
         user = User.objects.get(username = context['user1'])
         all_users = User.objects.filter(active=True)
@@ -269,10 +269,11 @@ def add_members(request,ime_projekta):
     if request.method == 'POST':
         project_members = request.POST.getlist('project_members')
         request.session["project_members"] = project_members
-        if len(project_members) == 0: #MORAŠ IZBRATI VSAJ ENEGA!
-            messages.error(request,"Izbrati moraš vsaj enega člana!")
+        if len(project_members) < 2: #MORAŠ IZBRATI VSAJ ENEGA!
+            messages.error(request,"You must select at least two members!")
             return redirect(request.path)
         else:
+            #TUKAJ TUDI NE MESSAGE.SUCESS
             return redirect(reverse('assign_roles',kwargs={'ime_projekta': ime_projekta}))
     else:
         context = get_context(request)
@@ -284,19 +285,22 @@ def add_members(request,ime_projekta):
 def assign_roles(request,ime_projekta):
     context = get_context(request)
     if request.method == 'POST':
-        #nalozim projekt
         data = request.session.get("forma")
-        #user2 = User.objects.get(id = context['id'])
-        #data['creator_id'] = user2
-        #data['creator'] = user2
         forma = ProjectForm(data)
-        forma.save()
-        #
-        project1 = Project.objects.get(name=ime_projekta)
         product_owner_id = request.POST.get('product_owner')
         methodology_manager_id = request.POST.get('methodology_manager')
         development_team_members = request.POST.getlist('development_team_members')
-        # project_name = request.POST.get('project_name')
+        # Pred shranjevanjem preverimo ali je product owner še kje drugje
+        if (product_owner_id == methodology_manager_id) or (product_owner_id in development_team_members):
+            messages.error(request, "The Product Owner cannot be the Scrum Master or part of the Development Team!")
+            return redirect(request.path)
+        
+
+        #Podatki so ok
+        forma.save()#to mal kasnej?
+        #
+        project1 = Project.objects.get(name=ime_projekta)
+
         existing_project = Project.objects.get(name=ime_projekta)
         if existing_project:
             for member in request.session.get("project_members"):
@@ -320,9 +324,9 @@ def assign_roles(request,ime_projekta):
                 u = User.objects.get(id = user_id)
                 nov = AssignedRole.objects.create(user = u,role = 'development_team_member',project = project1)
                 nov.save()
-            #TODO POŠLJI GA NA PROJEKT    
-            return redirect('home')
-        else:
+            messages.success(request,"Project added successfully!")    
+            return redirect('project_name',project_name=ime_projekta)
+        else:#Mislim da do sem ne bi smelo pridet, ampak če imate idejo napište
             #TODO NEVEM KAJ TUKAJ
             messages.error(request,"Ojoj, Napaka!")
             return redirect(request.path)
@@ -332,9 +336,7 @@ def assign_roles(request,ime_projekta):
         project_members1 = request.session.get("project_members")
         project_members = [User.objects.get(id = user_id) for user_id in project_members1]
         context['project_members'] = project_members
-        # context['form'] = ProjectForm(initial={'creator': user})
         context['project_name'] =  ime_projekta
-        # context['formAssignment'] = RoleAssignmentForm()
         context['allusers'] = all_users
         return render(request,'assign_roles.html',context=context)
     
@@ -352,14 +354,19 @@ def edit_assign_roles(request,ime_projekta):
     if request.method == 'POST':
         # preverimo kateri podatki se razlikujejo in jih spremenimo 
         product_owner_new = request.POST.get('product_owner')
+        methodology_manager_new = request.POST.get('methodology_manager')
+        development_team_members_new = request.POST.getlist('development_team_members')
+        if (product_owner_new == methodology_manager_new) or (product_owner_new in development_team_members_new):
+            messages.error(request, "The Product Owner cannot be the Scrum Master or part of the Development Team!")
+            return redirect(request.path)
         u = User.objects.get(id = product_owner_new)
         product_owner_role.user = u
         product_owner_role.save()
-        methodology_manager_new = request.POST.get('methodology_manager')
+        
         u = User.objects.get(id = methodology_manager_new)
         methodology_manager_role.user = u
         methodology_manager_role.save()
-        development_team_members_new = request.POST.getlist('development_team_members')
+        
         development_team_members_new = [User.objects.get(id = obj_id) for obj_id in development_team_members_new]
         # Pogledamo če kakega starega ni v novih -> tega moremo zbrisati
         for obj in development_team_members_roles:
@@ -372,11 +379,11 @@ def edit_assign_roles(request,ime_projekta):
                 print(user)
                 nov = AssignedRole.objects.create(project = project,user = user,role = 'development_team_member')
                 nov.save()
-
+        messages.success(request,"Project roles successfully updated.")
         return redirect('project_edit',project_name= ime_projekta)
         
         
-    else:
+    else:#GET
         # methodology_manager,product_owner,project_members
         context = get_context(request)
         context['methodology_manager'] = methodology_manager
@@ -436,6 +443,7 @@ def project_edit(request,project_name):
         if form.is_valid():
             form.save()
             project_name = form.cleaned_data['name']
+            messages.success(request,"User details successfully updated.")
             return redirect('project_name',project_name=project_name)
         else:
             messages.error(request,form.errors)
@@ -444,12 +452,8 @@ def project_edit(request,project_name):
         context = get_context(request)
         context['project'] = project
         methodology_manager = AssignedRole.objects.get(project=project,role = 'methodology_manager').user
-        
-        
         form = ProjectForm(instance=project)
         all_users = User.objects.filter(active=True)
-        
-        
         project_members1 = ProjectMember.objects.filter(project=project)
         project_members = [User.objects.get(id = obj.user.id) for obj in project_members1]
         users_to_add = [user for user in all_users if user not in project_members]
@@ -466,6 +470,7 @@ def add_member_to_project(request,project,user_id):
     project = Project.objects.get(name = project)
     nov = ProjectMember.objects.create(project = project,user = user)
     nov.save()
+    messages.success(request,"Member added successfully.")
     return redirect('project_edit',project_name = project)
 
 def remove_member(request,project,user):
@@ -475,10 +480,11 @@ def remove_member(request,project,user):
     #Preverimo če ima kakšen role, če ga ima vrni napako da mora najprej mu odstraniti role!!
     assigned_roles = AssignedRole.objects.filter(project = project,user=user)
     if assigned_roles:
-        messages.error(request,"Člana ne moreš izbrisati, ker ima dodeljeno funkcijo. Najprej mu odstrani funkijo, potem pa ga lahko odstraniš!")
+        messages.error(request,"You cannot remove the member as they have an assigned role. First remove their role, then you can remove them!")
         return redirect('project_edit',project_name = project)
     nov = ProjectMember.objects.get(project = project.id,user = user.id)
     nov.delete()
+    messages.success(request,"Member removed successfully.")
     return redirect('project_edit',project_name = project)
 
 def delete_project(request,project_name):
@@ -490,7 +496,7 @@ def delete_project(request,project_name):
         return redirect('home')
     else:
         project.delete()
-
+        messages.success(request,"Project deleted successfully!")
         return redirect('home')
 
 

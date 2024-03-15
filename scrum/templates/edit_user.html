@@ -12,9 +12,6 @@ Edit
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit">Edit</button>
-    {% for message in messages %}
-    <p class="error-message">{{ message }}</p>
-    {% endfor %}
 </form>
 {% if id != id_delete %}
 <form method="post" action="/user/{{id_delete}}/delete/">

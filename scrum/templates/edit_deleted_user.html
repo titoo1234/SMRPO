@@ -11,9 +11,9 @@ Edit
 <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    {% for message in messages %}
+    <!-- {% for message in messages %}
     <p class="error-message">{{ message }}</p>
-    {% endfor %}
+    {% endfor %} -->
 </form>
 <form method="post" action="/deleted_user/{{id_delete}}/edit/">
     {% csrf_token %}
