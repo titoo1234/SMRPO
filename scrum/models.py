@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+from django.db.models.functions import Upper
 
 # Create your models here.
 class User(models.Model):
@@ -83,6 +84,9 @@ class UserStory(models.Model):
     class Meta:
         ordering = ['story_number']  # Razvrščanje zgodbe po številki zgodbe v padajočem vrstnem redu
         unique_together = ('name', 'project')
+        constraints = [
+            models.UniqueConstraint(Upper('name'), name='unique_upper_name_category', violation_error_message='Name already exists.')
+        ]
 
     @classmethod
     def get_next_story_number(cls, project_id):
@@ -93,12 +97,19 @@ class UserStory(models.Model):
             return 1  # Če ni nobene zgodbe, začnemo z 1
     
     def clean(self):
+        current = UserStory.objects.filter(id=self.id).first()
         if self.workflow in [self.in_progress, self.done] and not self.sprint:
             raise ValidationError("Cannot set workflow to 'In Progress' or 'Done' without a sprint.")
-        lines = self.acceptance_tests.split('\n')
-        for line in lines:
-            if not line.startswith('# '):
-                raise ValidationError("Acceptance tests should start with '# ' character.")
+        if self.acceptance_tests:
+            lines = self.acceptance_tests.split('\n')
+            for line in lines:
+                if not line.startswith('# '):
+                    raise ValidationError("Acceptance tests should start with '# ' character.")
+        if self.sprint and not self.original_estimate:
+            raise ValidationError("Original estimate must be provided before adding user story to the sprint.")
+        if current and current.sprint and current.original_estimate != self.original_estimate:
+            raise ValidationError("Original estimate can not be changed while in sprint.")
+
         super().clean() 
 
     def save(self, *args, **kwargs):

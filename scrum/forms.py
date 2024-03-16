@@ -129,17 +129,7 @@ class RoleAssignmentForm(forms.ModelForm):
 class UserStoryForm(forms.ModelForm):
     class Meta:
         model = UserStory
-        fields = ('name', 'description', 'project', 'sprint', 'priority', 'size', 'business_value', 'acceptance_tests', 'workflow', 'user')
-        # labels = {
-        #     'name': "", 
-        #     'description': "",
-        #     'project': "",
-        #     'sprint': "",
-        #     'priority': "",
-        #     'size': "",
-        #     'business_value': "",
-        #     'acceptance_tests': ""
-        # }
+        fields = ('name', 'workflow', 'description', 'project', 'sprint', 'priority', 'size', 'original_estimate', 'business_value', 'user', 'acceptance_tests')
         widgets = {
             'name': forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Name'}), 
             'description': forms.Textarea(attrs={'class':'form-control', 'rows':'3', 'placeholder': 'Description'}), 
@@ -151,6 +141,7 @@ class UserStoryForm(forms.ModelForm):
             'acceptance_tests': forms.Textarea(attrs={'class':'form-control', 'rows': 5, 'placeholder': '# test 1\n# test 2\n# test 3\n...'}), 
             'workflow': forms.Select(attrs={'class':'form-control', 'placeholder': 'Priority'}), 
             'user': forms.Select(attrs={'class':'form-control', 'placeholder': 'Choose user'}), 
+            'original_estimate': forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Size'}), 
         }
 
 class ProjectWallForm(forms.ModelForm):
