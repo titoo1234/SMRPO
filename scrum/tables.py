@@ -24,7 +24,7 @@ class ProjectTable(tables.Table):
     
     def render_name(self, record):
         project_url = reverse('project_name', kwargs={'project_name': record.name})
-        return format_html('<a href="{}">{}</a>'.format(project_url, record.name))
+        return format_html('<a style="font-size: 22px;" href="{}">{}</a>'.format(project_url, "#" +str(record.id)+" "+ record.name))
 
     def render_edit_button(self, record):
         
