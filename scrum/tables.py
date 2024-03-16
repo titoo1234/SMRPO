@@ -105,19 +105,19 @@ class DeletedUserTable(tables.Table):
 # ==============================================
 class UserStoryTable(tables.Table):
     name = tables.Column()
-    # description = tables.Column()
-    # project = tables.Column()
-    # sprint = tables.Column()
     priority = tables.Column()
-    # size = tables.Column()
-    # business_value = tables.Column()
-    # acceptance_tests = tables.Column()
+    size = tables.Column()
+    workflow = tables.Column()
+    user = tables.Column()
     edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
     delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
 
     def render_edit_button(self, record):
         edit_url = reverse('edit_user_story', kwargs={'project_name': record.project.name,'id': record.id})
         return format_html('<a href="{}" class="btn btn-primary">Edit</a>', edit_url)
+    
+    def render_name(self, record):
+        return format_html(f'#{record.story_number} - {record.name}')
         
     def render_delete_button(self, record):
         edit_url = reverse('delete_user_story', kwargs={'project_name': record.project.name, 'id': record.id})
@@ -125,7 +125,7 @@ class UserStoryTable(tables.Table):
 
     class Meta:
         model = UserStory
-        fields = ('name','priority','edit_button','delete_button')
+        fields = ('name','priority', 'size', 'workflow', 'user', 'edit_button','delete_button')
         template_name = "django_tables2/bootstrap5.html"
 
 # Sprint

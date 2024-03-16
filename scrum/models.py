@@ -55,17 +55,56 @@ class UserStory(models.Model):
         (should_have, 'Should have'),
         (wont_have_this_time, "Won't have this time"),
     ]
-    name = models.CharField(max_length=100, unique=True)
+    to_do = 'to_do'
+    in_progress = 'in_progress'
+    done = 'done'
+    WORKFLOW = [
+        (to_do, 'To Do'),
+        (in_progress, 'In Progress'),
+        (done, 'Done'),
+    ]
+
+    name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     sprint = models.ForeignKey(Sprint, on_delete=models.CASCADE, blank=True, null=True)
     priority = models.CharField(max_length=50, choices=PRIORITY_CHOICES, blank=True)
-    size = models.IntegerField(blank=True, null=True)
-    business_value = models.IntegerField(blank=True, null=True)
+    size = models.PositiveIntegerField(blank=True, null=True)
+    original_estimate = models.PositiveIntegerField(blank=True, null=True)
+    workflow = models.CharField(max_length=50, choices=WORKFLOW, blank=False, default=to_do)
+    business_value = models.PositiveIntegerField(blank=True, null=True)
     acceptance_tests = models.TextField(blank=True)
+    story_number = models.IntegerField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return self.name
+    
+    class Meta:
+        ordering = ['story_number']  # Razvrščanje zgodbe po številki zgodbe v padajočem vrstnem redu
+        unique_together = ('name', 'project')
+
+    @classmethod
+    def get_next_story_number(cls, project_id):
+        last_story = cls.objects.filter(project_id=project_id).last()
+        if last_story:
+            return last_story.story_number + 1
+        else:
+            return 1  # Če ni nobene zgodbe, začnemo z 1
+    
+    def clean(self):
+        if self.workflow in [self.in_progress, self.done] and not self.sprint:
+            raise ValidationError("Cannot set workflow to 'In Progress' or 'Done' without a sprint.")
+        lines = self.acceptance_tests.split('\n')
+        for line in lines:
+            if not line.startswith('# '):
+                raise ValidationError("Acceptance tests should start with '# ' character.")
+        super().clean() 
+
+    def save(self, *args, **kwargs):
+        if not self.story_number:
+            self.story_number = self.get_next_story_number(self.project_id)
+        super().save(*args, **kwargs)
 
 class Task(models.Model):
     name = models.CharField(max_length=100)

@@ -695,13 +695,13 @@ def new_user_story(request, project_name):
             if methodology_manager or product_owner:
                 instance = form.save() 
                 messages.success(request, f"User story \"{instance.name}\" created!!")
-                return redirect('new_user_story', project_name=project_name)
+                return redirect('project_name', project_name=project_name)
             else:
                 messages.error(request, "User story can be created only by Product Owner or Methology Manager")
-                return redirect('new_user_story', project_name=project_name)
+                return redirect(request.path)
         else:
             messages.error(request, form.errors)
-            return redirect('new_user_story', project_name=project_name)
+            return redirect(request.path)
     else:
         user = User.objects.get(username = context['user1'])
         all_users = User.objects.filter(active=True)
@@ -719,10 +719,10 @@ def edit_user_story(request, project_name, id):
         if form.is_valid():
             form.save()
             messages.success(request, f"User story \"{user_story.name}\" updated!!")
-            return redirect('/')
+            return redirect('project_name', project_name=project_name)
         else:
-            messages.error(request, "Invalid input data!!")
-            return redirect('new_user_story')
+            messages.error(request, form.errors)
+            return redirect(request.path)
     context = get_context(request)
     context['form'] = form
     context['project'] = project
@@ -731,15 +731,17 @@ def edit_user_story(request, project_name, id):
 def delete_user_story(request, project_name, id):
     context = get_context(request)
     user_story = UserStory.objects.get(id=id)
+    user_story_name = user_story.name
     project = Project.objects.get(name = project_name)
+    print(user_story.sprint)
     if request.method == "POST":
-        if user_story.sprint is not None:
-            print(user_story.sprint)
+        if user_story.sprint is None:
             user_story.delete()
-            return redirect('delete_user_story', project_name=project_name, id=id)
+            messages.success(request, f"User story \"{user_story_name}\" deleted successfully!!")
+            return redirect('project_name', project_name=project_name)
         else:
             messages.error(request, f"User story \"{user_story.name}\" can't be deleted, because it is already in current sprint!!")
-            return redirect('delete_user_story', project_name=project_name, id=id)
+            return redirect('project_name', project_name=project_name)
     context["user_story_id"] = user_story.id
     context["user_story_name"] = user_story.name
     context["project_name"] = project.name
