@@ -402,20 +402,23 @@ def edit_assign_roles(request,ime_projekta):
 def project_view(request,project_name):
     context = get_context(request)
     project = Project.objects.get(name=project_name)
-    context['project'] = project
-    form = ProjectDisabledForm(instance=project)
-    context['form'] = form
-    is_creator = (project.creator.id == context['id'])
-    context['is_creator'] = is_creator
     user = User.objects.get(id = context['id'])
-    methodology_manager = AssignedRole.objects.get(project = project,role = 'methodology_manager').user
-    context['editable'] = (user.admin_user or (user == methodology_manager))
     sprints = Sprint.objects.filter(project=project)
-    context['sprints'] = (sprints)
     user_stories = UserStory.objects.filter(project=project)
-    user_story_table = UserStoryTable(user_stories)
+    product_owner = AssignedRole.objects.get(project = project,role = 'product_owner').user
+    methodology_manager = AssignedRole.objects.get(project = project,role = 'methodology_manager').user
+    form = ProjectDisabledForm(instance=project)
+    is_creator = (project.creator.id == context['id'])
+    context['new_user_story_enabled'] = (user.admin_user or (user == methodology_manager or user == product_owner))
+    context['project'] = project
+    context['form'] = form
+    context['is_creator'] = is_creator
+    context['editable'] = (user.admin_user or (user == methodology_manager))
+    context['sprints'] = (sprints)
+    user_story_table = UserStoryTable(user_stories, admin = context['admin'],user_id = context['id'])
     RequestConfig(request).configure(user_story_table)
     context['user_story_table'] = user_story_table
+    
     sprint_tables = []
     for sprint in sprints:
         userstories = UserStory.objects.filter(project=project, sprint=sprint)
@@ -424,11 +427,11 @@ def project_view(request,project_name):
         if len(userstories) == 0:
             deleteable = True
         # sprint_table = SprintTable([sprint])
-        userstory_table = UserStoryTable(userstories)
+        userstory_table = UserStoryTable(userstories, admin = context['admin'],user_id = context['id'])
         sprint_tables.append((sprint, userstory_table, deleteable))
     context['sprint_tables'] = sprint_tables
     Backlog = UserStory.objects.filter(project=project, sprint=None)
-    Backlog = UserStoryTable(Backlog)
+    Backlog = UserStoryTable(Backlog, admin = context['admin'],user_id = context['id'])
     context['Backlog'] = Backlog
     methodology_manager = AssignedRole.objects.get(project = project, role = 'methodology_manager')
     # methodology_manager = User.objects.get(id = methodology_manager)

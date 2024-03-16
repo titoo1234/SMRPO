@@ -112,16 +112,35 @@ class UserStoryTable(tables.Table):
     edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
     delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
 
-    def render_edit_button(self, record):
-        edit_url = reverse('edit_user_story', kwargs={'project_name': record.project.name,'id': record.id})
-        return format_html('<a href="{}" class="btn btn-primary">Edit</a>', edit_url)
-    
+    def __init__(self, *args, **kwargs):
+        self.user_id = kwargs.pop('user_id', 0)
+        self.admin = kwargs.pop('admin', False)
+        super().__init__(*args, **kwargs)
+
     def render_name(self, record):
         return format_html(f'#{record.story_number} - {record.name}')
+    
+    def render_edit_button(self, record):
+        user = User.objects.get(id = self.user_id)
+        project = Project.objects.get(name = record.project.name)
+        methodology_manager = AssignedRole.objects.get(project=project,role = 'methodology_manager').user
+        product_owner = AssignedRole.objects.get(project=project,role = 'product_owner').user
+        if self.admin or (user == methodology_manager or user == product_owner):
+            edit_url = reverse('edit_user_story', kwargs={'project_name': record.project.name,'id': record.id})
+            return format_html('<a href="{}" class="btn btn-primary">Edit</a>', edit_url)
+        else:
+            return ''
         
     def render_delete_button(self, record):
-        edit_url = reverse('delete_user_story', kwargs={'project_name': record.project.name, 'id': record.id})
-        return format_html('<a href="{}" class="btn btn-danger">Delete</a>', edit_url)
+        user = User.objects.get(id = self.user_id)
+        project = Project.objects.get(name = record.project.name)
+        methodology_manager = AssignedRole.objects.get(project=project,role = 'methodology_manager').user
+        product_owner = AssignedRole.objects.get(project=project,role = 'product_owner').user
+        if self.admin or (user == methodology_manager or user == product_owner):
+            edit_url = reverse('delete_user_story', kwargs={'project_name': record.project.name, 'id': record.id})
+            return format_html('<a href="{}" class="btn btn-danger">Delete</a>', edit_url)
+        else:
+            return ''
 
     class Meta:
         model = UserStory

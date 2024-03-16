@@ -24,8 +24,9 @@ Project {{project.name}}
         {% render_table userstory_table %}
     {% endfor %}
 <h3>Backlog:</h3>
+{% if new_user_story_enabled %}
 <a href='/project/{{project.name}}/new_user_story/'><button type='submit'>New User Story</button></a>
-
+{% endif %}
 {% render_table Backlog %}
 
 {% endblock %}
