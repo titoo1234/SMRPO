@@ -505,9 +505,11 @@ def delete_project(request,project_name):
         return redirect('home')
 
 
-def check_sprint_dates(start_date, end_date, duration, sprints, sprint_id=-1):
+def check_sprint_dates(start_date, end_date, velocity, sprints, sprint_id=-1):
     start = datetime.strptime(start_date, '%Y-%m-%d').replace(tzinfo=timezone.get_current_timezone())
     end = datetime.strptime(end_date, '%Y-%m-%d').replace(tzinfo=timezone.get_current_timezone())
+    if velocity < 1:
+        return False, "Sprint velocity is not positive"
     # Preveri za primer, ko je končni datum pred začetnim.
     if start > end:
         return False, "Start date is after end date"
@@ -517,8 +519,8 @@ def check_sprint_dates(start_date, end_date, duration, sprints, sprint_id=-1):
         return False, "Start date is in the past"
 
     # Preveri za neregularno vrednost hitrosti Sprinta.
-    if start + timezone.timedelta(days=int(duration)) != end:
-        return False, "Sprint duration is not regular"
+    #if start + timezone.timedelta(days=int(duration)) != end:
+    #    return False, "Sprint duration is not regular"
     
     # Preveri za primer, ko se dodani Sprint prekriva s katerim od obstoječih.
     for sprint in sprints:
@@ -562,9 +564,7 @@ def sprints_list_handler(request, project_name):
             sprint.save()
             return redirect('project_name', project_name=project_name)#JsonResponse({'message': 'Sprint created successfully'})
         except Project.DoesNotExist:
-            print("TEST")
             messages.error(request,"Project does not exist")
-            
             return redirect(request.path)#return JsonResponse({'message': 'Project does not exist'}, status=404)
         except Exception as e:
             #print(e)

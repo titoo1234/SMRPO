@@ -14,7 +14,7 @@ New Sprint
         <p class="error-message">{{ message }}</p>
         {% endfor %} -->
     </form>
-    <script>
+    <!--<script>
         console.log('Hello');
         document.addEventListener('DOMContentLoaded', function() {
             var form = document.getElementById('sprint-form');
@@ -24,7 +24,23 @@ New Sprint
             console.log(startDateInput);
             var endDateInput = form.querySelector('#id_end_date');
             var velocityInput = form.querySelector('#id_velocity');
-    
+            console.log(velocityInput);
+            // Function to add working days to a date
+            function addWorkingDays(startDate, numWorkingDays) {
+                var currentDate = new Date(startDate);
+                var workingDaysAdded = 0;
+
+                while (workingDaysAdded < numWorkingDays) {
+                    currentDate.setDate(currentDate.getDate() + 1); // Move to the next day
+
+                    // Check if the current day is a working day (Monday to Friday)
+                    if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6) {
+                        workingDaysAdded++;
+                    }
+                }
+
+                return currentDate;
+            }
         
             // Add event listener to the start date input field
             startDateInput.addEventListener('change', function() {
@@ -33,8 +49,12 @@ New Sprint
         
                 // Perform any logic here to calculate the end date
                 // For example, you can add a fixed number of days to the start date
-                var endDateValue = new Date(startDateValue);
-                endDateValue.setDate(endDateValue.getDate() + 14); // Adding 14 days
+                //var endDateValue = new Date(startDateValue);
+                //endDateValue.setDate(endDateValue.getDate() + 14); // Adding 14 days
+
+                var endDateValue = addWorkingDays(startDateValue, velocityInput.value);
+
+
         
                 // Format the end date value as YYYY-MM-DD
                 var formattedEndDate = endDateValue.toISOString().slice(0, 10);
@@ -43,6 +63,6 @@ New Sprint
                 endDateInput.value = formattedEndDate;
             });
         });
-    </script>  
+    </script>-->  
 
 {% endblock %}
