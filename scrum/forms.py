@@ -11,13 +11,13 @@ class UserLoginForm(forms.ModelForm):
         fields = ['username', 'password']
 
 class UserRegisterForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput, required=False)
+    password = forms.CharField(widget=forms.PasswordInput, required=False, min_length=12, max_length=64,strip=False)
     class Meta:
         model = User
         fields = ['name','surname','mail', 'username', 'password','admin_user']
 
 class UserRegisterForm1(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput)
+    password = forms.CharField(widget=forms.PasswordInput, min_length=12, max_length=64,strip=False)
     confirm_password = forms.CharField(widget=forms.PasswordInput, label='Confirm password')
 
     class Meta:
