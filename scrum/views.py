@@ -510,15 +510,15 @@ def check_sprint_dates(start_date, end_date, duration, sprints, sprint_id=-1):
     end = datetime.strptime(end_date, '%Y-%m-%d').replace(tzinfo=timezone.get_current_timezone())
     # Preveri za primer, ko je končni datum pred začetnim.
     if start > end:
-        return False
+        return False, "Start date is after end date"
 
     # Preveri za primer, ko je začetni datum v preteklosti.
-    if start < timezone.now():
-        return False
+    if start.date() < timezone.now().date():
+        return False, "Start date is in the past"
 
     # Preveri za neregularno vrednost hitrosti Sprinta.
     if start + timezone.timedelta(days=int(duration)) != end:
-        return False
+        return False, "Sprint duration is not regular"
     
     # Preveri za primer, ko se dodani Sprint prekriva s katerim od obstoječih.
     for sprint in sprints:
@@ -531,37 +531,45 @@ def check_sprint_dates(start_date, end_date, duration, sprints, sprint_id=-1):
         #sprint_end_date = datetime.strptime(sprint.end_date, '%Y-%m-%d').replace(tzinfo=timezone.get_current_timezone())
         sprint_end = datetime.combine(sprint.end_date, time()).replace(tzinfo=timezone.get_current_timezone())
         if start >= sprint_start and start <= sprint_end:
-            return False
+            return False, "Sprint dates overlap with existing sprint: " + sprint.id
 
         if end >= sprint_start and end <= sprint_end:
-            return False
+            return False, "Sprint dates overlap with existing sprint: " + sprint.id
 
         if start <= sprint_start and end >= sprint_end:
-            return False
-    return True
+            return False, "Sprint dates overlap with existing sprint: " + sprint.id
+    return True, ""
 
 @require_http_methods(["POST", "GET"])
 def sprints_list_handler(request, project_name):
     if request.method == 'POST':
         try:
+            print(project_name)
             project = Project.objects.get(name=project_name)
-           
+            print(project.id)
             # get start and end date and check for regularity
             start_date = request.POST.get('start_date')
-            print(type(start_date))
+            #print(type(start_date))
             end_date = request.POST.get('end_date')
-            duration = request.POST.get('duration')
+            duration = request.POST.get('velocity')
             sprints = Sprint.objects.filter(project=project)
-            if not check_sprint_dates(start_date, end_date, duration, sprints):
-                return JsonResponse({'message': 'Sprint dates are not regular'}, status=400)
+            regular_dates, err = check_sprint_dates(start_date, end_date, duration, sprints)
+            print("err: ",err)
+            if not regular_dates:
+                messages.error(request,err)
+                return redirect(request.path)#JsonResponse({'message': 'Sprint dates are not regular'}, status=400)
             sprint = Sprint.objects.create(project=project, start_date=start_date, end_date=end_date)
             sprint.save()
             return redirect('project_name', project_name=project_name)#JsonResponse({'message': 'Sprint created successfully'})
         except Project.DoesNotExist:
-            return JsonResponse({'message': 'Project does not exist'}, status=404)
+            print("TEST")
+            messages.error(request,"Project does not exist")
+            
+            return redirect(request.path)#return JsonResponse({'message': 'Project does not exist'}, status=404)
         except Exception as e:
-            print(e)
-            return JsonResponse({'message': str(e)}, status=400)
+            #print(e)
+            messages.error(request,str(e))
+            return redirect(request.path)#return JsonResponse({'message': str(e)}, status=400)
     if request.method == 'GET':
         try:
             project_name = request.GET.get('project_name')
@@ -606,7 +614,7 @@ def new_sprint(request,project_name):
     project = Project.objects.get(name=project_name)
     user = User.objects.get(username = context['user1'])
     all_users = User.objects.filter(active=True)
-    context['form'] = SprintForm(initial={'project': project}) 
+    context['form'] = SprintForm(initial={'project': project.name}) 
     # context['formAssignment'] = RoleAssignmentForm()
     context['allusers'] = all_users
     context['project'] = project
@@ -618,7 +626,7 @@ def edit_sprint(request,project_name,sprint_id):
         context = get_context(request)
         context['sprint'] = sprint
         context['project_name'] = project_name
-        form = SprintForm(instance=sprint)
+        form = SprintForm(instance=sprint, initial={'project': project})
         context['form'] = form
         return render(request, 'sprint_edit.html', context)
     if request.method == 'POST':
@@ -627,7 +635,7 @@ def edit_sprint(request,project_name,sprint_id):
             sprint = Sprint.objects.get(id=sprint_id)
             start_date = request.POST.get('start_date')
             end_date = request.POST.get('end_date')
-            duration = request.POST.get('duration')
+            duration = request.POST.get('velocity')
             sprint.start_date = start_date
             sprint.end_date = end_date
             sprint.duration = duration  
@@ -635,18 +643,19 @@ def edit_sprint(request,project_name,sprint_id):
             project = Project.objects.get(name=project_name)
             sprints = Sprint.objects.filter(project=project)
             print("CHECK")
-            if check_sprint_dates(start_date, end_date, duration, sprints, sprint_id):
+            regular_dates, err = check_sprint_dates(start_date, end_date, duration, sprints)
+            if regular_dates:
                 sprint.save()
-                print(sprint)
                 return redirect('sprint_details', project_name=project_name, sprint_id=sprint_id)
             else:
-                messages.error(request,"Neveljavna sprememba datuma oz. dolžine sprinta!")
+                messages.error(request,"Neveljavna sprememba datuma oz. dolžine sprinta: ", err)
                 return redirect(request.path)
         except Sprint.DoesNotExist:
-            return JsonResponse({'message': 'Sprint does not exist'}, status=404)
+            messages.error(request,"Sprint does not exist!")
+            return redirect(request.path)
         except Exception as e:
-            print(e)
-            return JsonResponse({'message': str(e)}, status=400)
+            messages.error(request, str(e))
+            return redirect(request.path)
         
 
 def delete_sprint(request,id,project):
