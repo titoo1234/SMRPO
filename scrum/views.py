@@ -587,6 +587,8 @@ def sprint_details_handler(request, project_name, sprint_id):
     if request.method == 'GET':
         try:
             sprint = Sprint.objects.get(id=sprint_id)
+            project = Project.objects.get(name=project_name)
+            context = get_context(request)
             show_edit = True
             #check if sprint has already started, if it has, disable the edit button
             sprint_start = datetime.combine(sprint.start_date, time()).replace(tzinfo=timezone.get_current_timezone())
@@ -595,12 +597,17 @@ def sprint_details_handler(request, project_name, sprint_id):
                 show_edit = False
             #context['show_edit'] = show_edit
             #print(context)
+            methodology_manager = AssignedRole.objects.get(project = project, role = 'methodology_manager')
+            edit_sprint = False
+            if (methodology_manager.user.id == context['id']) or context['admin']:
+                edit_sprint = True
+
             sprint.start_date = sprint.start_date.strftime('%d.%m.%Y')
             sprint.end_date = sprint.end_date.strftime('%d.%m.%Y')
-            context = get_context(request)
+            
             context['sprint'] = sprint
             context['project_name'] = project_name
-            context['show_edit'] = show_edit
+            context['show_edit'] = show_edit and edit_sprint
             
             # context={'sprint': sprint, 'project_name': project_name, 'show_edit': show_edit}
             return render(request, 'sprint_details.html', context )
