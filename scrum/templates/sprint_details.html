@@ -5,26 +5,26 @@ Sprint {{sprint.id}}
 {% endblock %}
 
 {% block content %}
-<p>Začetek: {{sprint.start_date}}</p>
-<p>Konec: {{sprint.end_date}}</p>
-<p>Trajanje: {{sprint.duration}} dni</p>
+<p>Start date: {{sprint.start_date}}</p>
+<p>End date: {{sprint.end_date}}</p>
+<p>Velocity: {{sprint.duration}} dni</p>
 {% if show_edit %}
-<a role="button" href="/project/{{project_name}}/sprint/{{sprint.id}}/edit" class="btn btn-primary">Uredi</a>
-<a id="delete-button" role="button" href="/project/{{project_name}}/sprint/{{sprint.id}}" class="btn btn-danger">Izbriši sprint</a>
+<a role="button" href="/project/{{project_name}}/sprint/{{sprint.id}}/edit" class="btn btn-primary">Edit</a>
+<a id="delete-button" role="button" href="/delete_sprint/{{project_name}}/{{sprint.id}}" class="btn btn-danger">Delete sprint</a>
 {% endif %}
 
 <div class="row">
     <div class="col-md-4">
         <!-- First column content -->
-        <p>Sprint</p>
+        <p>Sprint backlog</p>
     </div>
     <div class="col-md-4">
         <!-- Second column content -->
-        <p>V procesu razvijanja</p>
+        <p>In progress</p>
     </div>
     <div class="col-md-4">
         <!-- Third column content -->
-        <p>Končan</p>
+        <p>Done</p>
     </div>
 </div>
 

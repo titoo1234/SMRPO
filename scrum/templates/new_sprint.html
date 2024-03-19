@@ -6,7 +6,7 @@ New Sprint
 
 {% block content %}
 <h2>New Sprint</h2>
-    <form method="post" action="/project/{{project.name}}/sprints">
+    <form id="sprint-form" method="post" action="/project/{{project.name}}/sprints">
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit">Submit</button>
@@ -14,6 +14,55 @@ New Sprint
         <p class="error-message">{{ message }}</p>
         {% endfor %} -->
     </form>
-   
+    <!--<script>
+        console.log('Hello');
+        document.addEventListener('DOMContentLoaded', function() {
+            var form = document.getElementById('sprint-form');
+            console.log(form);
+            // Get references to the start date and end date input fields
+            var startDateInput = form.querySelector('#id_start_date');
+            console.log(startDateInput);
+            var endDateInput = form.querySelector('#id_end_date');
+            var velocityInput = form.querySelector('#id_velocity');
+            console.log(velocityInput);
+            // Function to add working days to a date
+            function addWorkingDays(startDate, numWorkingDays) {
+                var currentDate = new Date(startDate);
+                var workingDaysAdded = 0;
+
+                while (workingDaysAdded < numWorkingDays) {
+                    currentDate.setDate(currentDate.getDate() + 1); // Move to the next day
+
+                    // Check if the current day is a working day (Monday to Friday)
+                    if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6) {
+                        workingDaysAdded++;
+                    }
+                }
+
+                return currentDate;
+            }
+        
+            // Add event listener to the start date input field
+            startDateInput.addEventListener('change', function() {
+                // Get the selected start date value
+                var startDateValue = startDateInput.value;
+        
+                // Perform any logic here to calculate the end date
+                // For example, you can add a fixed number of days to the start date
+                //var endDateValue = new Date(startDateValue);
+                //endDateValue.setDate(endDateValue.getDate() + 14); // Adding 14 days
+
+                var endDateValue = addWorkingDays(startDateValue, velocityInput.value);
+
+
+        
+                // Format the end date value as YYYY-MM-DD
+                var formattedEndDate = endDateValue.toISOString().slice(0, 10);
+        
+                // Update the end date input field value
+                endDateInput.value = formattedEndDate;
+            });
+        });
+    </script>-->  
 
 {% endblock %}
