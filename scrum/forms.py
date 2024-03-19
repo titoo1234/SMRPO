@@ -129,7 +129,7 @@ class RoleAssignmentForm(forms.ModelForm):
 class UserStoryForm(forms.ModelForm):
     class Meta:
         model = UserStory
-        fields = ('name', 'workflow', 'description', 'project', 'sprint', 'priority', 'size', 'original_estimate', 'business_value', 'user', 'acceptance_tests')
+        fields = ['name', 'workflow', 'description', 'project', 'sprint', 'priority', 'size', 'original_estimate', 'business_value', 'user', 'acceptance_tests']
         widgets = {
             'name': forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Name'}), 
             'description': forms.Textarea(attrs={'class':'form-control', 'rows':'3', 'placeholder': 'Description'}), 
@@ -141,8 +141,20 @@ class UserStoryForm(forms.ModelForm):
             'acceptance_tests': forms.Textarea(attrs={'class':'form-control', 'rows': 5, 'placeholder': '# test 1\n# test 2\n# test 3\n...'}), 
             'workflow': forms.Select(attrs={'class':'form-control', 'placeholder': 'Priority'}), 
             'user': forms.Select(attrs={'class':'form-control', 'placeholder': 'Choose user'}), 
-            'original_estimate': forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Size'}), 
+            'original_estimate': forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Original estimate'}), 
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.project = self.initial['project']
+        development_team_members = AssignedRole.objects.filter(project = self.project, role='development_team_member')
+        users = [(object.user.id, str(object.user.username)) for object in development_team_members]
+        users += [(None, '---------')]
+        self.fields['user'].choices = users
+        self.fields['workflow'].disabled = False
+        if not self.instance.workflow:  # Če ni že izbran workflow, nastavimo na To Do
+            self.initial['workflow'] = 'to_do'
+        self.fields['workflow'].disabled = True
 
 class ProjectWallForm(forms.ModelForm):
     class Meta:

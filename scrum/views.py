@@ -692,26 +692,27 @@ def new_user_story(request, project_name):
     project = Project.objects.get(name = project_name)
     methodology_manager = AssignedRole.objects.filter(project = project, user=context['id'],role = 'methodology_manager')
     product_owner = AssignedRole.objects.filter(project = project, user=context['id'],role = 'product_owner')
+    development_team_member = AssignedRole.objects.filter(project = project, user=context['id'],role = 'development_team_member')
+    user = User.objects.get(username = context['user1'])
+    all_users = User.objects.filter(active=True)
     if request.method == "POST":
-        form = UserStoryForm(request.POST)
+        form = UserStoryForm(request.POST, initial={'creator': user, 'project':project})
         if form.is_valid():
-            if not methodology_manager:
-                if form.cleaned_data['original_estimate'] is not None:
-                    messages.error(request, "Original estimate can be provided only by Methology Manager")
-            if methodology_manager or product_owner:
-                instance = form.save() 
-                messages.success(request, f"User story \"{instance.name}\" created!!")
-                return redirect('project_name', project_name=project_name)
-            else:
-                messages.error(request, "User story can be created only by Product Owner or Methology Manager")
-                return redirect(request.path)
+            instance = form.save() 
+            messages.success(request, f"User story \"{instance.name}\" created!!")
+            return redirect('project_name', project_name=project_name)
         else:
             messages.error(request, form.errors)
             return redirect(request.path)
     else:
-        user = User.objects.get(username = context['user1'])
-        all_users = User.objects.filter(active=True)
-        context['form'] = UserStoryForm(initial={'creator': user, 'project':project}) 
+        form = UserStoryForm(initial={'creator': user, 'project':project})
+        if product_owner or methodology_manager:
+            form.fields['workflow'].disabled = True
+            form.fields['sprint'].disabled = True
+            form.fields['size'].disabled = True
+            form.fields['original_estimate'].disabled = True
+            form.fields['user'].disabled = True
+        context['form'] = form
         context['allusers'] = all_users
         context['project'] = project
         return render(request,'new_user_story.html',context=context)
@@ -723,22 +724,88 @@ def edit_user_story(request, project_name, id):
     form = UserStoryForm(instance=user_story, initial={'project':project})
     methodology_manager = AssignedRole.objects.filter(project = project, user=context['id'],role = 'methodology_manager')
     product_owner = AssignedRole.objects.filter(project = project, user=context['id'],role = 'product_owner')
+    development_team_member = AssignedRole.objects.filter(project = project, user=context['id'],role = 'development_team_member')
     if request.method == "POST":
         form = UserStoryForm(request.POST, instance=user_story)
         if form.is_valid():
             if not methodology_manager:
                 if form.cleaned_data['original_estimate'] != user_story.original_estimate:
-                    messages.error(request, "Original estimate can be provided only by Methology Manager")
+                    messages.error(request, "Original estimate can be provided only by Scrum Master")
+                    return redirect('project_name', project_name=project_name)
+                if form.cleaned_data['sprint'] != user_story.sprint:
+                    messages.error(request, "User story can be added to sprint only by Scrum Master")
+                    return redirect('project_name', project_name=project_name)
             if methodology_manager or product_owner:
-                form.save() 
-                messages.success(request, f"User story \"{user_story.name}\" updated!!")
-                return redirect('project_name', project_name=project_name)
+                if user_story.sprint is None:
+                    form.save() 
+                    messages.success(request, f"User story \"{user_story.name}\" updated!!")
+                    return redirect('project_name', project_name=project_name)
+                else:
+                    messages.error(request, f"User story \"{user_story.name}\" can't be updated, because it is already in current sprint!!")
+                    return redirect('project_name', project_name=project_name)
             else:
-                messages.error(request, "User story can be updated only by Product Owner or Methology Manager")
+                messages.error(request, "User story can be updated only by Product Owner or Scrum Master")
                 return redirect(request.path)
         else:
             messages.error(request, form.errors)
             return redirect(request.path)
+    print(user_story.sprint)
+    if user_story.sprint is not None:
+        if product_owner:
+            form.fields['name'].disabled = True
+            form.fields['description'].disabled = True
+            form.fields['priority'].disabled = True
+            form.fields['business_value'].disabled = True
+            form.fields['acceptance_tests'].disabled = True
+            form.fields['workflow'].disabled = True
+            form.fields['sprint'].disabled = True
+            form.fields['size'].disabled = True
+            form.fields['original_estimate'].disabled = True
+            form.fields['user'].disabled = True
+        elif development_team_member:
+            form.fields['name'].disabled = True
+            form.fields['description'].disabled = True
+            form.fields['priority'].disabled = True
+            form.fields['business_value'].disabled = True
+            form.fields['acceptance_tests'].disabled = True
+            form.fields['sprint'].disabled = True
+            form.fields['size'].disabled = True
+            form.fields['original_estimate'].disabled = True
+            form.fields['user'].disabled = True
+        elif methodology_manager:
+            form.fields['name'].disabled = True
+            form.fields['description'].disabled = True
+            form.fields['priority'].disabled = True
+            form.fields['business_value'].disabled = True
+            form.fields['acceptance_tests'].disabled = True
+            form.fields['workflow'].disabled = True
+            form.fields['sprint'].disabled = True
+            form.fields['size'].disabled = True
+            form.fields['original_estimate'].disabled = True
+            form.fields['user'].disabled = True
+    else:
+        print(methodology_manager)
+        if development_team_member and methodology_manager:
+            pass
+        elif product_owner:
+            form.fields['workflow'].disabled = True
+            form.fields['sprint'].disabled = True
+            form.fields['size'].disabled = True
+            form.fields['original_estimate'].disabled = True
+            form.fields['user'].disabled = True
+        elif development_team_member:
+            form.fields['name'].disabled = True
+            form.fields['description'].disabled = True
+            form.fields['priority'].disabled = True
+            form.fields['business_value'].disabled = True
+            form.fields['acceptance_tests'].disabled = True
+            form.fields['workflow'].disabled = True
+            form.fields['sprint'].disabled = True
+            form.fields['size'].disabled = True
+            form.fields['original_estimate'].disabled = True
+            form.fields['user'].disabled = True
+        elif methodology_manager:
+            form.fields['workflow'].disabled = True
     context['form'] = form
     context['project'] = project
     return render(request,'new_user_story.html',context=context)
@@ -761,7 +828,7 @@ def delete_user_story(request, project_name, id):
                 messages.error(request, f"User story \"{user_story.name}\" can't be deleted, because it is already in current sprint!!")
                 return redirect('project_name', project_name=project_name)
         else:
-            messages.error(request, "User story can be deleted only by Product Owner or Methology Manager")
+            messages.error(request, "User story can be deleted only by Product Owner or Scrum Master")
             return redirect('project_name', project_name=project_name)
     context["user_story_id"] = user_story.id
     context["user_story_name"] = user_story.name

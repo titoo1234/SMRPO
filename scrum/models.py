@@ -72,7 +72,7 @@ class UserStory(models.Model):
     priority = models.CharField(max_length=50, choices=PRIORITY_CHOICES, blank=True)
     size = models.PositiveIntegerField(blank=True, null=True)
     original_estimate = models.PositiveIntegerField(blank=True, null=True)
-    workflow = models.CharField(max_length=50, choices=WORKFLOW, blank=False, default=to_do)
+    workflow = models.CharField(max_length=50, choices=WORKFLOW, default=to_do)
     business_value = models.PositiveIntegerField(blank=True, null=True)
     acceptance_tests = models.TextField(blank=True)
     story_number = models.IntegerField()

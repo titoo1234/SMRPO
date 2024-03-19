@@ -118,7 +118,8 @@ class UserStoryTable(tables.Table):
         super().__init__(*args, **kwargs)
 
     def render_name(self, record):
-        return format_html(f'#{record.story_number} - {record.name}')
+        user_story_url = reverse('edit_user_story', kwargs={'project_name': record.project.name,'id': record.id})
+        return format_html(f'<a style="font-size: 22px;" href="{user_story_url}">#{record.story_number} - {record.name}</a>')
     
     def render_edit_button(self, record):
         user = User.objects.get(id = self.user_id)
