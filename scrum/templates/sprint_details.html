@@ -5,9 +5,9 @@ Sprint {{sprint.id}}
 {% endblock %}
 
 {% block content %}
-<p>Začetek: {{sprint.start_date}}</p>
-<p>Konec: {{sprint.end_date}}</p>
-<p>Trajanje: {{sprint.duration}} dni</p>
+<p>Start date: {{sprint.start_date}}</p>
+<p>End date: {{sprint.end_date}}</p>
+<p>Velocity: {{sprint.duration}} dni</p>
 {% if show_edit %}
 <a role="button" href="/project/{{project_name}}/sprint/{{sprint.id}}/edit" class="btn btn-primary">Edit</a>
 <a id="delete-button" role="button" href="/delete_sprint/{{project_name}}/{{sprint.id}}" class="btn btn-danger">Delete sprint</a>

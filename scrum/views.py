@@ -5,6 +5,7 @@ from .forms import *
 from django.contrib import messages
 from django.http import HttpResponse,request, JsonResponse
 from django.urls import reverse
+from django.utils.timezone import localtime
 
 from django import forms
 
@@ -590,10 +591,12 @@ def sprint_details_handler(request, project_name, sprint_id):
             #check if sprint has already started, if it has, disable the edit button
             sprint_start = datetime.combine(sprint.start_date, time()).replace(tzinfo=timezone.get_current_timezone())
             if sprint_start < timezone.now():
-                print("Sprint has already started")
+                #print("Sprint has already started")
                 show_edit = False
             #context['show_edit'] = show_edit
             #print(context)
+            sprint.start_date = sprint.start_date.strftime('%d.%m.%Y')
+            sprint.end_date = sprint.end_date.strftime('%d.%m.%Y')
             context = get_context(request)
             context['sprint'] = sprint
             context['project_name'] = project_name
@@ -605,11 +608,6 @@ def sprint_details_handler(request, project_name, sprint_id):
             messages.error(request,"Sprint does not exist")
             return render(request.path)#JsonResponse({'message': 'Sprint does not exist'}, status=404)
     
-    if request.method == 'DELETE':
-        sprint = Sprint.objects.get(id=sprint_id)
-        sprint.delete()
-        return JsonResponse({'message': 'Sprint deleted successfully'})
-
 def new_sprint(request,project_name):
     context = get_context(request)
     project = Project.objects.get(name=project_name)
@@ -624,10 +622,11 @@ def new_sprint(request,project_name):
 def edit_sprint(request,project_name,sprint_id):
     if request.method == 'GET':
         sprint = Sprint.objects.get(id=sprint_id)
+        project = Project.objects.get(name=project_name)
         context = get_context(request)
         context['sprint'] = sprint
         context['project_name'] = project_name
-        form = SprintForm(instance=sprint, initial={'project': project})
+        form = SprintForm(instance=sprint, initial={'project': project.name})
         context['form'] = form
         return render(request, 'sprint_edit.html', context)
     if request.method == 'POST':
@@ -635,19 +634,20 @@ def edit_sprint(request,project_name,sprint_id):
             sprint = Sprint.objects.get(id=sprint_id)
             start_date = request.POST.get('start_date')
             end_date = request.POST.get('end_date')
-            duration = request.POST.get('velocity')
+            velocity = request.POST.get('velocity')
             sprint.start_date = start_date
             sprint.end_date = end_date
-            sprint.duration = duration  
+            sprint.velocity = velocity  
 
             project = Project.objects.get(name=project_name)
             sprints = Sprint.objects.filter(project=project)
-            regular_dates, err = check_sprint_dates(start_date, end_date, duration, sprints)
+            regular_dates, err = check_sprint_dates(start_date, end_date, velocity, sprints, sprint_id=sprint.id)
+            print(err)
             if regular_dates:
                 sprint.save()
                 return redirect('sprint_details', project_name=project_name, sprint_id=sprint_id)
             else:
-                messages.error(request,"Neveljavna sprememba datuma oz. dolžine sprinta: ", err)
+                messages.error(request, err)
                 return redirect(request.path)
         except Sprint.DoesNotExist:
             messages.error(request,"Sprint does not exist!")
