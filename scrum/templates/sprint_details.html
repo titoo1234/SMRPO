@@ -9,8 +9,8 @@ Sprint {{sprint.id}}
 <p>Konec: {{sprint.end_date}}</p>
 <p>Trajanje: {{sprint.duration}} dni</p>
 {% if show_edit %}
-<a role="button" href="/project/{{project_name}}/sprint/{{sprint.id}}/edit" class="btn btn-primary">Uredi</a>
-<a id="delete-button" role="button" href="/project/{{project_name}}/sprint/{{sprint.id}}" class="btn btn-danger">Izbriši sprint</a>
+<a role="button" href="/project/{{project_name}}/sprint/{{sprint.id}}/edit" class="btn btn-primary">Edit</a>
+<a id="delete-button" role="button" href="/delete_sprint/{{project_name}}/{{sprint.id}}" class="btn btn-danger">Delete sprint</a>
 {% endif %}
 
 <div class="row">
