@@ -11,13 +11,13 @@ class UserLoginForm(forms.ModelForm):
         fields = ['username', 'password']
 
 class UserRegisterForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput, required=False)
+    password = forms.CharField(widget=forms.PasswordInput, required=False, min_length=12, max_length=64,strip=False)
     class Meta:
         model = User
         fields = ['name','surname','mail', 'username', 'password','admin_user']
 
 class UserRegisterForm1(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput)
+    password = forms.CharField(widget=forms.PasswordInput, min_length=12, max_length=64,strip=False)
     confirm_password = forms.CharField(widget=forms.PasswordInput, label='Confirm password')
 
     class Meta:
@@ -99,17 +99,54 @@ class ProjectDisabledForm(forms.ModelForm):
             'creator': forms.TextInput(attrs={'disabled': 'disabled'}),
         }
 
+class IntegerVelocityField(forms.IntegerField):
+    def to_python(self, value):
+        value = super().to_python(value)
+        if value is not None:
+            try:
+                return int(value)
+            except (ValueError, TypeError):
+                raise forms.ValidationError('Enter a valid integer.')
+
+class VelocityInput(forms.TextInput):
+    def __init__(self, attrs=None):
+        if attrs is None:
+            attrs = {}
+        attrs.update({'placeholder': 'Enter velocity in pts'})
+        super().__init__(attrs)
+
+    def render(self, name, value, attrs=None, renderer=None):
+        if value is None:
+            value = ''
+        final_attrs = self.build_attrs(attrs, {'type': self.input_type, 'name': name})
+        if value != '':
+            value = '%s pts' % value
+        return super().render(name, value, final_attrs, renderer)
+
 class SprintForm(forms.ModelForm):
+    velocity = forms.IntegerField(label='Velocity (pts)')
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Set project field as a TextInput widget and disable it
+        self.fields['project'].widget = forms.TextInput(attrs={'readonly': True, 'style': 'pointer-events: none;'})
+        self.fields['project'].initial = kwargs['initial']['project']
         self.fields['start_date'].initial = timezone.now().date()
         self.fields['end_date'].initial = timezone.now().date() + timezone.timedelta(days=14)
+
+    def clean_start_date(self):
+        start_date = self.cleaned_data['start_date']
+        velocity = self.cleaned_data.get('velocity')
+        if velocity:
+            self.cleaned_data['end_date'] = start_date + timezone.timedelta(days=velocity)
+        return start_date
+
     class Meta:
         model = Sprint
-        fields = ['project','start_date','end_date','duration']
+        fields = ['project','start_date','end_date','velocity']
         widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date'}),
-            'end_date': forms.DateInput(attrs={'type': 'date'}),
+            'end_date': forms.DateInput(attrs={'type': 'date'})
         }
         '''widgets = {
             'name': forms.TextInput(attrs={'disabled': 'disabled'}),

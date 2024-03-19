@@ -60,11 +60,48 @@ Login
 {% endblock %}
 
 {% block content %}
-
 <h2>Login</h2>
 <form id="form-container" method="post">
     {% csrf_token %}
     {{ form.as_p }}
+    <button type="button" id="showPasswordBtn">Show Password</button>
     <button type="submit">Login</button>
 </form>
+<script>
+    // JavaScript funkcija za gumb ki prikaže in skrije geslo
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('showPasswordBtn').addEventListener('click', function() {
+        var passwordField = document.getElementById('id_password');
+        if (passwordField.type === 'password') {
+            passwordField.type = 'text';
+            this.textContent = 'Hide Password';
+        } else {
+            passwordField.type = 'password';
+            this.textContent = 'Show Password';
+        }
+    });
+});
+</script>
+<!-- UPRABI ZAKOMENTIRANO js KODO NAMESTO ZGORNJEGA, ČE ŽELIŠ DA SE GESLO AVTOMATSKO SKRIJE PO 1SEK
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('showPasswordBtn').addEventListener('click', function() {
+        var passwordField = document.getElementById('id_password');
+        var passwordValue = passwordField.value;
+        if (passwordField.type === 'password') {
+            passwordField.type = 'text';
+            this.textContent = 'Hide Password';
+            setTimeout(function() {
+                passwordField.type = 'password';
+                document.getElementById('id_password').value = passwordValue; // Restore the original value
+                document.getElementById('showPasswordBtn').textContent = 'Show Password'; // Reset button text
+            }, 1000); // Show the last character for 1 second
+        } else {
+            passwordField.type = 'password';
+            this.textContent = 'Show Password';
+        }
+    });
+});
+</script>
+-->
 {% endblock %}
