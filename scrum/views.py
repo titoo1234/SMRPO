@@ -527,7 +527,10 @@ def check_sprint_dates(start_date, end_date, velocity, sprints, sprint_id=-1):
     # Preveri za neregularno vrednost hitrosti Sprinta.
     #if start + timezone.timedelta(days=int(duration)) != end:
     #    return False, "Sprint duration is not regular"
-    
+    if start.weekday() >= 5:
+        return False, "Start date is on a weekend"
+    if end.weekday() >= 5:
+        return False, "End date is on a weekend"
     # Preveri za primer, ko se dodani Sprint prekriva s katerim od obstoječih.
     for sprint in sprints:
         if sprint_id == sprint.id:
