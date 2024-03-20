@@ -673,8 +673,8 @@ def delete_sprint(request,id,project):
     if request.method == 'GET':
         sprint = Sprint.objects.get(id = id)
         sprint.delete()
-        return redirect(request.path) 
-    return redirect('/project/'+project) 
+        return redirect('project_name', project) 
+    
         
 def wall(request, project_name):
     context = get_context(request)
