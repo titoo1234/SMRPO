@@ -7,7 +7,7 @@ Sprint {{sprint.id}}
 {% block content %}
 <p>Start date: {{sprint.start_date}}</p>
 <p>End date: {{sprint.end_date}}</p>
-<p>Velocity: {{sprint.duration}} dni</p>
+<p>Velocity: {{sprint.velocity}} (pts)</p>
 {% if show_edit %}
 <a role="button" href="/project/{{project_name}}/sprint/{{sprint.id}}/edit" class="btn btn-primary">Edit</a>
 <a id="delete-button" role="button" href="/delete_sprint/{{project_name}}/{{sprint.id}}" class="btn btn-danger">Delete sprint</a>
