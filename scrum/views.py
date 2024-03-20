@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.http import HttpResponse,request, JsonResponse
 from django.urls import reverse
 from django.utils.timezone import localtime
+from django.forms.models import model_to_dict
 
 from django import forms
 
@@ -705,14 +706,36 @@ def wall(request, project_name):
 def new_user_story(request, project_name):
     context = get_context(request)
     project = Project.objects.get(name = project_name)
+    user = User.objects.get(username = context['user1'])
+    all_users = User.objects.filter(active=True)
     methodology_manager = AssignedRole.objects.filter(project = project, user=context['id'],role = 'methodology_manager')
     product_owner = AssignedRole.objects.filter(project = project, user=context['id'],role = 'product_owner')
     development_team_member = AssignedRole.objects.filter(project = project, user=context['id'],role = 'development_team_member')
-    user = User.objects.get(username = context['user1'])
-    all_users = User.objects.filter(active=True)
+
+    methodology_manager_fields = set(['name', 'description', 'priority', 'business_value', 'acceptance_tests'])
+    product_owner_fields = set(['name', 'description', 'priority', 'business_value', 'acceptance_tests'])
+    development_team_fields = set([])
+
     if request.method == "POST":
         form = UserStoryForm(request.POST, initial={'creator': user, 'project':project})
         if form.is_valid():
+            changed_fields = set(form.changed_data)
+            if methodology_manager and development_team_member:
+                if (methodology_manager_fields | development_team_fields) & changed_fields != changed_fields:
+                    messages.error(request, "Only fields: Name, Description, Priority, Business value and Acceptance tests can be provided")
+                    return redirect(request.path)
+            elif methodology_manager:
+                if methodology_manager_fields & changed_fields != changed_fields:
+                    messages.error(request, "Only fields: Name, Description, Priority, Business value and Acceptance tests can be provided")
+                    return redirect(request.path)
+            elif product_owner:
+                if product_owner_fields & changed_fields != changed_fields:
+                    messages.error(request, "Only fields: Name, Description, Priority, Business value and Acceptance tests can be provided")
+                    return redirect(request.path)
+            elif development_team_member:
+                if development_team_fields & changed_fields != changed_fields:
+                    messages.error(request, "New user story can be created only by Project Owner or Scrum Master")
+                    return redirect(request.path)
             instance = form.save() 
             messages.success(request, f"User story \"{instance.name}\" created!!")
             return redirect('project_name', project_name=project_name)
@@ -721,12 +744,6 @@ def new_user_story(request, project_name):
             return redirect(request.path)
     else:
         form = UserStoryForm(initial={'creator': user, 'project':project})
-        if product_owner or methodology_manager:
-            form.fields['workflow'].disabled = True
-            form.fields['sprint'].disabled = True
-            form.fields['size'].disabled = True
-            form.fields['original_estimate'].disabled = True
-            form.fields['user'].disabled = True
         context['form'] = form
         context['allusers'] = all_users
         context['project'] = project
@@ -740,87 +757,57 @@ def edit_user_story(request, project_name, id):
     methodology_manager = AssignedRole.objects.filter(project = project, user=context['id'],role = 'methodology_manager')
     product_owner = AssignedRole.objects.filter(project = project, user=context['id'],role = 'product_owner')
     development_team_member = AssignedRole.objects.filter(project = project, user=context['id'],role = 'development_team_member')
+
+    methodology_manager_not_in_sprint_fields = set(['name', 'description', 'priority', 'business_value', 'acceptance_tests', 'sprint', 'size', 'original_estimate', 'user'])
+    product_owner_fields_not_in_sprint_fields = set(['name', 'description', 'priority', 'business_value', 'acceptance_tests'])
+    development_team_fields_not_in_sprint_fields = set([])
+    methodology_manager_in_sprint_fields = set(['sprint', 'user'])
+    product_owner_fields_in_sprint_fields = set([])
+    development_team_fields_in_sprint_fields = set(['workflow'])
+
     if request.method == "POST":
+
         form = UserStoryForm(request.POST, instance=user_story)
-        if form.is_valid():
-            if not methodology_manager:
-                if form.cleaned_data['original_estimate'] != user_story.original_estimate:
-                    messages.error(request, "Original estimate can be provided only by Scrum Master")
-                    return redirect('project_name', project_name=project_name)
-                if form.cleaned_data['sprint'] != user_story.sprint:
-                    messages.error(request, "User story can be added to sprint only by Scrum Master")
-                    return redirect('project_name', project_name=project_name)
-            if methodology_manager or product_owner:
-                if user_story.sprint is None:
-                    form.save() 
-                    messages.success(request, f"User story \"{user_story.name}\" updated!!")
-                    return redirect('project_name', project_name=project_name)
-                else:
-                    messages.error(request, f"User story \"{user_story.name}\" can't be updated, because it is already in current sprint!!")
-                    return redirect('project_name', project_name=project_name)
-            else:
-                messages.error(request, "User story can be updated only by Product Owner or Scrum Master")
-                return redirect(request.path)
+        if form.is_valid():     
+            changed_fields = set(form.changed_data)   
+            if methodology_manager and development_team_member and user_story.sprint is None:
+                if (methodology_manager_not_in_sprint_fields | development_team_fields_not_in_sprint_fields) & changed_fields != changed_fields:
+                    messages.error(request, "Only fields: Name, Workflow, Description, Sprint, Priority, Size, Original estimate, Business value, User and Acceptance tests can be updated")
+                    return redirect(request.path)
+            elif methodology_manager and user_story.sprint is None:
+                if methodology_manager_not_in_sprint_fields & changed_fields != changed_fields :
+                    messages.error(request, "Only fields: Name, Description, Sprint, Priority, Size, Original estimate, Business value, User and Acceptance tests can be updated")
+                    return redirect(request.path)
+            elif product_owner and user_story.sprint is None:
+                if product_owner_fields_not_in_sprint_fields & changed_fields != changed_fields:
+                    messages.error(request, "Only fields: Name, Description, Priority, Business value and Acceptance tests can be updated")
+                    return redirect(request.path)
+            elif development_team_member and user_story.sprint is None:
+                if development_team_fields_not_in_sprint_fields & changed_fields != changed_fields:
+                    messages.error(request, "User story can be updated only by Project Owner or Scrum Master if not in Sprint")
+                    return redirect(request.path)
+            elif methodology_manager and development_team_member and user_story.sprint is not None:
+                if (methodology_manager_in_sprint_fields | development_team_fields_in_sprint_fields) & changed_fields != changed_fields:
+                    messages.error(request, "Only fields: Workflow, Sprint and User can be updated")
+                    return redirect(request.path)
+            elif methodology_manager and user_story.sprint is not None:
+                if methodology_manager_in_sprint_fields & changed_fields != changed_fields :
+                    messages.error(request, "Only fields: Sprint and User can be updated")
+                    return redirect(request.path)
+            elif product_owner and user_story.sprint is not None:
+                if product_owner_fields_in_sprint_fields & changed_fields != changed_fields:
+                    messages.error(request, "You can not update user story because it is in Sprint")
+                    return redirect(request.path)
+            elif development_team_member and user_story.sprint is not None:
+                if development_team_fields_in_sprint_fields & changed_fields != changed_fields:
+                    messages.error(request, "Only fields: Workflow can be updated")
+                    return redirect(request.path)
+            form.save() 
+            messages.success(request, f"User story \"{user_story.name}\" updated!!")
+            return redirect('project_name', project_name=project_name)
         else:
             messages.error(request, form.errors)
             return redirect(request.path)
-    print(user_story.sprint)
-    if user_story.sprint is not None:
-        if product_owner:
-            form.fields['name'].disabled = True
-            form.fields['description'].disabled = True
-            form.fields['priority'].disabled = True
-            form.fields['business_value'].disabled = True
-            form.fields['acceptance_tests'].disabled = True
-            form.fields['workflow'].disabled = True
-            form.fields['sprint'].disabled = True
-            form.fields['size'].disabled = True
-            form.fields['original_estimate'].disabled = True
-            form.fields['user'].disabled = True
-        elif development_team_member:
-            form.fields['name'].disabled = True
-            form.fields['description'].disabled = True
-            form.fields['priority'].disabled = True
-            form.fields['business_value'].disabled = True
-            form.fields['acceptance_tests'].disabled = True
-            form.fields['sprint'].disabled = True
-            form.fields['size'].disabled = True
-            form.fields['original_estimate'].disabled = True
-            form.fields['user'].disabled = True
-        elif methodology_manager:
-            form.fields['name'].disabled = True
-            form.fields['description'].disabled = True
-            form.fields['priority'].disabled = True
-            form.fields['business_value'].disabled = True
-            form.fields['acceptance_tests'].disabled = True
-            form.fields['workflow'].disabled = True
-            form.fields['sprint'].disabled = True
-            form.fields['size'].disabled = True
-            form.fields['original_estimate'].disabled = True
-            form.fields['user'].disabled = True
-    else:
-        print(methodology_manager)
-        if development_team_member and methodology_manager:
-            pass
-        elif product_owner:
-            form.fields['workflow'].disabled = True
-            form.fields['sprint'].disabled = True
-            form.fields['size'].disabled = True
-            form.fields['original_estimate'].disabled = True
-            form.fields['user'].disabled = True
-        elif development_team_member:
-            form.fields['name'].disabled = True
-            form.fields['description'].disabled = True
-            form.fields['priority'].disabled = True
-            form.fields['business_value'].disabled = True
-            form.fields['acceptance_tests'].disabled = True
-            form.fields['workflow'].disabled = True
-            form.fields['sprint'].disabled = True
-            form.fields['size'].disabled = True
-            form.fields['original_estimate'].disabled = True
-            form.fields['user'].disabled = True
-        elif methodology_manager:
-            form.fields['workflow'].disabled = True
     context['form'] = form
     context['project'] = project
     return render(request,'new_user_story.html',context=context)
@@ -832,7 +819,6 @@ def delete_user_story(request, project_name, id):
     project = Project.objects.get(name = project_name)
     methodology_manager = AssignedRole.objects.filter(project = project, user=context['id'],role = 'methodology_manager')
     product_owner = AssignedRole.objects.filter(project = project, user=context['id'],role = 'product_owner')
-    print(user_story.sprint)
     if request.method == "POST":
         if methodology_manager or product_owner:
             if user_story.sprint is None:

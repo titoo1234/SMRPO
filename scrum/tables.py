@@ -126,7 +126,8 @@ class UserStoryTable(tables.Table):
         project = Project.objects.get(name = record.project.name)
         methodology_manager = AssignedRole.objects.get(project=project,role = 'methodology_manager').user
         product_owner = AssignedRole.objects.get(project=project,role = 'product_owner').user
-        if self.admin or (user == methodology_manager or user == product_owner):
+        development_team_member = AssignedRole.objects.get(project=project,role = 'development_team_member').user
+        if self.admin or ((user == methodology_manager or user == product_owner) and record.sprint is None) or ((user == development_team_member or user == methodology_manager) and record.sprint is not None):
             edit_url = reverse('edit_user_story', kwargs={'project_name': record.project.name,'id': record.id})
             return format_html('<a href="{}" class="btn btn-primary">Edit</a>', edit_url)
         else:
@@ -137,7 +138,7 @@ class UserStoryTable(tables.Table):
         project = Project.objects.get(name = record.project.name)
         methodology_manager = AssignedRole.objects.get(project=project,role = 'methodology_manager').user
         product_owner = AssignedRole.objects.get(project=project,role = 'product_owner').user
-        if self.admin or (user == methodology_manager or user == product_owner):
+        if self.admin or ((user == methodology_manager or user == product_owner) and record.sprint is None):
             edit_url = reverse('delete_user_story', kwargs={'project_name': record.project.name, 'id': record.id})
             return format_html('<a href="{}" class="btn btn-danger">Delete</a>', edit_url)
         else:

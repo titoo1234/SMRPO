@@ -184,10 +184,6 @@ class UserStoryForm(forms.ModelForm):
         users = [(object.user.id, str(object.user.username)) for object in development_team_members]
         users += [(None, '---------')]
         self.fields['user'].choices = users
-        self.fields['workflow'].disabled = False
-        if not self.instance.workflow:  # Če ni že izbran workflow, nastavimo na To Do
-            self.initial['workflow'] = 'to_do'
-        self.fields['workflow'].disabled = True
 
 class ProjectWallForm(forms.ModelForm):
     class Meta:
