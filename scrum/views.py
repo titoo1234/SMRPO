@@ -717,7 +717,7 @@ def new_user_story(request, project_name):
     development_team_fields = set([])
 
     if request.method == "POST":
-        form = UserStoryForm(request.POST, initial={'creator': user, 'project':project})
+        form = UserStoryForm(request.POST, initial={'project':project, 'methodology_manager':methodology_manager, 'product_owner':product_owner, 'development_team_member':development_team_member, 'sprint':None, 'edit':False})
         if form.is_valid():
             changed_fields = set(form.changed_data)
             if methodology_manager and development_team_member:
@@ -743,7 +743,7 @@ def new_user_story(request, project_name):
             messages.error(request, form.errors)
             return redirect(request.path)
     else:
-        form = UserStoryForm(initial={'creator': user, 'project':project})
+        form = UserStoryForm(initial={'creator': user, 'project':project, 'methodology_manager':methodology_manager, 'product_owner':product_owner, 'development_team_member':development_team_member, 'sprint':None, 'edit':False})
         context['form'] = form
         context['allusers'] = all_users
         context['project'] = project
@@ -753,10 +753,10 @@ def edit_user_story(request, project_name, id):
     context = get_context(request)
     project = Project.objects.get(name = project_name)
     user_story = UserStory.objects.get(id=id)
-    form = UserStoryForm(instance=user_story, initial={'project':project})
     methodology_manager = AssignedRole.objects.filter(project = project, user=context['id'],role = 'methodology_manager')
     product_owner = AssignedRole.objects.filter(project = project, user=context['id'],role = 'product_owner')
     development_team_member = AssignedRole.objects.filter(project = project, user=context['id'],role = 'development_team_member')
+    form = UserStoryForm(instance=user_story, initial={'project':project, 'methodology_manager':methodology_manager, 'product_owner':product_owner, 'development_team_member':development_team_member, 'sprint':user_story.sprint, 'edit':True})
 
     methodology_manager_not_in_sprint_fields = set(['name', 'description', 'priority', 'business_value', 'acceptance_tests', 'sprint', 'size', 'original_estimate', 'user'])
     product_owner_fields_not_in_sprint_fields = set(['name', 'description', 'priority', 'business_value', 'acceptance_tests'])
@@ -766,9 +766,9 @@ def edit_user_story(request, project_name, id):
     development_team_fields_in_sprint_fields = set(['workflow'])
 
     if request.method == "POST":
-
-        form = UserStoryForm(request.POST, instance=user_story)
-        if form.is_valid():     
+        form = UserStoryForm(request.POST, instance=user_story, initial={'project':project, 'methodology_manager':methodology_manager, 'product_owner':product_owner, 'development_team_member':development_team_member, 'sprint':user_story.sprint, 'edit':True})
+        if form.is_valid():   
+            user_story = UserStory.objects.get(id=id)
             changed_fields = set(form.changed_data)   
             if methodology_manager and development_team_member and user_story.sprint is None:
                 if (methodology_manager_not_in_sprint_fields | development_team_fields_not_in_sprint_fields) & changed_fields != changed_fields:

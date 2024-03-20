@@ -184,7 +184,63 @@ class UserStoryForm(forms.ModelForm):
         users = [(object.user.id, str(object.user.username)) for object in development_team_members]
         users += [(None, '---------')]
         self.fields['user'].choices = users
+        fields_from_meta = self._meta.fields
+        product_owner = self.initial['product_owner']
+        methodology_manager = self.initial['methodology_manager']
+        development_team_member = self.initial['development_team_member']
+        sprint = self.initial['sprint']
+        edit = self.initial['edit']
 
+        methodology_manager_not_in_sprint_fields = set(['name', 'description', 'priority', 'business_value', 'acceptance_tests', 'sprint', 'size', 'original_estimate', 'user'])
+        product_owner_fields_not_in_sprint_fields = set(['name', 'description', 'priority', 'business_value', 'acceptance_tests'])
+        development_team_fields_not_in_sprint_fields = set([])
+        methodology_manager_in_sprint_fields = set(['sprint', 'user'])
+        product_owner_fields_in_sprint_fields = set([])
+        development_team_fields_in_sprint_fields = set(['workflow'])
+
+        methodology_manager_fields = set(['name', 'description', 'priority', 'business_value', 'acceptance_tests'])
+        product_owner_fields = set(['name', 'description', 'priority', 'business_value', 'acceptance_tests'])
+        development_team_fields = set([])
+
+        if edit:
+            if methodology_manager and development_team_member and sprint is None:
+                for field, value in self.fields.items():
+                    if field not in methodology_manager_not_in_sprint_fields: self.fields[field].disabled = True
+            elif methodology_manager and sprint is None:
+                for field, value in self.fields.items():
+                    if field not in methodology_manager_not_in_sprint_fields: self.fields[field].disabled = True
+            elif product_owner and sprint is None:
+                for field, value in self.fields.items():
+                    if field not in product_owner_fields_not_in_sprint_fields: self.fields[field].disabled = True
+            elif development_team_member and sprint is None:
+                for field, value in self.fields.items():
+                    if field not in development_team_fields_not_in_sprint_fields: self.fields[field].disabled = True
+            elif methodology_manager and development_team_member and sprint is not None:
+                for field, value in self.fields.items():
+                    if field not in methodology_manager_in_sprint_fields: self.fields[field].disabled = True
+            elif methodology_manager and sprint is not None:
+                for field, value in self.fields.items():
+                    if field not in methodology_manager_in_sprint_fields: self.fields[field].disabled = True
+            elif product_owner and sprint is not None:
+                for field, value in self.fields.items():
+                    if field not in product_owner_fields_in_sprint_fields: self.fields[field].disabled = True
+            elif development_team_member and sprint is not None:
+                for field, value in self.fields.items():
+                    if field not in development_team_fields_in_sprint_fields: self.fields[field].disabled = True
+        else:
+            if methodology_manager and development_team_member:
+                for field, value in self.fields.items():
+                    if field not in methodology_manager_fields: self.fields[field].disabled = True
+            elif methodology_manager:
+                for field, value in self.fields.items():
+                    if field not in methodology_manager_fields: self.fields[field].disabled = True
+            elif product_owner:
+                for field, value in self.fields.items():
+                    if field not in product_owner_fields: self.fields[field].disabled = True
+            elif development_team_member:
+                for field, value in self.fields.items():
+                    if field not in development_team_fields: self.fields[field].disabled = True
+                
 class ProjectWallForm(forms.ModelForm):
     class Meta:
         model = ProjectWall
