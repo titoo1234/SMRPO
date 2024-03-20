@@ -7,6 +7,7 @@ from django.http import HttpResponse,request, JsonResponse
 from django.urls import reverse
 from django.utils.timezone import localtime
 from django.forms.models import model_to_dict
+from django.utils.html import mark_safe
 
 from django import forms
 
@@ -697,6 +698,9 @@ def wall(request, project_name):
             #return render(request, 'project.html', {'form': form})
     else:
         posts = ProjectWall.objects.filter(project=project)
+        for post in posts:
+            post.text = post.text.replace('\n', '<br>')
+            post.text = mark_safe(post.text)
         context['posts'] = (posts)
         return render(request, "wall.html", context=context)
 
