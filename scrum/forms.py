@@ -87,6 +87,9 @@ class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
         fields = ['name','creation_date','description',"creator"]
+        widgets = {
+            'creation_date': forms.DateInput(attrs={'type': 'date'}),
+        }
 
 class ProjectDisabledForm(forms.ModelForm):
     class Meta:
@@ -133,13 +136,6 @@ class SprintForm(forms.ModelForm):
         self.fields['project'].initial = kwargs['initial']['project']
         self.fields['start_date'].initial = timezone.now().date()
         self.fields['end_date'].initial = timezone.now().date() + timezone.timedelta(days=14)
-
-    def clean_start_date(self):
-        start_date = self.cleaned_data['start_date']
-        velocity = self.cleaned_data.get('velocity')
-        if velocity:
-            self.cleaned_data['end_date'] = start_date + timezone.timedelta(days=velocity)
-        return start_date
 
     class Meta:
         model = Sprint
