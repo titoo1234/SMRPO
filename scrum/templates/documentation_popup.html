@@ -78,11 +78,33 @@
                     <p>Pri spreminjanju datuma sprinta, se novi datumi ne smejo prekrivati z obstoječimi sprinti. Datum začetka se prav tako ne sme spremeniti pred današnji dan.</p>
                 </div>
             </div>
+            <div class="category">
+                <h3 onclick="toggleCategory('category7')">Uporabniška zgodba</h3>
+                <div id="category7" style="display: none">
+                    <div class="category">
+                        <h4 onclick="toggleCategory('category7_1')">Dodajanje uporabniške zgodbe</h4>
+                        <div id="category7_1" style="display: none">
+                            <p>Novo uporabniško zgodbo lahko ustvari produktni vodja ali skrbnik metodologije.</p>
+                            <p>Najprej mora iti na izbrani projekt, potem pa klikne gumb "New User Story"</p>
+                            <p></p>
+                            <p>Za vsako zgodbo lahko določi njeno ime, besedilo, sprejemne teste, prioriteto (must have, could have, should have, won't have this time) in poslovno vrednost.</p>
+                        
+                        </div>
+                    </div>
+                    <div class="category">
+                        <h4 onclick="toggleCategory('category7_2')">Urejanje in brisanje uporabniških zgodb</h4>
+                        <div id="category7_2" style="display: none">
+                            <p>Produktni vodja in skrbnik metodologije lahko tudi urejata in brišeta uporabniške zgodbe, ki še niso dodane v sprint in niso realizirane.</p>
+                            <p>To storita s klikom na gumb "Edit" oziroma klikom na ime uporabniške zgodbe.</p>
+                            <p>Produktni vodja lahko spremeni: ime, besedilo, sprejemne teste, prioriteto (must have, could have, should have, won't have this time) in poslovno vrednost.</p>
+                            <p>Skrbnik metodologije pa lahko spremeni vsa polja razen polja "Workflow"</p>
+                            <p>Polje "Workflow" lahko spreminja samo udeleženec projektne skupine.</p>
+                        </div>
+                    </div>   
+                </div>
+            </div>
             <button class="close-button" onclick="closeDocumentationPopup()">Close</button>
-        </div>
-    
-
-        
+        </div>  
     </div>
 </div>
 
