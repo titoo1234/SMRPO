@@ -18,8 +18,19 @@ Project {{project.name}}
     {% endif %}
     {% load django_tables2 %}
 
-    {% for sprint, userstory_table, deleteable in sprint_tables %}
-        <h3>Sprint: <a href='/project/{{project.name}}/sprint/{{sprint.id}}'> {{ sprint.start_date }} - {{ sprint.end_date }} </a></h3>
+    {% for sprint, userstory_table, deleteable, sprint_status in sprint_tables %}
+        <h3>Sprint: <a href='/project/{{project.name}}/sprint/{{sprint.id}}'> {{ sprint.start_date }} - {{ sprint.end_date }} </a>
+        <span style="color: 
+            {% if sprint_status == 'Active' %}
+                green;
+            {% elif sprint_status == 'Finished' %}
+                grey;
+            {% else %}
+                red;
+            {% endif %}">
+            {{sprint_status}}
+        </span>
+    </h3>
         
         {% render_table userstory_table %}
     {% endfor %}

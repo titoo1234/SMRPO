@@ -406,7 +406,7 @@ def project_view(request,project_name):
     context = get_context(request)
     project = Project.objects.get(name=project_name)
     user = User.objects.get(id = context['id'])
-    sprints = Sprint.objects.filter(project=project)
+    sprints = Sprint.objects.filter(project=project).order_by('start_date')
     user_stories = UserStory.objects.filter(project=project)
     product_owner = AssignedRole.objects.get(project = project,role = 'product_owner').user
     methodology_manager = AssignedRole.objects.get(project = project,role = 'methodology_manager').user
@@ -423,15 +423,24 @@ def project_view(request,project_name):
     context['user_story_table'] = user_story_table
     
     sprint_tables = []
+    today = datetime.today()
+    # .today() vrne datetime, ki ga nemores primerjat date objektom zato ga je treba pretvorit
+    today = datetime.date(today)
     for sprint in sprints:
         userstories = UserStory.objects.filter(project=project, sprint=sprint)
         deleteable = False
-        print(len(userstories))
+        #print(len(userstories))
         if len(userstories) == 0:
             deleteable = True
         # sprint_table = SprintTable([sprint])
         userstory_table = UserStoryTable(userstories, admin = context['admin'],user_id = context['id'])
-        sprint_tables.append((sprint, userstory_table, deleteable))
+        if sprint.end_date < today:
+            sprint_status = "Finished"
+        elif sprint.start_date <= today <= sprint.end_date:
+            sprint_status = "Active"
+        else:
+            sprint_status = "Unfinished"
+        sprint_tables.append((sprint, userstory_table, deleteable, sprint_status))
     context['sprint_tables'] = sprint_tables
     Backlog = UserStory.objects.filter(project=project, sprint=None)
     Backlog = UserStoryTable(Backlog, admin = context['admin'],user_id = context['id'])
@@ -516,6 +525,8 @@ def check_sprint_dates(start_date, end_date, velocity, sprints, sprint_id=-1):
     end = datetime.strptime(end_date, '%Y-%m-%d').replace(tzinfo=timezone.get_current_timezone())
     if int(velocity) < 1:
         return False, "Sprint velocity is not positive"
+    if int(velocity) > 9999:
+        return False, "Sprint velocity is not realistic"
     # Preveri za primer, ko je končni datum pred začetnim.
     if start > end:
         return False, "Start date is after end date"
