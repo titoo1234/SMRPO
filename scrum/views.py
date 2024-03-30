@@ -866,3 +866,21 @@ def tasks(request, project_name, id):
     context["project"] = project
     context["user_story"] = user_story
     return render(request, "tasks.html", context=context)
+
+def new_task(request, project_name):
+    context = get_context(request)
+    project = Project.objects.get(name = project_name)
+    user = User.objects.get(username = context['user1'])
+    all_users = User.objects.filter(active=True)
+    methodology_manager = AssignedRole.objects.filter(project = project, user=context['id'],role = 'methodology_manager')
+    product_owner = AssignedRole.objects.filter(project = project, user=context['id'],role = 'product_owner')
+    development_team_member = AssignedRole.objects.filter(project = project, user=context['id'],role = 'development_team_member')
+    
+    if request.method == "POST":
+        pass
+    else:
+        form = NewTaskForm()
+        context['form'] = form
+        context['allusers'] = all_users
+        context['project'] = project
+        return render(request,'new_task.html',context=context)

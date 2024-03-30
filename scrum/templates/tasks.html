@@ -7,6 +7,6 @@ Project {{project.name}}
 {% block content %}
 <h2>Project #{{project.id}}: {{project.name}}</h2>
 <h3>User Story #{{user_story.story_number}}: {{user_story.name}}</h3>
-
+<a href='/project/{{project.name}}/new_task/'><button type='submit'>New Task</button></a>
 {% endblock %}
 

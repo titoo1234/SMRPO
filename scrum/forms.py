@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.hashers import check_password
-from .models import User,Project,AssignedRole,UserStory, Sprint, ProjectWall
+from .models import User,Project,AssignedRole,UserStory, Sprint, ProjectWall,Task
 from django.utils import timezone
 from django.forms.models import inlineformset_factory
 
@@ -246,6 +246,16 @@ class ProjectWallForm(forms.ModelForm):
         model = ProjectWall
         fields = ["text"]
 
+
+
+class NewTaskForm(forms.ModelForm):
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+   
+    class Meta:
+        model = Task
+        fields = [ 'name', 'description','user_story' ,'assigned_user' ,'start_date' ,'end_date' ,'time_spent' ]
+    
 
 
 
