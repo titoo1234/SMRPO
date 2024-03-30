@@ -855,3 +855,14 @@ def delete_user_story(request, project_name, id):
     return render(request, 'delete_user_story.html', context=context)
 
 
+# Tasks on user story
+# ======================================================
+
+def tasks(request, project_name, id):
+    context = get_context(request)
+    user_story = UserStory.objects.get(id=id)
+    project = Project.objects.get(name = project_name)
+    methodology_manager = AssignedRole.objects.filter(project = project, user=context['id'],role = 'methodology_manager')
+    context["project"] = project
+    context["user_story"] = user_story
+    return render(request, "tasks.html", context=context)

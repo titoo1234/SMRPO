@@ -111,6 +111,7 @@ class UserStoryTable(tables.Table):
     user = tables.Column()
     edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
     delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
+    tasks_button = tables.Column(empty_values=(), orderable=False, verbose_name='Tasks')
 
     def __init__(self, *args, **kwargs):
         self.user_id = kwargs.pop('user_id', 0)
@@ -143,10 +144,15 @@ class UserStoryTable(tables.Table):
             return format_html('<a href="{}" class="btn btn-danger">Delete</a>', edit_url)
         else:
             return ''
+        
+    def render_tasks_button(self, record):
+        tasks_url = reverse('tasks', kwargs={'project_name': record.project.name, 'id': record.id})
+        #return format_html(f'<a href="{record.project.name}/tasks/{record.id}" class="btn btn-info">Tasks</a>')#, tasks_url)
+        return format_html('<a href="{}" class="btn btn-info">Tasks</a>', tasks_url)
 
     class Meta:
         model = UserStory
-        fields = ('name','priority', 'size', 'workflow', 'user', 'edit_button','delete_button')
+        fields = ('name','priority', 'size', 'workflow', 'user', 'edit_button','delete_button','tasks_button')
         template_name = "django_tables2/bootstrap5.html"
 
 # Sprint
