@@ -858,16 +858,16 @@ def delete_user_story(request, project_name, id):
 # Tasks on user story
 # ======================================================
 
-def tasks(request, project_name, id):
+def tasks(request, project_name, user_story_id):
     context = get_context(request)
-    user_story = UserStory.objects.get(id=id)
+    user_story = UserStory.objects.get(id=user_story_id)
     project = Project.objects.get(name = project_name)
     methodology_manager = AssignedRole.objects.filter(project = project, user=context['id'],role = 'methodology_manager')
     context["project"] = project
     context["user_story"] = user_story
     return render(request, "tasks.html", context=context)
 
-def new_task(request, project_name):
+def new_task(request, project_name, user_story_id):
     context = get_context(request)
     project = Project.objects.get(name = project_name)
     user = User.objects.get(username = context['user1'])
@@ -877,9 +877,19 @@ def new_task(request, project_name):
     development_team_member = AssignedRole.objects.filter(project = project, user=context['id'],role = 'development_team_member')
     
     if request.method == "POST":
-        pass
-    else:
-        form = NewTaskForm()
+        #TODO
+        # Project.objects.all().delete()
+        form = NewTaskForm(request.POST)
+        if form.is_valid(): 
+            form.save()
+            messages.success(request,"Task added successfully!")
+            return redirect()
+            
+        else:
+            messages.error(request, form.errors)
+            return redirect(request.path)
+    else:#get
+        form = NewTaskForm(project_name = project_name)
         context['form'] = form
         context['allusers'] = all_users
         context['project'] = project

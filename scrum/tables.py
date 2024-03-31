@@ -146,7 +146,7 @@ class UserStoryTable(tables.Table):
             return ''
         
     def render_tasks_button(self, record):
-        tasks_url = reverse('tasks', kwargs={'project_name': record.project.name, 'id': record.id})
+        tasks_url = reverse('tasks', kwargs={'project_name': record.project.name, 'user_story_id': record.id})
         #return format_html(f'<a href="{record.project.name}/tasks/{record.id}" class="btn btn-info">Tasks</a>')#, tasks_url)
         return format_html('<a href="{}" class="btn btn-info">Tasks</a>', tasks_url)
 

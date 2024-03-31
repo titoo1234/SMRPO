@@ -249,12 +249,21 @@ class ProjectWallForm(forms.ModelForm):
 
 
 class NewTaskForm(forms.ModelForm):
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-   
+    #TODO
+    def __init__(self,*args, **kwargs):
+        project_name = kwargs.pop('project_name', None)
+        super().__init__(*args, **kwargs)
+        self.fields['assigned_user'].queryset = self.get_development_team_members(project_name)
+
+    def get_development_team_members(self, project_name):
+        project = Project.objects.get(name = project_name)
+        assigned_roles = AssignedRole.objects.filter(project=project,role = 'development_team_member')
+        development_team_users = [role.user for role in assigned_roles]
+        return User.objects.filter(id__in=[user.id for user in development_team_users])
+        
     class Meta:
         model = Task
-        fields = ['description','user_story' ,'assigned_user' ,'time_spent' ]
+        fields = ['description','user_story' ,'assigned_user' ]#'time_spent' pri novem še ne rabimo?
         # [ 'name', 'description','user_story' ,'assigned_user' ,'start_date' ,'end_date' ,'time_spent' ]
     
 
