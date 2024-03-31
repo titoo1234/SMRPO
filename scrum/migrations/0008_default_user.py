@@ -11,6 +11,24 @@ def create_default_user(apps, schema_editor):
         active=True,  # Assuming the user is active
         password='ad'
     )
+    User.objects.create(
+        name='uporabnik',
+        surname='uporabnik',
+        mail='uporabnik@example.com',
+        username='uporabnik',
+        admin_user=True,  # Assuming this is your admin user
+        active=True,  # Assuming the user is active
+        password='uporabnik'
+    )
+    User.objects.create(
+        name='Veseli',
+        surname='Ribnčan',
+        mail='uporabnik@example.com',
+        username='Veseli Ribnčan',
+        admin_user=True,  # Assuming this is your admin user
+        active=True,  # Assuming the user is active
+        password='Veseli Ribnčan'
+    )
 
 class Migration(migrations.Migration):
 

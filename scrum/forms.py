@@ -254,7 +254,8 @@ class NewTaskForm(forms.ModelForm):
    
     class Meta:
         model = Task
-        fields = [ 'name', 'description','user_story' ,'assigned_user' ,'start_date' ,'end_date' ,'time_spent' ]
+        fields = ['description','user_story' ,'assigned_user' ,'time_spent' ]
+        # [ 'name', 'description','user_story' ,'assigned_user' ,'start_date' ,'end_date' ,'time_spent' ]
     
 
 

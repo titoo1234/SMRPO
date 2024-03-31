@@ -118,12 +118,16 @@ class UserStory(models.Model):
         super().save(*args, **kwargs)
 
 class Task(models.Model):
-    name = models.CharField(max_length=100)
+    ## tega pomojm ne rabmo
+    # name = models.CharField(max_length=100)
+    # =============
     description = models.TextField()
     user_story = models.ForeignKey(UserStory, on_delete=models.CASCADE)
     assigned_user = models.ForeignKey(User, on_delete=models.CASCADE)
-    start_date = models.DateField()
-    end_date = models.DateField()
+    ## tega pomojm ne rabmo
+    # start_date = models.DateField()
+    # end_date = models.DateField()
+    # =============
     time_spent = models.PositiveIntegerField(default=0)
     # STATUS_CHOICES = (
     #     ('To-Do', 'To-Do'),
@@ -131,6 +135,7 @@ class Task(models.Model):
     #     ('Done', 'Done'),
     # )
     # status = models.CharField(max_length=20, choices=STATUS_CHOICES)
+
     def __str__(self):
         return self.name
 
