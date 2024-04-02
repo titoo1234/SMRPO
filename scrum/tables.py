@@ -161,9 +161,45 @@ class SprintTable(tables.Table):
     class Meta:
         model = Sprint
         template_name = "django_tables2/bootstrap4.html"
+        
 
 
 class TaskTable(tables.Table):
+    description = tables.Column()
+    user_story = tables.Column()
+    assigned_user = tables.Column()
+    time_spent = tables.Column()
+    accepted = tables.Column()
+    accept_button = tables.Column(empty_values=(), orderable=False, verbose_name='Accept')
+    decline_button = tables.Column(empty_values=(), orderable=False, verbose_name='Decline')
+    edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Decline')
+    def __init__(self, *args, **kwargs):
+        self.user_id = kwargs.pop('user_id', 0)
+        super().__init__(*args, **kwargs)
+   
+
+    def render_accept_button(self, record):
+        if record.assigned_user:
+            if record.assigned_user.id == self.user_id:
+                project = record.user_story.project
+                url = reverse('accept_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
+                return format_html('<a href="{}" class="btn btn-success">Accept</a>', url)    
+        return ''
+    
+    def render_decline_button(self, record):
+        if record.assigned_user:
+            if record.assigned_user.id == self.user_id:
+                project = record.user_story.project
+                url = reverse('decline_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
+                return format_html('<a href="{}" class="btn btn-danger">Decline</a>', url)
+        return ''
+    def render_edit_button(self, record):
+
+        edit_url = ''#everse('edit_user_story', kwargs={'project_name': record.project.name,'id': record.id})
+        return format_html('<a href="{}" class="btn btn-primary">Edit</a>', edit_url)
+
+    
     class Meta:
         model = Task
+        fields = ('description', 'assigned_user', 'time_spent', 'accepted', 'accept_button','decline_button','edit_button')
         template_name = "django_tables2/bootstrap4.html"

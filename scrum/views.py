@@ -866,7 +866,7 @@ def tasks(request, project_name, user_story_id):
     context["project"] = project
     context["user_story"] = user_story
     all_tasks = Task.objects.filter(user_story=user_story)
-    tasks_table = TaskTable(all_tasks)
+    tasks_table = TaskTable(all_tasks,user_id = context['id'])
     context["tasks_table"] = tasks_table
     return render(request, "tasks.html", context=context)
 
@@ -898,3 +898,17 @@ def new_task(request, project_name, user_story_id):
         context['allusers'] = all_users
         context['project'] = project
         return render(request,'new_task.html',context=context)
+    
+def accept_task(request,project_name,user_story_id,task_id):
+    task = Task.objects.get(id = task_id)
+    task.accepted = True
+    task.save()
+    return redirect('tasks',project_name,user_story_id)
+    
+
+def decline_task(request,project_name,user_story_id,task_id):
+    task = Task.objects.get(id = task_id)
+    task.accepted = False
+    # task.assigned_user = None
+    task.save()
+    return redirect('tasks',project_name,user_story_id)
