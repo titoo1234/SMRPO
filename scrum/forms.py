@@ -252,7 +252,13 @@ class NewTaskForm(forms.ModelForm):
     #TODO
     def __init__(self,*args, **kwargs):
         project_name = kwargs.pop('project_name', None)
+        user_story_id = kwargs.pop('user_story_id', None)
         super().__init__(*args, **kwargs)
+        if user_story_id:
+            story = UserStory.objects.get(id = user_story_id)
+            self.fields['user_story'].initial = story
+            self.fields['user_story'].widget = forms.HiddenInput()
+        
         self.fields['assigned_user'].queryset = self.get_development_team_members(project_name)
 
     def get_development_team_members(self, project_name):
@@ -263,7 +269,7 @@ class NewTaskForm(forms.ModelForm):
         
     class Meta:
         model = Task
-        fields = ['description','user_story' ,'assigned_user' ]#'time_spent' pri novem še ne rabimo?
+        fields = ['description','user_story' ,'assigned_user','estimate' ]#'time_spent' pri novem še ne rabimo?
         # [ 'name', 'description','user_story' ,'assigned_user' ,'start_date' ,'end_date' ,'time_spent' ]
     
 

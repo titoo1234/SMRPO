@@ -166,13 +166,15 @@ class SprintTable(tables.Table):
 
 class TaskTable(tables.Table):
     description = tables.Column()
-    user_story = tables.Column()
+    # user_story = tables.Column()
     assigned_user = tables.Column()
+    estimate = tables.Column()
     time_spent = tables.Column()
     accepted = tables.Column()
     accept_button = tables.Column(empty_values=(), orderable=False, verbose_name='Accept')
     decline_button = tables.Column(empty_values=(), orderable=False, verbose_name='Decline')
-    edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Decline')
+    edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
+    delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
     def __init__(self, *args, **kwargs):
         self.user_id = kwargs.pop('user_id', 0)
         super().__init__(*args, **kwargs)
@@ -180,7 +182,7 @@ class TaskTable(tables.Table):
 
     def render_accept_button(self, record):
         if record.assigned_user:
-            if record.assigned_user.id == self.user_id:
+            if (record.assigned_user.id == self.user_id) and (not record.accepted):
                 project = record.user_story.project
                 url = reverse('accept_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
                 return format_html('<a href="{}" class="btn btn-success">Accept</a>', url)    
@@ -194,12 +196,19 @@ class TaskTable(tables.Table):
                 return format_html('<a href="{}" class="btn btn-danger">Decline</a>', url)
         return ''
     def render_edit_button(self, record):
-
-        edit_url = ''#everse('edit_user_story', kwargs={'project_name': record.project.name,'id': record.id})
+        project = record.user_story.project
+        edit_url = reverse('edit_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
         return format_html('<a href="{}" class="btn btn-primary">Edit</a>', edit_url)
+    
+    def render_delete_button(self, record):
+        project = record.user_story.project
+        edit_url = reverse('delete_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
+        return format_html('<a href="{}" class="btn btn-danger">Delete</a>', edit_url)
+        
+        
 
     
     class Meta:
         model = Task
-        fields = ('description', 'assigned_user', 'time_spent', 'accepted', 'accept_button','decline_button','edit_button')
+        fields = ('description', 'assigned_user', 'estimate','time_spent', 'accepted', 'accept_button','decline_button','edit_button')
         template_name = "django_tables2/bootstrap4.html"

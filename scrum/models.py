@@ -130,6 +130,8 @@ class Task(models.Model):
     # =============
     time_spent = models.PositiveIntegerField(default=0)
     accepted = models.BooleanField(default=False)
+    estimate = models.PositiveIntegerField(default=1)
+    done = models.BooleanField(default=False)
     # STATUS_CHOICES = (
     #     ('To-Do', 'To-Do'),
     #     ('In Progress', 'In Progress'),

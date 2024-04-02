@@ -882,7 +882,7 @@ def new_task(request, project_name, user_story_id):
     if request.method == "POST":
         #TODO
         # Project.objects.all().delete()
-        form = NewTaskForm(request.POST,project_name = project_name)
+        form = NewTaskForm(request.POST,project_name = project_name,user_story_id=user_story_id)
         if form.is_valid(): 
             form.save()
             messages.success(request,"Task added successfully!")
@@ -893,7 +893,7 @@ def new_task(request, project_name, user_story_id):
             messages.error(request, form.errors)
             return redirect(request.path)
     else:#get
-        form = NewTaskForm(project_name = project_name)
+        form = NewTaskForm(project_name = project_name,user_story_id=user_story_id)
         context['form'] = form
         context['allusers'] = all_users
         context['project'] = project
@@ -903,12 +903,57 @@ def accept_task(request,project_name,user_story_id,task_id):
     task = Task.objects.get(id = task_id)
     task.accepted = True
     task.save()
+    messages.success(request,"Task accepted!")
     return redirect('tasks',project_name,user_story_id)
     
 
 def decline_task(request,project_name,user_story_id,task_id):
     task = Task.objects.get(id = task_id)
     task.accepted = False
-    # task.assigned_user = None
+    task.assigned_user = None
     task.save()
+    messages.success(request,"Task declined!")
     return redirect('tasks',project_name,user_story_id)
+
+def delete_task(request,project_name,user_story_id,task_id):
+    task = Task.objects.get(id = task_id)
+    if task.accepted:
+        messages.error(request,"Task with assigned user can not be deleted!")
+        return redirect('tasks',project_name,user_story_id)
+    
+    if task.done:
+        messages.error(request,"Finished task can not be deleted!")
+        return redirect('tasks',project_name,user_story_id)
+    task.delete()
+    #TODO
+    messages.success(request,"Task deleted!")
+    return redirect('tasks',project_name,user_story_id)
+    
+
+def edit_task(request, project_name, user_story_id,task_id):
+    task = Task.objects.get(id = task_id)
+    context = get_context(request)
+    project = Project.objects.get(name = project_name)
+    user = User.objects.get(username = context['user1'])
+    all_users = User.objects.filter(active=True)
+    methodology_manager = AssignedRole.objects.filter(project = project, user=context['id'],role = 'methodology_manager')
+    product_owner = AssignedRole.objects.filter(project = project, user=context['id'],role = 'product_owner')
+    development_team_member = AssignedRole.objects.filter(project = project, user=context['id'],role = 'development_team_member')
+    
+    if request.method == "POST":
+        form = NewTaskForm(request.POST,instance=task,project_name = project_name)
+        if form.is_valid(): 
+            form.save()
+            messages.success(request,"Task edited successfully!")
+            # path('project/<str:project_name>/tasks/<int:user_story_id>/', views.tasks, name='tasks'),
+            return redirect('tasks',project_name,user_story_id)
+            
+        else:
+            messages.error(request, form.errors)
+            return redirect(request.path)
+    else:#get
+        form = NewTaskForm(instance = task, project_name = project_name,user_story_id=user_story_id)
+        context['form'] = form
+        context['allusers'] = all_users
+        context['project'] = project
+        return render(request,'edit_task.html',context=context)
