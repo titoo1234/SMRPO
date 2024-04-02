@@ -161,3 +161,9 @@ class SprintTable(tables.Table):
     class Meta:
         model = Sprint
         template_name = "django_tables2/bootstrap4.html"
+
+
+class TaskTable(tables.Table):
+    class Meta:
+        model = Task
+        template_name = "django_tables2/bootstrap4.html"

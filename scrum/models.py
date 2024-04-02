@@ -123,12 +123,13 @@ class Task(models.Model):
     # =============
     description = models.TextField()
     user_story = models.ForeignKey(UserStory, on_delete=models.CASCADE)
-    assigned_user = models.ForeignKey(User, on_delete=models.CASCADE)
+    assigned_user = models.ForeignKey(User, on_delete=models.CASCADE,null=True,blank=True)#Ni ga treba dodeltiti od začetka
     ## tega pomojm ne rabmo
     # start_date = models.DateField()
     # end_date = models.DateField()
     # =============
     time_spent = models.PositiveIntegerField(default=0)
+    accepted = models.BooleanField(default=False)
     # STATUS_CHOICES = (
     #     ('To-Do', 'To-Do'),
     #     ('In Progress', 'In Progress'),

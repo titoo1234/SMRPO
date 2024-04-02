@@ -865,6 +865,9 @@ def tasks(request, project_name, user_story_id):
     methodology_manager = AssignedRole.objects.filter(project = project, user=context['id'],role = 'methodology_manager')
     context["project"] = project
     context["user_story"] = user_story
+    all_tasks = Task.objects.filter(user_story=user_story)
+    tasks_table = TaskTable(all_tasks)
+    context["tasks_table"] = tasks_table
     return render(request, "tasks.html", context=context)
 
 def new_task(request, project_name, user_story_id):
@@ -879,11 +882,12 @@ def new_task(request, project_name, user_story_id):
     if request.method == "POST":
         #TODO
         # Project.objects.all().delete()
-        form = NewTaskForm(request.POST)
+        form = NewTaskForm(request.POST,project_name = project_name)
         if form.is_valid(): 
             form.save()
             messages.success(request,"Task added successfully!")
-            return redirect()
+            # path('project/<str:project_name>/tasks/<int:user_story_id>/', views.tasks, name='tasks'),
+            return redirect('tasks',project_name,user_story_id)
             
         else:
             messages.error(request, form.errors)
