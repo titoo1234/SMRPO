@@ -249,7 +249,6 @@ class ProjectWallForm(forms.ModelForm):
 
 
 class NewTaskForm(forms.ModelForm):
-    #TODO
     def __init__(self,*args, **kwargs):
         project_name = kwargs.pop('project_name', None)
         user_story_id = kwargs.pop('user_story_id', None)
@@ -260,6 +259,11 @@ class NewTaskForm(forms.ModelForm):
             self.fields['user_story'].widget = forms.HiddenInput()
         
         self.fields['assigned_user'].queryset = self.get_development_team_members(project_name)
+               # Check if task is already accepted
+    
+        task = kwargs.get('instance', None)
+        if task and task.accepted:
+            del self.fields['assigned_user']
 
     def get_development_team_members(self, project_name):
         project = Project.objects.get(name = project_name)

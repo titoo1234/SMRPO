@@ -863,11 +863,19 @@ def tasks(request, project_name, user_story_id):
     user_story = UserStory.objects.get(id=user_story_id)
     project = Project.objects.get(name = project_name)
     methodology_manager = AssignedRole.objects.filter(project = project, user=context['id'],role = 'methodology_manager')
+    product_owner = AssignedRole.objects.filter(project = project, user=context['id'],role = 'product_owner')
+    development_team_member = AssignedRole.objects.filter(project = project, user=context['id'],role = 'development_team_member')
+    context["new_task_button"] = False
+    if methodology_manager or development_team_member:
+        context["new_task_button"] = True
     context["project"] = project
     context["user_story"] = user_story
-    all_tasks = Task.objects.filter(user_story=user_story)
-    tasks_table = TaskTable(all_tasks,user_id = context['id'])
-    context["tasks_table"] = tasks_table
+    all_uncompleted_tasks = Task.objects.filter(user_story=user_story,done = False)
+    all_completed_tasks= Task.objects.filter(user_story=user_story,done = True)
+    tasks_table = TaskTable(all_uncompleted_tasks,user_id = context['id'],product_owner = (len(product_owner) == 1))
+    tasks_table_completed = TaskTable(all_completed_tasks,user_id = context['id'],product_owner = True)
+    context["tasks_table_completed"] = tasks_table_completed
+    context["tasks_table_uncompleted"] = tasks_table
     return render(request, "tasks.html", context=context)
 
 def new_task(request, project_name, user_story_id):
@@ -878,7 +886,9 @@ def new_task(request, project_name, user_story_id):
     methodology_manager = AssignedRole.objects.filter(project = project, user=context['id'],role = 'methodology_manager')
     product_owner = AssignedRole.objects.filter(project = project, user=context['id'],role = 'product_owner')
     development_team_member = AssignedRole.objects.filter(project = project, user=context['id'],role = 'development_team_member')
-    
+    if not(methodology_manager or development_team_member):
+        messages.error(request, "You do not have permission to add new task. Only Scrum master and development team member can do it.")
+        return redirect('tasks', project_name, user_story_id)
     if request.method == "POST":
         #TODO
         # Project.objects.all().delete()
@@ -915,6 +925,14 @@ def decline_task(request,project_name,user_story_id,task_id):
     messages.success(request,"Task declined!")
     return redirect('tasks',project_name,user_story_id)
 
+def complete_task(request,project_name,user_story_id,task_id):
+    task = Task.objects.get(id = task_id)
+    task.done = True
+    task.save()
+    messages.success(request,"Task completed!")
+    return redirect('tasks',project_name,user_story_id)
+
+
 def delete_task(request,project_name,user_story_id,task_id):
     task = Task.objects.get(id = task_id)
     if task.accepted:
@@ -937,9 +955,14 @@ def edit_task(request, project_name, user_story_id,task_id):
     user = User.objects.get(username = context['user1'])
     all_users = User.objects.filter(active=True)
     methodology_manager = AssignedRole.objects.filter(project = project, user=context['id'],role = 'methodology_manager')
+    # methodology_manager = methodology_manager.user
     product_owner = AssignedRole.objects.filter(project = project, user=context['id'],role = 'product_owner')
     development_team_member = AssignedRole.objects.filter(project = project, user=context['id'],role = 'development_team_member')
-    
+    # development_team_members = [obj.user for obj in development_team_member]
+
+    if not(methodology_manager or development_team_member):
+        messages.error(request, "You do not have permission to edit this task.")
+        return redirect('tasks', project_name, user_story_id)
     if request.method == "POST":
         form = NewTaskForm(request.POST,instance=task,project_name = project_name)
         if form.is_valid(): 

@@ -36,7 +36,8 @@ urlpatterns = [
     path('project/<str:project_name>/tasks/<int:user_story_id>/<int:task_id>/accept/', views.accept_task, name='accept_task'),
     path('project/<str:project_name>/tasks/<int:user_story_id>/<int:task_id>/decline/', views.decline_task, name='decline_task'),
     path('project/<str:project_name>/tasks/<int:user_story_id>/<int:task_id>/edit/', views.edit_task, name='edit_task'),
-    path('project/<str:project_name>/tasks/<int:user_story_id>/<int:task_id>/delete/', views.delete_task, name='delete_task')
+    path('project/<str:project_name>/tasks/<int:user_story_id>/<int:task_id>/delete/', views.delete_task, name='delete_task'),
+    path('project/<str:project_name>/tasks/<int:user_story_id>/<int:task_id>/complete/', views.complete_task, name='complete_task')
     # re_path(r'^login/$', views.userApi, name='user_login')
     # re_path(r'user/[0-9]+$', views.userApi,name='test1'),
     # path('user/', views.userApi),

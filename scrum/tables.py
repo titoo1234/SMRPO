@@ -121,6 +121,15 @@ class UserStoryTable(tables.Table):
     def render_name(self, record):
         user_story_url = reverse('edit_user_story', kwargs={'project_name': record.project.name,'id': record.id})
         return format_html(f'<a style="font-size: 22px;" href="{user_story_url}">#{record.story_number} - {record.name}</a>')
+    def render_workflow(self, value):
+        if value == 'To Do':
+            return format_html('<span style="color: red;">{}</span>', value)
+        elif value == 'In Progress':
+            return format_html('<span style="color: orange;">{}</span>', value)
+        elif value == 'Done':
+            return format_html('<span style="color: green;">{}</span>', value)
+        else:
+            return value  # Vrne vrednost brez sprememb, če ni ujemanja
     
     def render_edit_button(self, record):
         user = User.objects.get(id = self.user_id)
@@ -175,11 +184,19 @@ class TaskTable(tables.Table):
     decline_button = tables.Column(empty_values=(), orderable=False, verbose_name='Decline')
     edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
     delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
+    complete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Complete')
     def __init__(self, *args, **kwargs):
         self.user_id = kwargs.pop('user_id', 0)
+        self.product_owner = kwargs.pop('product_owner', False)
         super().__init__(*args, **kwargs)
+        if self.product_owner:
+            self.exclude = ('edit_button','delete_button','decline_button','accept_button','complete_button')
    
-
+    def render_description(self, value):
+        # Uporabi HTML oznake za prikaz odstavkov v opisu
+        return mark_safe(value.replace('\n', '<br>'))
+    
+    
     def render_accept_button(self, record):
         if record.assigned_user:
             if (record.assigned_user.id == self.user_id) and (not record.accepted):
@@ -204,7 +221,14 @@ class TaskTable(tables.Table):
         project = record.user_story.project
         edit_url = reverse('delete_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
         return format_html('<a href="{}" class="btn btn-danger">Delete</a>', edit_url)
-        
+    
+    def render_complete_button(self, record):
+        if record.assigned_user:
+            if (record.assigned_user.id == self.user_id) and (record.accepted): 
+                project = record.user_story.project
+                url = reverse('complete_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
+                return format_html('<a href="{}" class="btn btn-warning" onclick="return confirm(\'Ali ste prepričani, da želite zaključiti nalogo?\')">Complete</a>', url)
+        return ''
         
 
     
