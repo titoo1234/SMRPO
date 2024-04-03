@@ -932,6 +932,10 @@ def new_task(request, project_name, user_story_id):
     
 def accept_task(request,project_name,user_story_id,task_id):
     task = Task.objects.get(id = task_id)
+    if (not task.assigned_user):
+        context = get_context(request)
+        user = User.objects.get(id = context['id'])
+        task.assigned_user = user
     task.accepted = True
     task.save()
     messages.success(request,"Task accepted!")

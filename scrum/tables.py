@@ -194,6 +194,7 @@ class TaskTable(tables.Table):
     description = tables.Column()
     # user_story = tables.Column()
     assigned_user = tables.Column()
+    #assigned_user = tables.Column(empty_values=(1))
     estimate = tables.Column()
     time_spent = tables.Column()
     accepted = tables.Column()
@@ -212,7 +213,11 @@ class TaskTable(tables.Table):
     def render_description(self, value):
         # Uporabi HTML oznake za prikaz odstavkov v opisu
         return mark_safe(value.replace('\n', '<br>'))
-    
+    # def render_assigned_user(self, value):
+    #     if value:
+    #         return value
+    #     else:
+    #         return "Nedodeljeno" 
     
     def render_accept_button(self, record):
         if record.assigned_user:
@@ -220,6 +225,13 @@ class TaskTable(tables.Table):
                 project = record.user_story.project
                 url = reverse('accept_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
                 return format_html('<a href="{}" class="btn btn-success">Accept</a>', url)    
+        if (not record.assigned_user) and (not record.accepted):
+            project = record.user_story.project
+            development_team_member = AssignedRole.objects.filter(project = project, user=self.user_id,role = 'development_team_member')
+            if development_team_member:
+                
+                url = reverse('accept_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
+                return format_html('<a href="{}" class="btn btn-success">Accept</a>', url)   
         return ''
     
     def render_decline_button(self, record):
