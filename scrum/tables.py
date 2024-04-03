@@ -112,11 +112,15 @@ class UserStoryTable(tables.Table):
     edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
     delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
     tasks_button = tables.Column(empty_values=(), orderable=False, verbose_name='Tasks')
+    finish_button = tables.Column(empty_values=(), orderable=False, verbose_name='Finish')
 
     def __init__(self, *args, **kwargs):
         self.user_id = kwargs.pop('user_id', 0)
         self.admin = kwargs.pop('admin', False)
+        self.product_owner = kwargs.pop('product_owner', False)
         super().__init__(*args, **kwargs)
+        if (not self.product_owner):
+            self.exclude = ('finish_button',)
 
     def render_name(self, record):
         user_story_url = reverse('edit_user_story', kwargs={'project_name': record.project.name,'id': record.id})
@@ -158,6 +162,19 @@ class UserStoryTable(tables.Table):
         tasks_url = reverse('tasks', kwargs={'project_name': record.project.name, 'user_story_id': record.id})
         #return format_html(f'<a href="{record.project.name}/tasks/{record.id}" class="btn btn-info">Tasks</a>')#, tasks_url)
         return format_html('<a href="{}" class="btn btn-info">Tasks</a>', tasks_url)
+    
+    def render_finish_button(self, record):
+        # user = User.objects.get(id = self.user_id)
+        # project = Project.objects.get(name = record.project.name)
+        # print(record.workflow)
+        if record.workflow == 'done':
+            accept_url = reverse('accept_user_story', kwargs={'project_name': record.project.name, 'user_story_id': record.id})
+            reject_url = reverse('reject_user_story', kwargs={'project_name': record.project.name, 'user_story_id': record.id})
+            #return format_html(f'<a href="{record.project.name}/tasks/{record.id}" class="btn btn-info">Tasks</a>')#, tasks_url)
+            accept_button = format_html('<a href="{}" class="btn btn-success">Accept</a>', accept_url)
+            reject_button = format_html('<a href="{}" class="btn btn-danger">Reject</a>', reject_url)
+            return accept_button + reject_button
+        return ''
 
     class Meta:
         model = UserStory

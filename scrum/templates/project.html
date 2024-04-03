@@ -18,7 +18,7 @@ Project {{project.name}}
     {% endif %}
     {% load django_tables2 %}
 
-    {% for sprint, userstory_table, deleteable, sprint_status in sprint_tables %}
+    {% for sprint, userstory_table,accepted_userstories,unaccepted_userstories, deleteable, sprint_status in sprint_tables %}
         <h3>Sprint: <a href='/project/{{project.name}}/sprint/{{sprint.id}}'> {{ sprint.start_date }} - {{ sprint.end_date }} </a>
         <span style="color: 
             {% if sprint_status == 'Active' %}
@@ -32,7 +32,9 @@ Project {{project.name}}
         </span>
     </h3>
         
-        {% render_table userstory_table %}
+        {% render_table unaccepted_userstories %}
+        <h4>Accepted Stories</h4>
+        {% render_table accepted_userstories %}
     {% endfor %}
 <h3>Backlog:</h3>
 {% if new_user_story_enabled %}

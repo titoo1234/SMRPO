@@ -77,6 +77,8 @@ class UserStory(models.Model):
     acceptance_tests = models.TextField(blank=True)
     story_number = models.IntegerField()
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    accepted = models.BooleanField(default=False)
+    rejected = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name

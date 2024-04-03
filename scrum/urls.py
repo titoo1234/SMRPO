@@ -11,6 +11,9 @@ urlpatterns = [
     path('logout/', views.logout, name='logout'),
     path('allusers/', views.allusers, name='allusers'),
     path('user/<int:user_id>/edit/', views.edit_user, name='edit_user'),
+    path('user/<int:user_id>/delete/', views.delete_user, name='delete_user'),
+    path('deleted_user/<int:user_id>/edit/', views.edit_deleted_user, name='edit_deleted_user'),
+    # project ============================================================
     path('new_project/', views.new_project, name='new_project'),
     path('project/<str:ime_projekta>/add_members/', views.add_members, name='add_members'),
     path('delete_project/<str:project_name>/', views.delete_project, name='delete_project'),
@@ -20,17 +23,21 @@ urlpatterns = [
     path('project/<str:project>/add_member/<str:user_id>/', views.add_member_to_project, name='add_member_to_project'),
     path('project/<str:project>/remove_member/<str:user>/', views.remove_member, name='remove_member'),
     path('project/<str:ime_projekta>/edit_assign_roles/', views.edit_assign_roles, name='edit_assign_roles'),
-    path('user/<int:user_id>/delete/', views.delete_user, name='delete_user'),
-    path('deleted_user/<int:user_id>/edit/', views.edit_deleted_user, name='edit_deleted_user'),
+    # sprint ============================================================
     path('project/<str:project_name>/sprints', views.sprints_list_handler, name='create_sprint'),
     path('project/<str:project_name>/sprint/<int:sprint_id>', views.sprint_details_handler, name='sprint_details'),
     path('project/<str:project_name>/new_sprint/', views.new_sprint, name='new_sprint'),
     path('project/<str:project_name>/sprint/<int:sprint_id>/edit', views.edit_sprint, name='sprint_edit'),
+    path('delete_sprint/<str:project>/<int:id>', views.delete_sprint, name='delete_sprint'),
+    # USER_STORY ============================================================
     path('project/<str:project_name>/new_user_story/', views.new_user_story, name='new_user_story'),
     path('project/<str:project_name>/edit_user_story/<int:id>/', views.edit_user_story, name='edit_user_story'),
     path('project/<str:project_name>/delete_user_story/<int:id>/', views.delete_user_story, name='delete_user_story'),
-    path('delete_sprint/<str:project>/<int:id>', views.delete_sprint, name='delete_sprint'),
+    path('project/<str:project_name>/accept_user_story/<int:user_story_id>/', views.accept_user_story, name='accept_user_story'),
+    path('project/<str:project_name>/reject_user_story/<int:user_story_id>/', views.reject_user_story, name='reject_user_story'),
+    # WALL ============================================================
     path('project/<str:project_name>/wall/', views.wall, name='wall'),
+    # TASKS ============================================================
     path('project/<str:project_name>/tasks/<int:user_story_id>/', views.tasks, name='tasks'),
     path('project/<str:project_name>/new_task/<int:user_story_id>/', views.new_task, name='new_task'),
     path('project/<str:project_name>/tasks/<int:user_story_id>/<int:task_id>/accept/', views.accept_task, name='accept_task'),

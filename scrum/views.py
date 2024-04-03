@@ -418,7 +418,8 @@ def project_view(request,project_name):
     context['is_creator'] = is_creator
     context['editable'] = (user.admin_user or (user == methodology_manager))
     context['sprints'] = (sprints)
-    user_story_table = UserStoryTable(user_stories, admin = context['admin'],user_id = context['id'])
+    product_owner = AssignedRole.objects.filter(project = project, user=context['id'],role = 'product_owner')
+    user_story_table = UserStoryTable(user_stories, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
     RequestConfig(request).configure(user_story_table)
     context['user_story_table'] = user_story_table
     
@@ -432,18 +433,22 @@ def project_view(request,project_name):
         #print(len(userstories))
         if len(userstories) == 0:
             deleteable = True
+        accepted_userstories = UserStory.objects.filter(project=project, sprint=sprint, accepted = True)
+        accepted_userstories = UserStoryTable(accepted_userstories, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
+        unaccepted_userstories = UserStory.objects.filter(project=project, sprint=sprint, accepted = False)
+        unaccepted_userstories = UserStoryTable(unaccepted_userstories, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
         # sprint_table = SprintTable([sprint])
-        userstory_table = UserStoryTable(userstories, admin = context['admin'],user_id = context['id'])
+        userstory_table = UserStoryTable(userstories, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
         if sprint.end_date < today:
             sprint_status = "Finished"
         elif sprint.start_date <= today <= sprint.end_date:
             sprint_status = "Active"
         else:
             sprint_status = "Unfinished"
-        sprint_tables.append((sprint, userstory_table, deleteable, sprint_status))
+        sprint_tables.append((sprint, userstory_table, accepted_userstories, unaccepted_userstories, deleteable, sprint_status))
     context['sprint_tables'] = sprint_tables
     Backlog = UserStory.objects.filter(project=project, sprint=None)
-    Backlog = UserStoryTable(Backlog, admin = context['admin'],user_id = context['id'])
+    Backlog = UserStoryTable(Backlog, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
     context['Backlog'] = Backlog
     methodology_manager = AssignedRole.objects.get(project = project, role = 'methodology_manager')
     # methodology_manager = User.objects.get(id = methodology_manager)
@@ -853,6 +858,22 @@ def delete_user_story(request, project_name, id):
     context["user_story_name"] = user_story.name
     context["project_name"] = project.name
     return render(request, 'delete_user_story.html', context=context)
+
+def accept_user_story(request, project_name, user_story_id):
+    user_story = UserStory.objects.get(id=user_story_id)
+    user_story.accepted = True
+    user_story.save()
+    messages.success(request, "User story accepted")
+    return redirect('project_name',project_name=project_name)
+    
+def reject_user_story(request, project_name, user_story_id):
+    user_story = UserStory.objects.get(id=user_story_id)
+    user_story.rejected = True
+    user_story.accepted = False
+    user_story.save()
+    #TODO TUKAJ BOMO verjetno mogl vse taske dat nazaj na nedokončane itd... 
+    messages.success(request, "User story rejected")
+    return redirect('project_name',project_name=project_name)
 
 
 # Tasks on user story
