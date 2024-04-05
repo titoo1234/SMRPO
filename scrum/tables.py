@@ -109,10 +109,12 @@ class UserStoryTable(tables.Table):
     size = tables.Column()
     workflow = tables.Column()
     user = tables.Column()
+    accepted = tables.Column(visible= False)
     edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
     delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
     tasks_button = tables.Column(empty_values=(), orderable=False, verbose_name='Tasks')
-    finish_button = tables.Column(empty_values=(), orderable=False, verbose_name='Finish')
+    
+    finish_button = tables.Column(empty_values=(), orderable=False, verbose_name='Finish|completed tasks')
 
     def __init__(self, *args, **kwargs):
         self.user_id = kwargs.pop('user_id', 0)
@@ -121,6 +123,13 @@ class UserStoryTable(tables.Table):
         super().__init__(*args, **kwargs)
         if (not self.product_owner):
             self.exclude = ('finish_button',)
+    def before_render(self, request):
+        for row in self.rows:
+            if row.record.accepted:
+                self.exclude = ('edit_button','delete_button')#finish_button
+            # self.columns['edit_button'].visible = False
+        
+            
 
     def render_name(self, record):
         user_story_url = reverse('edit_user_story', kwargs={'project_name': record.project.name,'id': record.id})
@@ -167,14 +176,22 @@ class UserStoryTable(tables.Table):
         # user = User.objects.get(id = self.user_id)
         # project = Project.objects.get(name = record.project.name)
         # print(record.workflow)
+        tasks = Task.objects.filter(user_story = record.id).count()
+        complete_tasks = Task.objects.filter(user_story = record.id,done = True).count()
+            
+        tasks_info = format_html("<strong>{}/{}</strong>", complete_tasks, tasks)
         if record.workflow == 'done':
             accept_url = reverse('accept_user_story', kwargs={'project_name': record.project.name, 'user_story_id': record.id})
             reject_url = reverse('reject_user_story', kwargs={'project_name': record.project.name, 'user_story_id': record.id})
             #return format_html(f'<a href="{record.project.name}/tasks/{record.id}" class="btn btn-info">Tasks</a>')#, tasks_url)
             accept_button = format_html('<a href="{}" class="btn btn-success">Accept</a>', accept_url)
             reject_button = format_html('<a href="{}" class="btn btn-danger">Reject</a>', reject_url)
-            return accept_button + reject_button
-        return ''
+            # if tasks == complete_tasks:
+
+            #     return accept_button + reject_button +tasks_info
+            return accept_button + reject_button +tasks_info
+
+        return tasks_info
 
     class Meta:
         model = UserStory
@@ -198,6 +215,7 @@ class TaskTable(tables.Table):
     estimate = tables.Column()
     time_spent = tables.Column()
     accepted = tables.Column()
+    user_story = tables.Column(visible= False)
     accept_button = tables.Column(empty_values=(), orderable=False, verbose_name='Accept')
     decline_button = tables.Column(empty_values=(), orderable=False, verbose_name='Decline')
     edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
@@ -213,11 +231,13 @@ class TaskTable(tables.Table):
     def render_description(self, value):
         # Uporabi HTML oznake za prikaz odstavkov v opisu
         return mark_safe(value.replace('\n', '<br>'))
-    # def render_assigned_user(self, value):
-    #     if value:
-    #         return value
-    #     else:
-    #         return "Nedodeljeno" 
+
+
+    def before_render(self, request):
+        for row in self.rows:
+            user_story = UserStory.objects.get(id = row.record.user_story.id)
+            if user_story.accepted:
+                self.exclude = ('accept_button','decline_button','edit_button','complete_button','delete_button')#finish_button
     
     def render_accept_button(self, record):
         if record.assigned_user:

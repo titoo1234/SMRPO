@@ -16,6 +16,7 @@ Project {{project.name}}
 
     <a href= '/project/{{project.name}}/new_sprint/'><button type='submit'>Create Sprint</button></a>
     {% endif %}
+    
     {% load django_tables2 %}
 
     {% for sprint, userstory_table,accepted_userstories,unaccepted_userstories, deleteable, sprint_status in sprint_tables %}
@@ -31,16 +32,20 @@ Project {{project.name}}
             {{sprint_status}}
         </span>
     </h3>
-        
+        {% if unaccepted_userstories.rows %}
         {% render_table unaccepted_userstories %}
+        {% endif %}
         <h4>Accepted Stories</h4>
+        {% if accepted_userstories.rows %}
         {% render_table accepted_userstories %}
+        {% endif %}
     {% endfor %}
 <h3>Backlog:</h3>
 {% if new_user_story_enabled %}
 <a href='/project/{{project.name}}/new_user_story/'><button type='submit'>New User Story</button></a>
 {% endif %}
+{% if Backlog.rows %}
 {% render_table Backlog %}
-
+{% endif %}
 {% endblock %}
 

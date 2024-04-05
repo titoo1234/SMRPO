@@ -19,7 +19,9 @@ Home
 
 {% if admin %}
 <h1>Other projects:</h1>
+{% if tabela_other.rows %}
 {% render_table tabela_other  %}
+{% endif %}
 {% endif %}
 
 <!-- {% for message in messages %}
