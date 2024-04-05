@@ -3,6 +3,7 @@ from django.contrib.auth.hashers import check_password
 from .models import User,Project,AssignedRole,UserStory, Sprint, ProjectWall,Task
 from django.utils import timezone
 from django.forms.models import inlineformset_factory
+from datetime import datetime, time
 
 class UserLoginForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)
@@ -162,7 +163,7 @@ class RoleAssignmentForm(forms.ModelForm):
 class UserStoryForm(forms.ModelForm):
     class Meta:
         model = UserStory
-        fields = ['name', 'workflow', 'description', 'project', 'sprint', 'priority', 'size', 'original_estimate', 'business_value', 'user', 'acceptance_tests']
+        fields = ['name', 'description', 'project', 'sprint', 'priority', 'size', 'original_estimate', 'business_value', 'user', 'acceptance_tests']
         widgets = {
             'name': forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Name'}), 
             'description': forms.Textarea(attrs={'class':'form-control', 'rows':'3', 'placeholder': 'Description'}), 
@@ -190,6 +191,11 @@ class UserStoryForm(forms.ModelForm):
         development_team_member = self.initial['development_team_member']
         sprint = self.initial['sprint']
         edit = self.initial['edit']
+        today = datetime.today()
+        today = datetime.date(today)
+        active_sprints = Sprint.objects.filter(project=self.project,start_date__lte=today, end_date__gte=today)
+        # active_sprints = []
+        self.fields['sprint'].queryset = active_sprints
 
         methodology_manager_not_in_sprint_fields = set(['name', 'description', 'priority', 'business_value', 'acceptance_tests', 'sprint', 'size', 'original_estimate', 'user'])
         product_owner_fields_not_in_sprint_fields = set(['name', 'description', 'priority', 'business_value', 'acceptance_tests'])
