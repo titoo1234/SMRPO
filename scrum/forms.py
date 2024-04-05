@@ -181,6 +181,7 @@ class UserStoryForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.project = self.initial['project']
+        
         development_team_members = AssignedRole.objects.filter(project = self.project, role='development_team_member')
         users = [(object.user.id, str(object.user.username)) for object in development_team_members]
         users += [(None, '---------')]
@@ -207,6 +208,11 @@ class UserStoryForm(forms.ModelForm):
         methodology_manager_fields = set(['name', 'description', 'priority', 'business_value', 'acceptance_tests'])
         product_owner_fields = set(['name', 'description', 'priority', 'business_value', 'acceptance_tests'])
         development_team_fields = set([])
+
+        accepted = self.initial.get('accepted')
+        if accepted:
+            for field_name in self.fields.keys():
+                self.fields[field_name].widget.attrs['disabled'] = True
 
         if edit:
             if methodology_manager and development_team_member and sprint is None:

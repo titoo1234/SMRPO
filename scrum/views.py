@@ -788,7 +788,7 @@ def edit_user_story(request, project_name, id):
     methodology_manager = AssignedRole.objects.filter(project = project, user=context['id'],role = 'methodology_manager')
     product_owner = AssignedRole.objects.filter(project = project, user=context['id'],role = 'product_owner')
     development_team_member = AssignedRole.objects.filter(project = project, user=context['id'],role = 'development_team_member')
-    form = UserStoryForm(instance=user_story, initial={'project':project, 'methodology_manager':methodology_manager, 'product_owner':product_owner, 'development_team_member':development_team_member, 'sprint':user_story.sprint, 'edit':True})
+    form = UserStoryForm(instance=user_story, initial={'project':project, 'methodology_manager':methodology_manager, 'product_owner':product_owner, 'development_team_member':development_team_member, 'sprint':user_story.sprint, 'edit':True,'accepted':user_story.accepted})
 
     methodology_manager_not_in_sprint_fields = set(['name', 'description', 'priority', 'business_value', 'acceptance_tests', 'sprint', 'size', 'original_estimate', 'user'])
     product_owner_fields_not_in_sprint_fields = set(['name', 'description', 'priority', 'business_value', 'acceptance_tests'])
@@ -798,7 +798,7 @@ def edit_user_story(request, project_name, id):
     development_team_fields_in_sprint_fields = set(['workflow'])
 
     if request.method == "POST":
-        form = UserStoryForm(request.POST, instance=user_story, initial={'project':project, 'methodology_manager':methodology_manager, 'product_owner':product_owner, 'development_team_member':development_team_member, 'sprint':user_story.sprint, 'edit':True})
+        form = UserStoryForm(request.POST, instance=user_story, initial={'project':project, 'methodology_manager':methodology_manager, 'product_owner':product_owner, 'development_team_member':development_team_member, 'sprint':user_story.sprint, 'edit':True,'accepted':user_story.accepted})
         if form.is_valid():   
             user_story = UserStory.objects.get(id=id)
             changed_fields = set(form.changed_data)   

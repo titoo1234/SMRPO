@@ -110,6 +110,7 @@ class UserStoryTable(tables.Table):
     workflow = tables.Column()
     user = tables.Column()
     accepted = tables.Column(visible= False)
+    sprint = tables.Column(visible= False)
     edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
     delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
     tasks_button = tables.Column(empty_values=(), orderable=False, verbose_name='Tasks')
@@ -180,16 +181,16 @@ class UserStoryTable(tables.Table):
         complete_tasks = Task.objects.filter(user_story = record.id,done = True).count()
             
         tasks_info = format_html("<strong>{}/{}</strong>", complete_tasks, tasks)
-        if record.workflow == 'done':
+        if record.accepted == False and record.sprint:
             accept_url = reverse('accept_user_story', kwargs={'project_name': record.project.name, 'user_story_id': record.id})
             reject_url = reverse('reject_user_story', kwargs={'project_name': record.project.name, 'user_story_id': record.id})
             #return format_html(f'<a href="{record.project.name}/tasks/{record.id}" class="btn btn-info">Tasks</a>')#, tasks_url)
             accept_button = format_html('<a href="{}" class="btn btn-success">Accept</a>', accept_url)
             reject_button = format_html('<a href="{}" class="btn btn-danger">Reject</a>', reject_url)
-            # if tasks == complete_tasks:
+            if tasks == complete_tasks:
 
-            #     return accept_button + reject_button +tasks_info
-            return accept_button + reject_button +tasks_info
+                return accept_button + reject_button +tasks_info
+            # return accept_button + reject_button +tasks_info
 
         return tasks_info
 
