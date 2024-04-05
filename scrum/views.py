@@ -379,12 +379,21 @@ def edit_assign_roles(request,ime_projekta):
         # Pogledamo če kakega starega ni v novih -> tega moremo zbrisati
         for obj in development_team_members_roles:
             if obj.user not in development_team_members_new:
+            
+                stories = UserStory.objects.filter(project = project)
+                for story in stories:
+                    if story.user == obj.user:
+                        messages.error(request, "User participate in User Story!")
+                        return redirect(request.path)
+                    tasks = Task.objects.filter(user_story = story)
+                    for task in tasks:
+                        if task.assigned_user == obj.user:
+                            messages.error(request, "User participate in User Story!")
+                            return redirect(request.path)
                 obj.delete()
         # Dodamo še nove:
         for user in development_team_members_new:
-            print(user)
             if user not in development_team_members:
-                print(user)
                 nov = AssignedRole.objects.create(project = project,user = user,role = 'development_team_member')
                 nov.save()
         messages.success(request,"Project roles successfully updated.")
