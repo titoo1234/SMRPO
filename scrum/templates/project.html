@@ -35,8 +35,8 @@ Project {{project.name}}
         {% if unaccepted_userstories.rows %}
         {% render_table unaccepted_userstories %}
         {% endif %}
-        <h4>Accepted Stories</h4>
         {% if accepted_userstories.rows %}
+        <h4>Accepted Stories</h4>
         {% render_table accepted_userstories %}
         {% endif %}
     {% endfor %}
