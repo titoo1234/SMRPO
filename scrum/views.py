@@ -927,7 +927,7 @@ def tasks(request, project_name, user_story_id):
     all_rejected_tasks = Task.objects.filter(user_story=user_story,rejected = True)
     all_uncompleted_tasks = Task.objects.filter(user_story=user_story,done = False,rejected = False)
     all_completed_tasks= Task.objects.filter(user_story=user_story,done = True,rejected = False)
-    tasks_table = TaskTable(all_uncompleted_tasks,user_id = context['id'],product_owner = (len(product_owner) == 1))
+    tasks_table = TaskTable(all_uncompleted_tasks,user_id = context['id'],product_owner = (len(product_owner) == 1),active_sprint=active_sprint)
     tasks_table_rejected = TaskTable(all_rejected_tasks,user_id = context['id'],product_owner = True)#teh ne smemo spreminjat)
     tasks_table_completed = TaskTable(all_completed_tasks,user_id = context['id'],product_owner = True)
     context["tasks_table_completed"] = tasks_table_completed
