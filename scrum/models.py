@@ -134,6 +134,7 @@ class Task(models.Model):
     accepted = models.BooleanField(default=False)
     estimate = models.PositiveIntegerField(default=1)
     done = models.BooleanField(default=False)
+    rejected = models.BooleanField(default=False)#ko rejectaš zgodbo da rejectaš tudi vse naloge, da jih kasneje lahko prikažeš kot "stare"
     # STATUS_CHOICES = (
     #     ('To-Do', 'To-Do'),
     #     ('In Progress', 'In Progress'),

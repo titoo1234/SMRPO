@@ -177,8 +177,8 @@ class UserStoryTable(tables.Table):
         # user = User.objects.get(id = self.user_id)
         # project = Project.objects.get(name = record.project.name)
         # print(record.workflow)
-        tasks = Task.objects.filter(user_story = record.id).count()
-        complete_tasks = Task.objects.filter(user_story = record.id,done = True).count()
+        tasks = Task.objects.filter(user_story = record.id,rejected = False).count()
+        complete_tasks = Task.objects.filter(user_story = record.id,done = True,rejected = False).count()
             
         tasks_info = format_html("<strong>{}/{}</strong>", complete_tasks, tasks)
         if record.accepted == False and record.sprint:

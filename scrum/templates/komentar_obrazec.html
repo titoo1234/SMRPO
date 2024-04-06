@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Comment
+{% endblock %}
+{% block content %}
+<h2>Add Comment</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ obrazec.as_p }}
+    <button type="submit">Submit</button>
+    <a href='/project/{{project_name}}/'><button type='button'>Cancel</button></a>
+</form>
+
+   
+
+{% endblock %}

@@ -20,5 +20,11 @@ Project {{project.name}}
 {% if tasks_table_completed.rows %}
 {% render_table tasks_table_completed  %}
 {% endif %}
+
+{% if tasks_table_rejected.rows %}
+<h3>Rejected Tasks</h3>
+{% render_table tasks_table_rejected  %}
+{% endif %}
+
 {% endblock %}
 

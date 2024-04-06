@@ -877,13 +877,29 @@ def accept_user_story(request, project_name, user_story_id):
     
 def reject_user_story(request, project_name, user_story_id):
     user_story = UserStory.objects.get(id=user_story_id)
-    user_story.rejected = True
-    user_story.accepted = False
-    user_story.save()
-    #TODO TUKAJ BOMO verjetno mogl vse taske dat nazaj na nedokončane itd... 
-    messages.success(request, "User story rejected")
-    return redirect('project_name',project_name=project_name)
+    if request.method == 'POST':
+        obrazec = KomentarObrazec(request.POST)
+        if obrazec.is_valid():
+            user_story.rejected = True
+            user_story.accepted = False
+            # Damo ga vun in sprinta
+            user_story.sprint = None
+            user_story.save()
 
+            #Taske pustimo dokončane edino damo jih da so bili zavrnjeni... 
+            tasks = Task.objects.filter(user_story = user_story)
+            for task in tasks:
+                task.rejected = True
+                task.save()
+            messages.success(request, "User story rejected")
+            return redirect('project_name',project_name=project_name)
+    else:
+        obrazec = KomentarObrazec()
+        context = get_context(request)
+        context['obrazec'] = obrazec
+        context['project_name'] = project_name
+
+    return render(request, 'komentar_obrazec.html', context)
 
 # Tasks on user story
 # ======================================================
@@ -900,12 +916,15 @@ def tasks(request, project_name, user_story_id):
         context["new_task_button"] = True
     context["project"] = project
     context["user_story"] = user_story
-    all_uncompleted_tasks = Task.objects.filter(user_story=user_story,done = False)
-    all_completed_tasks= Task.objects.filter(user_story=user_story,done = True)
+    all_rejected_tasks = Task.objects.filter(user_story=user_story,rejected = True)
+    all_uncompleted_tasks = Task.objects.filter(user_story=user_story,done = False,rejected = False)
+    all_completed_tasks= Task.objects.filter(user_story=user_story,done = True,rejected = False)
     tasks_table = TaskTable(all_uncompleted_tasks,user_id = context['id'],product_owner = (len(product_owner) == 1))
+    tasks_table_rejected = TaskTable(all_rejected_tasks,user_id = context['id'],product_owner = True)#teh ne smemo spreminjat)
     tasks_table_completed = TaskTable(all_completed_tasks,user_id = context['id'],product_owner = True)
     context["tasks_table_completed"] = tasks_table_completed
     context["tasks_table_uncompleted"] = tasks_table
+    context["tasks_table_rejected"] = tasks_table_rejected
     return render(request, "tasks.html", context=context)
 
 def new_task(request, project_name, user_story_id):
