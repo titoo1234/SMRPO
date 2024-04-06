@@ -335,7 +335,7 @@ def assign_roles(request,ime_projekta):
             messages.success(request,"Project added successfully!")    
             return redirect('project_name',project_name=ime_projekta)
         else:#Mislim da do sem ne bi smelo pridet, ampak če imate idejo napište
-            #TODO NEVEM KAJ TUKAJ
+
             messages.error(request,"Ojoj, Napaka!")
             return redirect(request.path)
     else:
@@ -880,6 +880,8 @@ def reject_user_story(request, project_name, user_story_id):
     if request.method == 'POST':
         obrazec = KomentarObrazec(request.POST)
         if obrazec.is_valid():
+            komentar = obrazec.cleaned_data['komentar']
+            user_story.comment = komentar
             user_story.rejected = True
             user_story.accepted = False
             # Damo ga vun in sprinta
@@ -912,7 +914,13 @@ def tasks(request, project_name, user_story_id):
     product_owner = AssignedRole.objects.filter(project = project, user=context['id'],role = 'product_owner')
     development_team_member = AssignedRole.objects.filter(project = project, user=context['id'],role = 'development_team_member')
     context["new_task_button"] = False
-    if methodology_manager or development_team_member:
+    today = datetime.today()
+    today = datetime.date(today)
+    active_sprint = False
+    if user_story.sprint:
+        if user_story.sprint.start_date <= today <= user_story.sprint.end_date:
+            active_sprint = True
+    if (methodology_manager or development_team_member) and active_sprint:
         context["new_task_button"] = True
     context["project"] = project
     context["user_story"] = user_story
@@ -925,6 +933,7 @@ def tasks(request, project_name, user_story_id):
     context["tasks_table_completed"] = tasks_table_completed
     context["tasks_table_uncompleted"] = tasks_table
     context["tasks_table_rejected"] = tasks_table_rejected
+    context['accepted'] = user_story.accepted
     return render(request, "tasks.html", context=context)
 
 def new_task(request, project_name, user_story_id):
@@ -939,7 +948,7 @@ def new_task(request, project_name, user_story_id):
         messages.error(request, "You do not have permission to add new task. Only Scrum master and development team member can do it.")
         return redirect('tasks', project_name, user_story_id)
     if request.method == "POST":
-        #TODO
+        #
         # Project.objects.all().delete()
         form = NewTaskForm(request.POST,project_name = project_name,user_story_id=user_story_id)
         if form.is_valid(): 
@@ -978,11 +987,37 @@ def decline_task(request,project_name,user_story_id,task_id):
     messages.success(request,"Task declined!")
     return redirect('tasks',project_name,user_story_id)
 
+def start_stop_task(request,project_name,user_story_id,task_id):
+    task = Task.objects.get(id = task_id)
+    task.started = not task.started
+    #TODO a se bo tukaj kaj logiralo???
+    
+
+    task.save()
+    if task.started:
+        messages.success(request,"Task started!")
+    else:
+        messages.success(request,"Task stoped!")
+    return redirect('tasks',project_name,user_story_id)
+
 def complete_task(request,project_name,user_story_id,task_id):
     task = Task.objects.get(id = task_id)
+    if task.started:
+        task.started = False
+        # TODO a se bo tukaj kaj logiralo
     task.done = True
     task.save()
     messages.success(request,"Task completed!")
+    return redirect('tasks',project_name,user_story_id)
+
+def log_time_task(request,project_name,user_story_id,task_id):
+    task = Task.objects.get(id = task_id)
+    
+    
+    messages.success(request,"To bo treba pa še nardit :) !")
+    #  bo treba render neki neki GLEJ reject_user_story ko odpre stran za komentiranje pa se tam nardi nova forma recimo
+    #  lahk pa tud kako drugače
+    #  TODO
     return redirect('tasks',project_name,user_story_id)
 
 
@@ -996,9 +1031,12 @@ def delete_task(request,project_name,user_story_id,task_id):
         messages.error(request,"Finished task can not be deleted!")
         return redirect('tasks',project_name,user_story_id)
     task.delete()
-    #TODO
+    #TODO tukaj ne sme bit task.delte pomojm ampak ga bo treba sam skrit al pa neki
+    #TODO Pomojm bomo tud moral gledat da tam kjer je kaj logirano se ne sme brisat... IDEJE?
     messages.success(request,"Task deleted!")
     return redirect('tasks',project_name,user_story_id)
+
+
     
 
 def edit_task(request, project_name, user_story_id,task_id):

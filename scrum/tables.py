@@ -107,7 +107,8 @@ class UserStoryTable(tables.Table):
     name = tables.Column()
     priority = tables.Column()
     size = tables.Column()
-    workflow = tables.Column()
+    workflow = tables.Column(visible=False)
+    comment = tables.Column()
     user = tables.Column()
     accepted = tables.Column(visible= False)
     sprint = tables.Column(visible= False)
@@ -130,7 +131,10 @@ class UserStoryTable(tables.Table):
                 self.exclude = ('edit_button','delete_button')#finish_button
             # self.columns['edit_button'].visible = False
         
-            
+    def render_comment(self, value):
+        colored_value = '<span style="color: red;">{}</span>'.format(value)
+        html_value = mark_safe(colored_value.replace('\n', '<br>'))
+        return format_html(html_value)
 
     def render_name(self, record):
         user_story_url = reverse('edit_user_story', kwargs={'project_name': record.project.name,'id': record.id})
@@ -217,17 +221,21 @@ class TaskTable(tables.Table):
     time_spent = tables.Column()
     accepted = tables.Column()
     user_story = tables.Column(visible= False)
+    started = tables.Column(visible= False)
     accept_button = tables.Column(empty_values=(), orderable=False, verbose_name='Accept')
     decline_button = tables.Column(empty_values=(), orderable=False, verbose_name='Decline')
     edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
     delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
+    start_button = tables.Column(empty_values=(), orderable=False, verbose_name='Start/Stop')
+    log_button = tables.Column(empty_values=(), orderable=False, verbose_name='log time')
     complete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Complete')
+    
     def __init__(self, *args, **kwargs):
         self.user_id = kwargs.pop('user_id', 0)
         self.product_owner = kwargs.pop('product_owner', False)
         super().__init__(*args, **kwargs)
         if self.product_owner:
-            self.exclude = ('edit_button','delete_button','decline_button','accept_button','complete_button')
+            self.exclude = ('edit_button','delete_button','decline_button','accept_button','complete_button','log_button','start_button')
    
     def render_description(self, value):
         # Uporabi HTML oznake za prikaz odstavkov v opisu
@@ -238,7 +246,7 @@ class TaskTable(tables.Table):
         for row in self.rows:
             user_story = UserStory.objects.get(id = row.record.user_story.id)
             if user_story.accepted:
-                self.exclude = ('accept_button','decline_button','edit_button','complete_button','delete_button')#finish_button
+                self.exclude = ('accept_button','decline_button','edit_button','complete_button','delete_button','log_button','start_button')#finish_button
     
     def render_accept_button(self, record):
         if record.assigned_user:
@@ -253,6 +261,25 @@ class TaskTable(tables.Table):
                 
                 url = reverse('accept_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
                 return format_html('<a href="{}" class="btn btn-success">Accept</a>', url)   
+        return ''
+    
+    def render_log_button(self, record):
+        if record.assigned_user and  record.accepted:
+            if record.assigned_user.id == self.user_id:
+                project = record.user_story.project
+                url = reverse('log_time_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
+                return format_html('<a href="{}" class="btn btn-secondary">Log time</a>', url)
+        return ''
+    def render_start_button(self, record):
+        if record.assigned_user and record.accepted:
+            if record.assigned_user.id == self.user_id:
+                project = record.user_story.project
+                if not record.started:
+                    url = reverse('start_stop_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
+                    return format_html('<a href="{}" class="btn btn-success">Start</a>', url)
+                else:
+                    url = reverse('start_stop_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
+                    return format_html('<a href="{}" class="btn btn-danger">Stop</a>', url)
         return ''
     
     def render_decline_button(self, record):

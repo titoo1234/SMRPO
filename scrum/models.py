@@ -79,6 +79,7 @@ class UserStory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     accepted = models.BooleanField(default=False)
     rejected = models.BooleanField(default=False)
+    comment = models.TextField(null=True)
 
     def __str__(self):
         return self.name
@@ -135,12 +136,12 @@ class Task(models.Model):
     estimate = models.PositiveIntegerField(default=1)
     done = models.BooleanField(default=False)
     rejected = models.BooleanField(default=False)#ko rejectaš zgodbo da rejectaš tudi vse naloge, da jih kasneje lahko prikažeš kot "stare"
-    # STATUS_CHOICES = (
-    #     ('To-Do', 'To-Do'),
-    #     ('In Progress', 'In Progress'),
-    #     ('Done', 'Done'),
-    # )
-    # status = models.CharField(max_length=20, choices=STATUS_CHOICES)
+    started = models.BooleanField(default=False)
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['description', 'user_story'], name='unique_task_user_story_description')
+        ]
+
 
     def __str__(self):
         return self.name

@@ -44,7 +44,9 @@ urlpatterns = [
     path('project/<str:project_name>/tasks/<int:user_story_id>/<int:task_id>/decline/', views.decline_task, name='decline_task'),
     path('project/<str:project_name>/tasks/<int:user_story_id>/<int:task_id>/edit/', views.edit_task, name='edit_task'),
     path('project/<str:project_name>/tasks/<int:user_story_id>/<int:task_id>/delete/', views.delete_task, name='delete_task'),
-    path('project/<str:project_name>/tasks/<int:user_story_id>/<int:task_id>/complete/', views.complete_task, name='complete_task')
+    path('project/<str:project_name>/tasks/<int:user_story_id>/<int:task_id>/complete/', views.complete_task, name='complete_task'),
+    path('project/<str:project_name>/tasks/<int:user_story_id>/<int:task_id>/start_stop/', views.start_stop_task, name='start_stop_task'),
+    path('project/<str:project_name>/tasks/<int:user_story_id>/<int:task_id>/log_time/', views.log_time_task, name='log_time_task')
     # re_path(r'^login/$', views.userApi, name='user_login')
     # re_path(r'user/[0-9]+$', views.userApi,name='test1'),
     # path('user/', views.userApi),
