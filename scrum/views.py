@@ -924,12 +924,15 @@ def tasks(request, project_name, user_story_id):
         context["new_task_button"] = True
     context["project"] = project
     context["user_story"] = user_story
-    all_rejected_tasks = Task.objects.filter(user_story=user_story,rejected = True)
-    all_uncompleted_tasks = Task.objects.filter(user_story=user_story,done = False,rejected = False)
-    all_completed_tasks= Task.objects.filter(user_story=user_story,done = True,rejected = False)
+    all_rejected_tasks = Task.objects.filter(user_story=user_story,rejected = True,deleted = False)
+    all_uncompleted_tasks = Task.objects.filter(user_story=user_story,done = False,rejected = False,deleted = False)
+    all_deleted_tasks = Task.objects.filter(user_story=user_story,deleted = True)
+    all_completed_tasks= Task.objects.filter(user_story=user_story,done = True,rejected = False,deleted = False)
     tasks_table = TaskTable(all_uncompleted_tasks,user_id = context['id'],product_owner = (len(product_owner) == 1),active_sprint=active_sprint)
     tasks_table_rejected = TaskTable(all_rejected_tasks,user_id = context['id'],product_owner = True)#teh ne smemo spreminjat)
     tasks_table_completed = TaskTable(all_completed_tasks,user_id = context['id'],product_owner = True)
+    tasks_table_deleted = TaskTable(all_deleted_tasks,user_id = context['id'],deleted = True)
+    context["tasks_table_deleted"] = tasks_table_deleted
     context["tasks_table_completed"] = tasks_table_completed
     context["tasks_table_uncompleted"] = tasks_table
     context["tasks_table_rejected"] = tasks_table_rejected
@@ -983,8 +986,10 @@ def decline_task(request,project_name,user_story_id,task_id):
     task = Task.objects.get(id = task_id)
     task.accepted = False
     task.assigned_user = None
+    task.started = False
     time_entry = TimeEntry.objects.filter(task=task, end_time__isnull=True).first()
     if time_entry:
+        
         time_entry.end_time = timezone.now()
         time_entry.save()
     task.save()
@@ -1055,7 +1060,9 @@ def delete_task(request,project_name,user_story_id,task_id):
     if task.done:
         messages.error(request,"Finished task can not be deleted!")
         return redirect('tasks',project_name,user_story_id)
-    task.delete()
+    
+    task.deleted = True
+    task.save()
     #TODO tukaj ne sme bit task.delte pomojm ampak ga bo treba sam skrit al pa neki
     #TODO Pomojm bomo tud moral gledat da tam kjer je kaj logirano se ne sme brisat... IDEJE?
     messages.success(request,"Task deleted!")

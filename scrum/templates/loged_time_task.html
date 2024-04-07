@@ -7,10 +7,10 @@ Loged time
 {% block content %}
 <h2>Loged time</h2>
 {% load django_tables2 %}
-<!-- {% if time_entrys_table.rows %} -->
+{% if time_entrys_table.rows %}
 {% render_table time_entrys_table %}
-asd
-<!-- {% endif %} -->
+
+{% endif %}
 
 
 {% endblock %}

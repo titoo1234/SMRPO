@@ -28,5 +28,11 @@ Project {{project.name}}
 {% render_table tasks_table_rejected  %}
 {% endif %}
 
+
+{% if tasks_table_deleted.rows %}
+<h3>Deleted Tasks</h3>
+{% render_table tasks_table_deleted  %}
+{% endif %}
+
 {% endblock %}
 

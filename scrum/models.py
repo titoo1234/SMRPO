@@ -138,6 +138,7 @@ class Task(models.Model):
     done = models.BooleanField(default=False)
     rejected = models.BooleanField(default=False)#ko rejectaš zgodbo da rejectaš tudi vse naloge, da jih kasneje lahko prikažeš kot "stare"
     started = models.BooleanField(default=False)
+    deleted = models.BooleanField(default=False)
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['description', 'user_story'], name='unique_task_user_story_description')

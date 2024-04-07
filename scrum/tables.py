@@ -181,8 +181,8 @@ class UserStoryTable(tables.Table):
         # user = User.objects.get(id = self.user_id)
         # project = Project.objects.get(name = record.project.name)
         # print(record.workflow)
-        tasks = Task.objects.filter(user_story = record.id,rejected = False).count()
-        complete_tasks = Task.objects.filter(user_story = record.id,done = True,rejected = False).count()
+        tasks = Task.objects.filter(user_story = record.id,rejected = False,deleted = False).count()
+        complete_tasks = Task.objects.filter(user_story = record.id,done = True,rejected = False,deleted = False).count()
             
         tasks_info = format_html("<strong>{}/{}</strong>", complete_tasks, tasks)
         if record.accepted == False and record.sprint:
@@ -234,11 +234,14 @@ class TaskTable(tables.Table):
         self.user_id = kwargs.pop('user_id', 0)
         self.product_owner = kwargs.pop('product_owner', False)
         self.active_sprint = kwargs.pop('active_sprint', False)
+        self.deleted = kwargs.pop('deleted', False)
         super().__init__(*args, **kwargs)
         if self.product_owner:
             self.exclude = ('edit_button','delete_button','decline_button','accept_button','complete_button','log_button','start_button')
         if not self.active_sprint:
             self.exclude = ('edit_button','delete_button','decline_button','accept_button','complete_button','log_button','start_button')
+        if self.deleted:
+            self.exclude = ('edit_button','delete_button','decline_button','accept_button','complete_button','start_button','accepted','assigned_user')
     def render_description(self, value):
         # Uporabi HTML oznake za prikaz odstavkov v opisu
         return mark_safe(value.replace('\n', '<br>'))
@@ -266,11 +269,11 @@ class TaskTable(tables.Table):
         return ''
     
     def render_log_button(self, record):
-        if record.assigned_user and  record.accepted:
-            if record.assigned_user.id == self.user_id:
-                project = record.user_story.project
-                url = reverse('log_time_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
-                return format_html('<a href="{}" class="btn btn-secondary">Loged time</a>', url)
+        # if record.assigned_user and  record.accepted:
+        #     if record.assigned_user.id == self.user_id:
+        project = record.user_story.project
+        url = reverse('log_time_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
+        return format_html('<a href="{}" class="btn btn-secondary">Loged time</a>', url)
         return ''
     def render_start_button(self, record):
         if record.assigned_user and record.accepted:
