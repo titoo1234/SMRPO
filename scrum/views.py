@@ -983,26 +983,45 @@ def decline_task(request,project_name,user_story_id,task_id):
     task = Task.objects.get(id = task_id)
     task.accepted = False
     task.assigned_user = None
+    time_entry = TimeEntry.objects.filter(task=task, end_time__isnull=True).first()
+    if time_entry:
+        time_entry.end_time = timezone.now()
+        time_entry.save()
     task.save()
     messages.success(request,"Task declined!")
     return redirect('tasks',project_name,user_story_id)
 
 def start_stop_task(request,project_name,user_story_id,task_id):
+    # context = get_context(request)
+    
     task = Task.objects.get(id = task_id)
+    user = task.assigned_user
     task.started = not task.started
     #TODO a se bo tukaj kaj logiralo???
-    
+    # recimo da nekak tak
 
-    task.save()
+    
     if task.started:
+        TimeEntry.objects.create(user=user, task=task,start_time = timezone.now())
         messages.success(request,"Task started!")
     else:
+        time_entry = TimeEntry.objects.filter(task=task, end_time__isnull=True).first()
+        if time_entry:
+            time_entry.end_time = timezone.now()
+            time_entry.save()
         messages.success(request,"Task stoped!")
+
+    task.save()
     return redirect('tasks',project_name,user_story_id)
 
 def complete_task(request,project_name,user_story_id,task_id):
     task = Task.objects.get(id = task_id)
     if task.started:
+        # poskrbimo da se logira, če se še ni
+        time_entry = TimeEntry.objects.filter(task=task, end_time__isnull=True).first()
+        if time_entry:
+            time_entry.end_time = timezone.now()
+            time_entry.save()
         task.started = False
         # TODO a se bo tukaj kaj logiralo
     task.done = True
@@ -1014,11 +1033,17 @@ def log_time_task(request,project_name,user_story_id,task_id):
     task = Task.objects.get(id = task_id)
     
     
-    messages.success(request,"To bo treba pa še nardit :) !")
+
     #  bo treba render neki neki GLEJ reject_user_story ko odpre stran za komentiranje pa se tam nardi nova forma recimo
     #  lahk pa tud kako drugače
     #  TODO
-    return redirect('tasks',project_name,user_story_id)
+    context = get_context(request)
+    time_entrys = TimeEntry.objects.filter(task=task)#, end_time__isnull=False
+    time_entrys_table = TimeEntryTable(time_entrys)
+    context['time_entrys_table'] = time_entrys_table
+    return render(request,'loged_time_task.html',context=context)
+
+#     return redirect('tasks',project_name,user_story_id)
 
 
 def delete_task(request,project_name,user_story_id,task_id):

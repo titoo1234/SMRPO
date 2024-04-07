@@ -227,7 +227,7 @@ class TaskTable(tables.Table):
     edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
     delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
     start_button = tables.Column(empty_values=(), orderable=False, verbose_name='Start/Stop')
-    log_button = tables.Column(empty_values=(), orderable=False, verbose_name='log time')
+    log_button = tables.Column(empty_values=(), orderable=False, verbose_name='loged time')
     complete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Complete')
     
     def __init__(self, *args, **kwargs):
@@ -270,7 +270,7 @@ class TaskTable(tables.Table):
             if record.assigned_user.id == self.user_id:
                 project = record.user_story.project
                 url = reverse('log_time_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
-                return format_html('<a href="{}" class="btn btn-secondary">Log time</a>', url)
+                return format_html('<a href="{}" class="btn btn-secondary">Loged time</a>', url)
         return ''
     def render_start_button(self, record):
         if record.assigned_user and record.accepted:
@@ -314,4 +314,21 @@ class TaskTable(tables.Table):
     class Meta:
         model = Task
         fields = ('description', 'assigned_user', 'estimate','time_spent', 'accepted', 'accept_button','decline_button','edit_button')
+        template_name = "django_tables2/bootstrap4.html"
+
+
+
+class TimeEntryTable(tables.Table):
+    user = tables.Column()
+    task = tables.Column()
+    start_time = tables.Column()
+    end_time = tables.Column()
+    logged_time = tables.Column()
+    
+    def render_task(self, value):
+        # Uporabi HTML oznake za prikaz odstavkov v opisu
+        return mark_safe(value.description)
+    class Meta:
+        model = TimeEntry
+        fields = ('user', 'task', 'start_time', 'end_time', 'logged_time')
         template_name = "django_tables2/bootstrap4.html"

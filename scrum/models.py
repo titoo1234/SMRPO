@@ -2,6 +2,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django.db.models.functions import Upper
+from django.utils import timezone
 
 # Create your models here.
 class User(models.Model):
@@ -145,6 +146,21 @@ class Task(models.Model):
 
     def __str__(self):
         return self.name
+
+class TimeEntry(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    start_time = models.DateTimeField(null=True, blank=True)
+    end_time = models.DateTimeField(null=True, blank=True)
+    logged_time = models.PositiveIntegerField(default=0)
+
+    def save(self, *args, **kwargs):
+        if self.end_time:
+            # Izračunajte porabljeni čas, če je končni čas nastavljen
+            time_spent = (self.end_time - self.start_time).seconds #// 60  # Pretvorite čas v minute
+            self.logged_time = time_spent
+        super().save(*args, **kwargs) 
+    
 
 class ProjectWall(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
