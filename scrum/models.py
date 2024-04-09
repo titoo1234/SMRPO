@@ -139,12 +139,26 @@ class Task(models.Model):
     rejected = models.BooleanField(default=False)#ko rejectaš zgodbo da rejectaš tudi vse naloge, da jih kasneje lahko prikažeš kot "stare"
     started = models.BooleanField(default=False)
     deleted = models.BooleanField(default=False)
+    task_number = models.IntegerField()
     class Meta:
+        ordering = ['task_number']  # Razvrščanje zgodbe po številki zgodbe v padajočem vrstnem redu
         constraints = [
             models.UniqueConstraint(fields=['description', 'user_story'], name='unique_task_user_story_description')
         ]
 
-
+    @classmethod
+    def get_next_task_number(cls, user_story_id):
+        last_story = cls.objects.filter(user_story_id=user_story_id).last()
+        if last_story:
+            return last_story.task_number + 1
+        else:
+            return 1  # Če ni nobene zgodbe, začnemo z 1
+        
+    def save(self, *args, **kwargs):
+        if not self.task_number:
+            self.task_number = self.get_next_task_number(self.user_story_id)
+        super().save(*args, **kwargs)
+        
     def __str__(self):
         return self.name
 

@@ -269,6 +269,7 @@ class SprintTable(tables.Table):
 
 
 class TaskTable(tables.Table):
+    task_number = tables.Column()
     description = tables.Column()
     # user_story = tables.Column()
     assigned_user = tables.Column()
@@ -372,7 +373,7 @@ class TaskTable(tables.Table):
     
     class Meta:
         model = Task
-        fields = ('description', 'assigned_user', 'estimate','time_spent', 'accepted', 'accept_button','decline_button','edit_button')
+        fields = ('task_number','description', 'assigned_user', 'estimate','time_spent', 'accepted', 'accept_button','decline_button','edit_button')
         template_name = "django_tables2/bootstrap4.html"
 
 
