@@ -932,11 +932,15 @@ def tasks(request, project_name, user_story_id):
     tasks_table_rejected = TaskTable(all_rejected_tasks,user_id = context['id'],product_owner = True)#teh ne smemo spreminjat)
     tasks_table_completed = TaskTable(all_completed_tasks,user_id = context['id'],product_owner = True)
     tasks_table_deleted = TaskTable(all_deleted_tasks,user_id = context['id'],deleted = True)
+    user_story1 = UserStory.objects.filter(id=user_story_id)
+    user_story_info_table = UserStoryInfoTable(user_story1, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
+    #user_story_table = UserStoryTable(user_stories, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
     context["tasks_table_deleted"] = tasks_table_deleted
     context["tasks_table_completed"] = tasks_table_completed
     context["tasks_table_uncompleted"] = tasks_table
     context["tasks_table_rejected"] = tasks_table_rejected
     context['accepted'] = user_story.accepted
+    context["user_story_info_table"] = user_story_info_table
     return render(request, "tasks.html", context=context)
 
 def new_task(request, project_name, user_story_id):
