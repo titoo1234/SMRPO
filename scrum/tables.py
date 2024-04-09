@@ -269,7 +269,7 @@ class SprintTable(tables.Table):
 
 
 class TaskTable(tables.Table):
-    task_number = tables.Column()
+    task_number = tables.Column(verbose_name='#')
     description = tables.Column()
     # user_story = tables.Column()
     assigned_user = tables.Column()

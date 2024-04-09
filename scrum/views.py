@@ -456,9 +456,9 @@ def project_view(request,project_name):
             sprint_status = "Unfinished"
         sprint_tables.append((sprint, userstory_table, accepted_userstories, unaccepted_userstories, deleteable, sprint_status))
     context['sprint_tables'] = sprint_tables
-    Backlog = UserStory.objects.filter(project=project, sprint=None)
-    Backlog = UserStoryTable(Backlog, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
-    context['Backlog'] = Backlog
+    #Backlog = UserStory.objects.filter(project=project, sprint=None)
+    #Backlog = UserStoryTable(Backlog, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
+    #context['Backlog'] = Backlog
     methodology_manager = AssignedRole.objects.get(project = project, role = 'methodology_manager')
     # methodology_manager = User.objects.get(id = methodology_manager)
 
@@ -466,6 +466,18 @@ def project_view(request,project_name):
         context['create_sprint'] = True
     else:
         context['create_sprint'] = False
+
+    accepted_stories = UserStory.objects.filter(project=project, accepted = True)
+    accepted_stories = UserStoryTable(accepted_stories, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
+    context['accepted_stories'] = accepted_stories
+
+    backlog_stories = UserStory.objects.filter(project=project, accepted = False, sprint__isnull=True)
+    backlog_stories = UserStoryTable(backlog_stories, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
+    context['backlog_stories'] = backlog_stories
+
+    active_stories = UserStory.objects.filter(project=project, accepted = False, sprint__isnull=False)
+    active_stories = UserStoryTable(active_stories, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
+    context['active_stories'] = active_stories
         
 
     return render(request, 'project.html', context)

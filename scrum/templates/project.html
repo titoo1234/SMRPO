@@ -44,8 +44,17 @@ Project {{project.name}}
 {% if new_user_story_enabled %}
 <a href='/project/{{project.name}}/new_user_story/'><button type='submit'>New User Story</button></a>
 {% endif %}
-{% if Backlog.rows %}
-{% render_table Backlog %}
+{% if active_stories.rows %}
+<h4>Active</h4>
+{% render_table active_stories %}
+{% endif %}
+{% if backlog_stories.rows %}
+<h4>Backlog stories (spremeni)</h4>
+{% render_table backlog_stories %}
+{% endif %}
+{% if accepted_stories.rows %}
+<h4>Accepted</h4>
+{% render_table accepted_stories %}
 {% endif %}
 {% endblock %}
 
