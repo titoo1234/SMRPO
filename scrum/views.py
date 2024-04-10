@@ -1133,3 +1133,105 @@ def edit_task(request, project_name, user_story_id,task_id):
         context['allusers'] = all_users
         context['project'] = project
         return render(request,'edit_task.html',context=context)
+    
+
+# DOKUMENTACIJA NA PROJEKTU================================================================================
+def project_documentation(request, project_name):
+    project = Project.objects.get(name=project_name)  # pridobivanje povezanega projekta
+    dokumenti = Documentation.objects.filter(project=project)
+    context = get_context(request)
+    if request.method == 'POST':
+        form = DocumentationForm(request.POST)
+        if form.is_valid():
+            dokument = form.save(commit=False)
+            dokument.project = project
+            dokument.author = User.objects.get(id = context['id'])
+            dokument.last_edit_date=timezone.now() 
+            # request.user  # nastavitev trenutnega uporabnika kot avtorja dokumenta
+            dokument.save()
+            messages.success(request, 'Documentation added successfuly.')
+            return redirect('project_documentation', project_name=project_name)
+        else:
+            messages.error(request, form.errors)
+            return redirect(request.path)
+    else:
+        form = DocumentationForm()
+        context['form'] = form
+        context['dokumenti'] = dokumenti
+        context['project'] = project
+    return render(request, 'project_documentation.html', context=context)
+
+def project_documentation_export(request, project_name):
+    project = Project.objects.get(name=project_name)
+    dokumenti = Documentation.objects.filter(project=project)
+
+    response = HttpResponse(content_type='text/plain')
+    response['Content-Disposition'] = 'attachment; filename="dokumentacija.txt"'
+
+    for dokument in dokumenti:
+        response.write(f'Title: **{dokument.title}**\n')
+        response.write(f'Content: {dokument.content}\n\n')
+
+    return response
+
+def project_documentation_import(request, project_name):
+    context = get_context(request)
+    project = Project.objects.get(name=project_name)  # pridobivanje povezanega projekta
+    if request.method == 'POST':
+        form = UvozForm(request.POST, request.FILES)
+        if form.is_valid():
+            title = form.cleaned_data['title']
+            
+            dokument = form.cleaned_data['document']
+
+            # if format == 'txt':
+                # Branje besedilne datoteke .txt
+            content = dokument.read().decode('utf-8')  # Predpostavka, da je datoteka v utf-8 kodiranju
+
+            # Shranjevanje uvožene dokumentacije
+            Documentation.objects.create(project=project,title=title,content=content,author = User.objects.get(id = context['id']),last_edit_date=timezone.now())
+            messages.success(request, 'Documentation imported successfuly.')
+            return redirect('project_documentation', project_name=project_name)
+            # else:
+            #     return HttpResponse("Izbrani format ni podprt.")
+        else:
+            messages.error(request, form.errors)
+            return redirect(request.path)
+    else:
+        form = UvozForm()
+        context['form'] = form
+    return render(request, 'project_documentation_import.html', context = context)
+
+
+def project_documentation_edit(request, project_name,doc_id):
+    project = Project.objects.get(name=project_name)  # pridobivanje povezanega projekta
+    dokumenti = Documentation.objects.filter(project=project)
+    doc = Documentation.objects.get(id = doc_id)
+    context = get_context(request)
+    if request.method == 'POST':
+        form = DocumentationForm(request.POST,instance = doc)
+        if form.is_valid():
+            dokument = form.save(commit=False)
+            
+            dokument.last_edit_date=timezone.now() 
+            # request.user  # nastavitev trenutnega uporabnika kot avtorja dokumenta
+            dokument.save()
+            messages.success(request, 'Documentation edited successfuly.')
+            return redirect('project_documentation', project_name=project_name)
+        else:
+            messages.error(request, form.errors)
+            return redirect(request.path)
+    else:
+        form = DocumentationForm(instance = doc)
+        context['doc'] = doc
+        context['form'] = form
+        context['dokumenti'] = dokumenti
+        context['project'] = project
+    return render(request, 'project_documentation_edit.html', context=context)
+
+
+def project_documentation_delete(request, project_name,doc_id):
+    doc = Documentation.objects.get(id = doc_id)
+    doc.delete()
+    messages.success(request, 'Documentation deleted successfuly.')
+    return redirect('project_documentation', project_name=project_name)
