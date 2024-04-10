@@ -1066,10 +1066,24 @@ def start_stop_task(request,project_name,user_story_id,task_id):
         TimeEntry.objects.create(user=user, task=task,start_time = timezone.now())
         messages.success(request,"Task started!")
     else:
+        time_entries = TimeEntry.objects.filter(task=task)
         time_entry = TimeEntry.objects.filter(task=task, end_time__isnull=True).first()
         if time_entry:
             time_entry.end_time = timezone.now()
-            time_entry.save()
+            merged = False
+            for t_e in time_entries:
+                if t_e.id == time_entry.id:
+                    continue
+                if t_e.end_time.date() == time_entry.end_time.date():
+                    t_e.logged_time += (time_entry.end_time - t_e.start_time).seconds
+                    t_e.end_time = time_entry.end_time
+                    merged = True
+                    t_e.save()
+                    break
+            if merged:
+                time_entry.delete()
+            else:
+                time_entry.save()
         messages.success(request,"Task stoped!")
 
     task.save()
