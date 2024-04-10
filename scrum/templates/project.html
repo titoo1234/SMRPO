@@ -32,13 +32,13 @@ Project {{project.name}}
             {{sprint_status}}
         </span>
     </h3>
-        {% if unaccepted_userstories.rows %}
+        <!--{% if unaccepted_userstories.rows %}
         {% render_table unaccepted_userstories %}
         {% endif %}
         {% if accepted_userstories.rows %}
         <h4>Accepted Stories</h4>
         {% render_table accepted_userstories %}
-        {% endif %}
+        {% endif %}-->
     {% endfor %}
 <h3>Backlog:</h3>
 {% if new_user_story_enabled %}

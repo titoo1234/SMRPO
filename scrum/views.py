@@ -635,6 +635,20 @@ def sprint_details_handler(request, project_name, sprint_id):
             project = Project.objects.get(name=project_name)
             context = get_context(request)
             show_edit = True
+            ########
+            #user_stories = UserStory.objects.filter(project=project,sprint=sprint)
+            product_owner = AssignedRole.objects.filter(project = project,role = 'product_owner')
+            #methodology_manager = AssignedRole.objects.get(project = project,role = 'methodology_manager').user
+            accepted_userstories = UserStory.objects.filter(project=project, sprint=sprint, accepted = True)
+            accepted_userstories = UserStoryTable(accepted_userstories, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
+            unaccepted_userstories = UserStory.objects.filter(project=project, sprint=sprint, accepted = False)
+            unaccepted_userstories = UserStoryTable(unaccepted_userstories, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
+
+            context['project'] = project
+            context['accepted_userstories'] = accepted_userstories
+            context['unaccepted_userstories'] = unaccepted_userstories
+            ########
+
             #check if sprint has already started, if it has, disable the edit button
             sprint_start = datetime.combine(sprint.start_date, time()).replace(tzinfo=timezone.get_current_timezone())
             if sprint_start < timezone.now():
