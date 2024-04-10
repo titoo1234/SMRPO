@@ -198,6 +198,8 @@ class UserStoryForm(forms.ModelForm):
         methodology_manager = self.initial['methodology_manager']
         development_team_member = self.initial['development_team_member']
         sprint = self.initial['sprint']
+        if sprint is None:
+            self.fields['sprint'].widget = forms.HiddenInput()
         edit = self.initial['edit']
         today = datetime.today()
         today = datetime.date(today)

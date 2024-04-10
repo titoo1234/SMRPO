@@ -626,10 +626,8 @@ def sprint_details_handler(request, project_name, sprint_id):
             #check if sprint is already finished, if it is, disable the edit button
             sprint_end = datetime.combine(sprint.end_date, time()).replace(tzinfo=timezone.get_current_timezone())
             if sprint_end.date() < timezone.now().date():
-                #print("Sprint has already started")
                 show_edit = False
-            #context['show_edit'] = show_edit
-            #print(context)
+            
             isActiveSprint = False
             if sprint.start_date <= timezone.now().date() and sprint.end_date >= timezone.now().date():
                 isActiveSprint = True
