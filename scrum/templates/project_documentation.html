@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Project documentation
+{% endblock %}
+
+{% block content %}
+<h2>Project <a href="/project/{{ project.name }}/">{{ project.name }}</a> documentation</h2>
+<button type="submit" id="newDocumentationBtn">New Documentation</button>
+<form method="post" id="newDocumentationForm" style="display: none;">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Save documentation</button>
+</form>
+<a href="/project/{{ project.name }}/documentation_import/"><button type="submit">Import Documentation</button></a>
+<a href="/project/{{ project.name }}/documentation_export/"><button type="submit">Export Documentation</button></a>
+<h2>Titles</h2>
+<ul>
+    {% for dokument in dokumenti %}
+        <li>
+            <a href="#" class="toggle-content">{{ dokument.title }}</a>
+            <div class="content" style="border: 1px solid #ddd; padding: 10px; margin-top: 10px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);">
+                {{ dokument.content | linebreaksbr }}
+                <br>
+                <a href="/project/{{ project.name }}/documentation_edit/{{ dokument.id }}/"><button class="btn">Edit Documentation</button></a>
+            </div>
+        </li>
+    {% endfor %}
+</ul>
+
+<script>
+    document.getElementById('newDocumentationBtn').addEventListener('click', function() {
+        var form = document.getElementById('newDocumentationForm');
+        if (form.style.display === 'none' || form.style.display === '') {
+            form.style.display = 'block';
+        } else {
+            form.style.display = 'none';
+        }
+    });
+
+    document.querySelectorAll('.toggle-content').forEach(function(item) {
+        item.addEventListener('click', function(event) {
+            event.preventDefault();
+            var content = this.nextElementSibling;
+            content.style.display = (content.style.display === 'none' || content.style.display === '') ? 'block' : 'none';
+        });
+    });
+</script>
+
+<style>
+    li {
+        margin-bottom: 10px;
+    }
+    .content {
+        display: none;
+        margin-top: 10px;
+    }
+    a {
+        text-decoration: none;
+        color: #007bff;
+    }
+    a:hover {
+        text-decoration: underline;
+    }
+</style>
+
+{% endblock %}

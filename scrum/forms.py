@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.hashers import check_password
-from .models import User,Project,AssignedRole,UserStory, Sprint, ProjectWall,Task
+from .models import User,Project,AssignedRole,UserStory, Sprint, ProjectWall,Task,Documentation
 from django.utils import timezone
 from django.forms.models import inlineformset_factory
 from datetime import datetime, time
@@ -300,6 +300,18 @@ class NewTaskForm(forms.ModelForm):
 
 class KomentarObrazec(forms.Form):
     komentar = forms.CharField(label='Komentar', widget=forms.Textarea)
+
+
+class UvozForm(forms.Form):
+    title = forms.CharField(max_length=100)
+
+    # document = forms.FileField()
+    document = forms.FileField(label=('Select File'),help_text='Only .txt formats are allowed',  widget=forms.ClearableFileInput(attrs={'accept': '.txt'}))
+
+class DocumentationForm(forms.ModelForm):
+    class Meta:
+        model = Documentation
+        fields = ['title', 'content']
     
 
 

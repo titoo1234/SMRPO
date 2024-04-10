@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Project documentation
+{% endblock %}
+
+{% block content %}
+
+
+<h1>Title: {{ doc.title }}</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Edit</button>
+        <a href="/project/{{project.name}}/documentation_delete/{{ doc.id }}/" class="btn btn-danger">Delete</a>
+    </form>
+    
+
+
+{% endblock %}

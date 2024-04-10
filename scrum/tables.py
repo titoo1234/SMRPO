@@ -117,7 +117,7 @@ class UserStoryTable(tables.Table):
     add_to_sprint_button = tables.Column(empty_values=(), orderable=False, verbose_name='Add to sprint')
     edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
     delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
-    tasks_button = tables.Column(empty_values=(), orderable=False, verbose_name='Tasks')
+    #tasks_button = tables.Column(empty_values=(), orderable=False, verbose_name='Tasks')
     
     finish_button = tables.Column(empty_values=(), orderable=False, verbose_name='Finish|completed tasks')
 
@@ -142,7 +142,8 @@ class UserStoryTable(tables.Table):
         return format_html(html_value)
 
     def render_name(self, record):
-        user_story_url = reverse('edit_user_story', kwargs={'project_name': record.project.name,'id': record.id})
+        #user_story_url = reverse('edit_user_story', kwargs={'project_name': record.project.name,'id': record.id})
+        user_story_url = reverse('tasks', kwargs={'project_name': record.project.name,'user_story_id': record.id})
         return format_html(f'<a style="font-size: 22px;" href="{user_story_url}">#{record.story_number} - {record.name}</a>')
     def render_workflow(self, value):
         if value == 'To Do':
@@ -206,10 +207,10 @@ class UserStoryTable(tables.Table):
         else:
             return ''
         
-    def render_tasks_button(self, record):
-        tasks_url = reverse('tasks', kwargs={'project_name': record.project.name, 'user_story_id': record.id})
-        #return format_html(f'<a href="{record.project.name}/tasks/{record.id}" class="btn btn-info">Tasks</a>')#, tasks_url)
-        return format_html('<a href="{}" class="btn btn-info">Tasks</a>', tasks_url)
+    # def render_tasks_button(self, record):
+    #     tasks_url = reverse('tasks', kwargs={'project_name': record.project.name, 'user_story_id': record.id})
+    #     #return format_html(f'<a href="{record.project.name}/tasks/{record.id}" class="btn btn-info">Tasks</a>')#, tasks_url)
+    #     return format_html('<a href="{}" class="btn btn-info">Tasks</a>', tasks_url)
     
     def render_finish_button(self, record):
         # user = User.objects.get(id = self.user_id)
@@ -234,7 +235,62 @@ class UserStoryTable(tables.Table):
 
     class Meta:
         model = UserStory
-        fields = ('name','priority', 'size', 'workflow', 'user', 'edit_button','delete_button','tasks_button')
+        fields = ('name','priority', 'size', 'workflow', 'user', 'edit_button','delete_button')#,'tasks_button')
+        template_name = "django_tables2/bootstrap5.html"
+
+
+
+class UserStoryInfoTable(tables.Table):
+    #name = tables.Column()
+    priority = tables.Column()
+    size = tables.Column()
+    comment = tables.Column()
+    user = tables.Column()
+    original_estimate = tables.Column()
+    business_value = tables.Column()
+    acceptance_tests = tables.Column()
+    edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
+    sprint = tables.Column()
+
+
+    def __init__(self, *args, **kwargs):
+        self.user_id = kwargs.pop('user_id', 0)
+        self.admin = kwargs.pop('admin', False)
+        self.product_owner = kwargs.pop('product_owner', False)
+        super().__init__(*args, **kwargs)
+        if (not self.product_owner):
+            self.exclude = ('finish_button',)
+
+    def before_render(self, request):
+        if self.product_owner:
+            for row in self.rows:
+                self.exclude = ('edit_button')
+
+    def render_comment(self, value):
+        colored_value = '<span style="color: red;">{}</span>'.format(value)
+        html_value = mark_safe(colored_value.replace('\n', '<br>'))
+        return format_html(html_value)
+
+    def render_acceptance_tests(self, value):
+        # Uporabi HTML oznake za prikaz odstavkov v opisu
+        return mark_safe(value.replace('\n', '<br>'))
+    
+
+    def render_edit_button(self, record):
+        user = User.objects.get(id = self.user_id)
+        project = Project.objects.get(name = record.project.name)
+        methodology_manager = AssignedRole.objects.filter(project=project,user=user, role = 'methodology_manager').first()
+        product_owner = AssignedRole.objects.filter(project=project,user=user, role = 'product_owner').first()
+        development_team_member = AssignedRole.objects.filter(project=project,user=user, role = 'development_team_member').first()
+        if self.admin or ((methodology_manager or product_owner) and record.sprint is None) or ((development_team_member or methodology_manager) and record.sprint is not None):
+            edit_url = reverse('edit_user_story', kwargs={'project_name': record.project.name,'id': record.id})
+            return format_html('<a href="{}" class="btn btn-primary">Edit</a>', edit_url)
+        else:
+            return ''
+
+    class Meta:
+        model = UserStory
+        fields = ('comment','sprint', 'priority', 'size', 'user', 'original_estimate', 'business_value', 'acceptance_tests')
         template_name = "django_tables2/bootstrap5.html"
 
 # Sprint
@@ -247,6 +303,7 @@ class SprintTable(tables.Table):
 
 
 class TaskTable(tables.Table):
+    task_number = tables.Column(verbose_name='#')
     description = tables.Column()
     # user_story = tables.Column()
     assigned_user = tables.Column()
@@ -350,7 +407,7 @@ class TaskTable(tables.Table):
     
     class Meta:
         model = Task
-        fields = ('description', 'assigned_user', 'estimate','time_spent', 'accepted', 'accept_button','decline_button','edit_button')
+        fields = ('task_number','description', 'assigned_user', 'estimate','time_spent', 'accepted', 'accept_button','decline_button','edit_button')
         template_name = "django_tables2/bootstrap4.html"
 
 

@@ -456,9 +456,9 @@ def project_view(request,project_name):
             sprint_status = "Unfinished"
         sprint_tables.append((sprint, userstory_table, accepted_userstories, unaccepted_userstories, deleteable, sprint_status))
     context['sprint_tables'] = sprint_tables
-    Backlog = UserStory.objects.filter(project=project, sprint=None)
-    Backlog = UserStoryTable(Backlog, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
-    context['Backlog'] = Backlog
+    #Backlog = UserStory.objects.filter(project=project, sprint=None)
+    #Backlog = UserStoryTable(Backlog, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
+    #context['Backlog'] = Backlog
     methodology_manager = AssignedRole.objects.get(project = project, role = 'methodology_manager')
     # methodology_manager = User.objects.get(id = methodology_manager)
 
@@ -466,6 +466,18 @@ def project_view(request,project_name):
         context['create_sprint'] = True
     else:
         context['create_sprint'] = False
+
+    accepted_stories = UserStory.objects.filter(project=project, accepted = True)
+    accepted_stories = UserStoryTable(accepted_stories, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
+    context['accepted_stories'] = accepted_stories
+
+    backlog_stories = UserStory.objects.filter(project=project, accepted = False, sprint__isnull=True)
+    backlog_stories = UserStoryTable(backlog_stories, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
+    context['backlog_stories'] = backlog_stories
+
+    active_stories = UserStory.objects.filter(project=project, accepted = False, sprint__isnull=False)
+    active_stories = UserStoryTable(active_stories, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
+    context['active_stories'] = active_stories
         
 
     return render(request, 'project.html', context)
@@ -623,9 +635,25 @@ def sprint_details_handler(request, project_name, sprint_id):
             project = Project.objects.get(name=project_name)
             context = get_context(request)
             show_edit = True
+
+            ########
+            #user_stories = UserStory.objects.filter(project=project,sprint=sprint)
+            product_owner = AssignedRole.objects.filter(project = project,role = 'product_owner')
+            #methodology_manager = AssignedRole.objects.get(project = project,role = 'methodology_manager').user
+            accepted_userstories = UserStory.objects.filter(project=project, sprint=sprint, accepted = True)
+            accepted_userstories = UserStoryTable(accepted_userstories, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
+            unaccepted_userstories = UserStory.objects.filter(project=project, sprint=sprint, accepted = False)
+            unaccepted_userstories = UserStoryTable(unaccepted_userstories, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
+
+            context['project'] = project
+            context['accepted_userstories'] = accepted_userstories
+            context['unaccepted_userstories'] = unaccepted_userstories
+            ########
+
             #check if sprint is already finished, if it is, disable the edit button
             sprint_end = datetime.combine(sprint.end_date, time()).replace(tzinfo=timezone.get_current_timezone())
             if sprint_end.date() < timezone.now().date():
+
                 show_edit = False
             
             isActiveSprint = False
@@ -956,11 +984,15 @@ def tasks(request, project_name, user_story_id):
     tasks_table_rejected = TaskTable(all_rejected_tasks,user_id = context['id'],product_owner = True)#teh ne smemo spreminjat)
     tasks_table_completed = TaskTable(all_completed_tasks,user_id = context['id'],product_owner = True)
     tasks_table_deleted = TaskTable(all_deleted_tasks,user_id = context['id'],deleted = True)
+    user_story1 = UserStory.objects.filter(id=user_story_id)
+    user_story_info_table = UserStoryInfoTable(user_story1, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
+    #user_story_table = UserStoryTable(user_stories, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
     context["tasks_table_deleted"] = tasks_table_deleted
     context["tasks_table_completed"] = tasks_table_completed
     context["tasks_table_uncompleted"] = tasks_table
     context["tasks_table_rejected"] = tasks_table_rejected
     context['accepted'] = user_story.accepted
+    context["user_story_info_table"] = user_story_info_table
     return render(request, "tasks.html", context=context)
 
 def new_task(request, project_name, user_story_id):
@@ -1127,3 +1159,105 @@ def edit_task(request, project_name, user_story_id,task_id):
         context['allusers'] = all_users
         context['project'] = project
         return render(request,'edit_task.html',context=context)
+    
+
+# DOKUMENTACIJA NA PROJEKTU================================================================================
+def project_documentation(request, project_name):
+    project = Project.objects.get(name=project_name)  # pridobivanje povezanega projekta
+    dokumenti = Documentation.objects.filter(project=project)
+    context = get_context(request)
+    if request.method == 'POST':
+        form = DocumentationForm(request.POST)
+        if form.is_valid():
+            dokument = form.save(commit=False)
+            dokument.project = project
+            dokument.author = User.objects.get(id = context['id'])
+            dokument.last_edit_date=timezone.now() 
+            # request.user  # nastavitev trenutnega uporabnika kot avtorja dokumenta
+            dokument.save()
+            messages.success(request, 'Documentation added successfuly.')
+            return redirect('project_documentation', project_name=project_name)
+        else:
+            messages.error(request, form.errors)
+            return redirect(request.path)
+    else:
+        form = DocumentationForm()
+        context['form'] = form
+        context['dokumenti'] = dokumenti
+        context['project'] = project
+    return render(request, 'project_documentation.html', context=context)
+
+def project_documentation_export(request, project_name):
+    project = Project.objects.get(name=project_name)
+    dokumenti = Documentation.objects.filter(project=project)
+
+    response = HttpResponse(content_type='text/plain')
+    response['Content-Disposition'] = 'attachment; filename="dokumentacija.txt"'
+
+    for dokument in dokumenti:
+        response.write(f'Title: **{dokument.title}**\n')
+        response.write(f'Content: {dokument.content}\n\n')
+
+    return response
+
+def project_documentation_import(request, project_name):
+    context = get_context(request)
+    project = Project.objects.get(name=project_name)  # pridobivanje povezanega projekta
+    if request.method == 'POST':
+        form = UvozForm(request.POST, request.FILES)
+        if form.is_valid():
+            title = form.cleaned_data['title']
+            
+            dokument = form.cleaned_data['document']
+
+            # if format == 'txt':
+                # Branje besedilne datoteke .txt
+            content = dokument.read().decode('utf-8')  # Predpostavka, da je datoteka v utf-8 kodiranju
+
+            # Shranjevanje uvožene dokumentacije
+            Documentation.objects.create(project=project,title=title,content=content,author = User.objects.get(id = context['id']),last_edit_date=timezone.now())
+            messages.success(request, 'Documentation imported successfuly.')
+            return redirect('project_documentation', project_name=project_name)
+            # else:
+            #     return HttpResponse("Izbrani format ni podprt.")
+        else:
+            messages.error(request, form.errors)
+            return redirect(request.path)
+    else:
+        form = UvozForm()
+        context['form'] = form
+    return render(request, 'project_documentation_import.html', context = context)
+
+
+def project_documentation_edit(request, project_name,doc_id):
+    project = Project.objects.get(name=project_name)  # pridobivanje povezanega projekta
+    dokumenti = Documentation.objects.filter(project=project)
+    doc = Documentation.objects.get(id = doc_id)
+    context = get_context(request)
+    if request.method == 'POST':
+        form = DocumentationForm(request.POST,instance = doc)
+        if form.is_valid():
+            dokument = form.save(commit=False)
+            
+            dokument.last_edit_date=timezone.now() 
+            # request.user  # nastavitev trenutnega uporabnika kot avtorja dokumenta
+            dokument.save()
+            messages.success(request, 'Documentation edited successfuly.')
+            return redirect('project_documentation', project_name=project_name)
+        else:
+            messages.error(request, form.errors)
+            return redirect(request.path)
+    else:
+        form = DocumentationForm(instance = doc)
+        context['doc'] = doc
+        context['form'] = form
+        context['dokumenti'] = dokumenti
+        context['project'] = project
+    return render(request, 'project_documentation_edit.html', context=context)
+
+
+def project_documentation_delete(request, project_name,doc_id):
+    doc = Documentation.objects.get(id = doc_id)
+    doc.delete()
+    messages.success(request, 'Documentation deleted successfuly.')
+    return redirect('project_documentation', project_name=project_name)

@@ -7,12 +7,14 @@ Project {{project.name}}
 {% block content %}
 <h2>Project #{{project.id}}: <a href = '/project/{{project.name}}/'>{{project.name}}</a></h2>
 <h3>User Story #{{user_story.story_number}}: {{user_story.name}}</h3>
+{% load django_tables2 %}
+{% render_table user_story_info_table %}
 {%if not accepted%}
 {%if new_task_button%}
 <a href='/project/{{project.name}}/new_task/{{user_story.id}}/'><button type='submit'>New Task</button></a>
 {%endif%}
 <h3>Uncompleted Tasks</h3>
-{% load django_tables2 %}
+
 {% if tasks_table_uncompleted.rows %}
 {% render_table tasks_table_uncompleted  %}
 {% endif %}
