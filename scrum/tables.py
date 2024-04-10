@@ -174,7 +174,8 @@ class UserStoryTable(tables.Table):
         user_stories_in_sprint = UserStory.objects.filter(sprint=active_sprint)
         user_stories_size = sum([user_story.size if user_story.size is not None else 0 for user_story in user_stories_in_sprint])
         correct_size = False
-        if user_stories_size + (record.size if record.size is not None else 0) <= active_sprint.velocity:
+        record_size = record.size if record.size is not None else 0
+        if user_stories_size + record_size <= active_sprint.velocity and record.size is not None:
             correct_size = True
         if (self.admin or (user == methodology_manager)) and correct_size and record.sprint is None:
             edit_url = reverse('add_to_sprint', kwargs={'project_name': project.name, 'user_story_id': record.id})
