@@ -137,6 +137,13 @@ class SprintForm(forms.ModelForm):
         self.fields['project'].initial = kwargs['initial']['project']
         self.fields['start_date'].initial = timezone.now().date()
         self.fields['end_date'].initial = timezone.now().date() + timezone.timedelta(days=14)
+        if kwargs['initial']['edit']:
+            self.fields['start_date'].initial = kwargs['initial']['start_date']
+            self.fields['end_date'].initial = kwargs['initial']['end_date']
+            if kwargs['initial']['active']:
+                self.fields['start_date'].widget.attrs['disabled'] = True
+                self.fields['end_date'].widget.attrs['disabled'] = True
+            self.fields['velocity'].initial = kwargs['initial']['velocity']
 
     class Meta:
         model = Sprint
@@ -191,6 +198,8 @@ class UserStoryForm(forms.ModelForm):
         methodology_manager = self.initial['methodology_manager']
         development_team_member = self.initial['development_team_member']
         sprint = self.initial['sprint']
+        if sprint is None:
+            self.fields['sprint'].widget = forms.HiddenInput()
         edit = self.initial['edit']
         today = datetime.today()
         today = datetime.date(today)

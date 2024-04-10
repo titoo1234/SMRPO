@@ -635,6 +635,7 @@ def sprint_details_handler(request, project_name, sprint_id):
             project = Project.objects.get(name=project_name)
             context = get_context(request)
             show_edit = True
+
             ########
             #user_stories = UserStory.objects.filter(project=project,sprint=sprint)
             product_owner = AssignedRole.objects.filter(project = project,role = 'product_owner')
@@ -649,13 +650,15 @@ def sprint_details_handler(request, project_name, sprint_id):
             context['unaccepted_userstories'] = unaccepted_userstories
             ########
 
-            #check if sprint has already started, if it has, disable the edit button
-            sprint_start = datetime.combine(sprint.start_date, time()).replace(tzinfo=timezone.get_current_timezone())
-            if sprint_start < timezone.now():
-                #print("Sprint has already started")
+            #check if sprint is already finished, if it is, disable the edit button
+            sprint_end = datetime.combine(sprint.end_date, time()).replace(tzinfo=timezone.get_current_timezone())
+            if sprint_end.date() < timezone.now().date():
+
                 show_edit = False
-            #context['show_edit'] = show_edit
-            #print(context)
+            
+            isActiveSprint = False
+            if sprint.start_date <= timezone.now().date() and sprint.end_date >= timezone.now().date():
+                isActiveSprint = True
             methodology_manager = AssignedRole.objects.get(project = project, role = 'methodology_manager')
             edit_sprint = False
             if (methodology_manager.user.id == context['id']) or context['admin']:
@@ -667,6 +670,7 @@ def sprint_details_handler(request, project_name, sprint_id):
             context['sprint'] = sprint
             context['project_name'] = project_name
             context['show_edit'] = show_edit and edit_sprint
+            context['active'] = isActiveSprint
             
             # context={'sprint': sprint, 'project_name': project_name, 'show_edit': show_edit}
             return render(request, 'sprint_details.html', context )
@@ -679,7 +683,7 @@ def new_sprint(request,project_name):
     project = Project.objects.get(name=project_name)
     user = User.objects.get(username = context['user1'])
     all_users = User.objects.filter(active=True)
-    context['form'] = SprintForm(initial={'project': project.name}) 
+    context['form'] = SprintForm(initial={'project': project.name, 'edit': False}) 
     # context['formAssignment'] = RoleAssignmentForm()
     context['allusers'] = all_users
     context['project'] = project
@@ -692,7 +696,10 @@ def edit_sprint(request,project_name,sprint_id):
         context = get_context(request)
         context['sprint'] = sprint
         context['project_name'] = project_name
-        form = SprintForm(instance=sprint, initial={'project': project.name})
+        isActiveSprint = False
+        if sprint.start_date <= timezone.now().date() and sprint.end_date >= timezone.now().date():
+            isActiveSprint = True
+        form = SprintForm(instance=sprint, initial={'project': project.name, 'active': isActiveSprint, 'start_date': sprint.start_date, 'end_date': sprint.end_date, 'velocity': sprint.velocity, 'edit': True})
         context['form'] = form
         return render(request, 'sprint_edit.html', context)
     if request.method == 'POST':
@@ -928,6 +935,25 @@ def reject_user_story(request, project_name, user_story_id):
         context['project_name'] = project_name
 
     return render(request, 'komentar_obrazec.html', context)
+
+def get_active_sprint(project_name):
+    project = Project.objects.get(name=project_name)
+    sprints = Sprint.objects.filter(project=project)
+    today = datetime.today()
+    today = datetime.date(today)
+    active_sprint = False
+    for sprint in sprints:
+        if sprint.start_date <= today <= sprint.end_date:
+            active_sprint = sprint
+            break
+    return active_sprint
+
+def add_to_sprint(request, project_name, user_story_id):
+    user_story = UserStory.objects.get(id=user_story_id)
+    active_sprint = get_active_sprint(project_name)
+    user_story.sprint = active_sprint
+    user_story.save()
+    return redirect('project_name',project_name=project_name)
 
 # Tasks on user story
 # ======================================================

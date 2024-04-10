@@ -4,11 +4,13 @@ from .models import *
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.html import mark_safe
+from datetime import datetime
 
 class ProjectTable(tables.Table):
     name = tables.Column()
     creation_date = tables.Column()
     description = tables.Column(orderable=False, verbose_name='Description')
+    
     edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
     delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
 
@@ -112,6 +114,7 @@ class UserStoryTable(tables.Table):
     user = tables.Column()
     accepted = tables.Column(visible= False)
     sprint = tables.Column(visible= False)
+    add_to_sprint_button = tables.Column(empty_values=(), orderable=False, verbose_name='Add to sprint')
     edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
     delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
     #tasks_button = tables.Column(empty_values=(), orderable=False, verbose_name='Tasks')
@@ -130,6 +133,8 @@ class UserStoryTable(tables.Table):
             if row.record.accepted:
                 self.exclude = ('edit_button','delete_button')#finish_button
             # self.columns['edit_button'].visible = False
+            if row.record.sprint:
+                self.exclude = ('add_to_sprint_button')
         
     def render_comment(self, value):
         colored_value = '<span style="color: red;">{}</span>'.format(value)
@@ -150,6 +155,35 @@ class UserStoryTable(tables.Table):
         else:
             return value  # Vrne vrednost brez sprememb, če ni ujemanja
     
+    def _get_active_sprint(self, project_name):
+        project = Project.objects.get(name=project_name)
+        sprints = Sprint.objects.filter(project=project)
+        today = datetime.today()
+        today = datetime.date(today)
+        active_sprint = False
+        for sprint in sprints:
+            if sprint.start_date <= today <= sprint.end_date:
+                active_sprint = sprint
+                break
+        return active_sprint
+
+    def render_add_to_sprint_button(self, record):
+        user = User.objects.get(id = self.user_id)
+        project = Project.objects.get(name = record.project.name)
+        methodology_manager = AssignedRole.objects.get(project=project,role = 'methodology_manager').user
+        active_sprint = self._get_active_sprint(project.name)
+        user_stories_in_sprint = UserStory.objects.filter(sprint=active_sprint)
+        user_stories_size = sum([user_story.size if user_story.size is not None else 0 for user_story in user_stories_in_sprint])
+        correct_size = False
+        record_size = record.size if record.size is not None else 0
+        if user_stories_size + record_size <= active_sprint.velocity and record.size is not None:
+            correct_size = True
+        if (self.admin or (user == methodology_manager)) and correct_size and record.sprint is None:
+            edit_url = reverse('add_to_sprint', kwargs={'project_name': project.name, 'user_story_id': record.id})
+            return format_html('<a href="{}" class="btn btn-primary">Add to sprint</a>', edit_url)
+        else:
+            return ''
+
     def render_edit_button(self, record):
         user = User.objects.get(id = self.user_id)
         project = Project.objects.get(name = record.project.name)

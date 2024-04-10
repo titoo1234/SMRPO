@@ -10,6 +10,8 @@ Sprint {{sprint.id}}
 <h4>Velocity: {{sprint.velocity}} (pts)</h4>
 {% if show_edit %}
 <a role="button" href="/project/{{project_name}}/sprint/{{sprint.id}}/edit" class="btn btn-primary">Edit</a>
+{% endif %}
+{% if not active and show_edit%}
 <a id="delete-button" role="button" href="/delete_sprint/{{project_name}}/{{sprint.id}}" class="btn btn-danger">Delete sprint</a>
 {% endif %}
 {% if unaccepted_userstories.rows %}
