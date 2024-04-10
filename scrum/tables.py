@@ -9,6 +9,7 @@ class ProjectTable(tables.Table):
     name = tables.Column()
     creation_date = tables.Column()
     description = tables.Column(orderable=False, verbose_name='Description')
+    
     edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
     delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
 
@@ -112,6 +113,7 @@ class UserStoryTable(tables.Table):
     user = tables.Column()
     accepted = tables.Column(visible= False)
     sprint = tables.Column(visible= False)
+    add_to_sprint_button = tables.Column(empty_values=(), orderable=False, verbose_name='Add to sprint')
     edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
     delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
     tasks_button = tables.Column(empty_values=(), orderable=False, verbose_name='Tasks')
@@ -149,6 +151,16 @@ class UserStoryTable(tables.Table):
         else:
             return value  # Vrne vrednost brez sprememb, če ni ujemanja
     
+    def render_add_to_sprint_button(self, record):
+        user = User.objects.get(id = self.user_id)
+        project = Project.objects.get(name = record.project.name)
+        methodology_manager = AssignedRole.objects.get(project=project,role = 'methodology_manager').user
+        if self.admin or (user == methodology_manager):
+            edit_url = reverse('add_to_sprint', kwargs={'project_name': record.name})
+            return format_html('<a href="{}" class="btn btn-primary">Add to sprint</a>', edit_url)
+        else:
+            return ''
+
     def render_edit_button(self, record):
         user = User.objects.get(id = self.user_id)
         project = Project.objects.get(name = record.project.name)

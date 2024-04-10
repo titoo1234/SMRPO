@@ -35,6 +35,7 @@ urlpatterns = [
     path('project/<str:project_name>/delete_user_story/<int:id>/', views.delete_user_story, name='delete_user_story'),
     path('project/<str:project_name>/accept_user_story/<int:user_story_id>/', views.accept_user_story, name='accept_user_story'),
     path('project/<str:project_name>/reject_user_story/<int:user_story_id>/', views.reject_user_story, name='reject_user_story'),
+    path('project/<str:project_name>/add_to_sprint/<int:user_story_id>/', views.add_to_sprint, name='add_to_sprint'),
     # WALL ============================================================
     path('project/<str:project_name>/wall/', views.wall, name='wall'),
     # TASKS ============================================================
