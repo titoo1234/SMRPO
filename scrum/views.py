@@ -903,7 +903,7 @@ def reject_user_story(request, project_name, user_story_id):
 
     return render(request, 'komentar_obrazec.html', context)
 
-def get_activadd_to_sprinte_active_sprint(project_name):
+def get_active_sprint(project_name):
     project = Project.objects.get(name=project_name)
     sprints = Sprint.objects.filter(project=project)
     today = datetime.today()
@@ -917,7 +917,7 @@ def get_activadd_to_sprinte_active_sprint(project_name):
 
 def add_to_sprint(request, project_name, user_story_id):
     user_story = UserStory.objects.get(id=user_story_id)
-    active_sprint = get_activadd_to_sprinte_active_sprint(project_name)
+    active_sprint = get_active_sprint(project_name)
     user_story.sprint = active_sprint
     user_story.save()
     return redirect('project_name',project_name=project_name)

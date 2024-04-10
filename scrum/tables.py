@@ -132,6 +132,8 @@ class UserStoryTable(tables.Table):
             if row.record.accepted:
                 self.exclude = ('edit_button','delete_button')#finish_button
             # self.columns['edit_button'].visible = False
+            if row.record.sprint:
+                self.exclude = ('add_to_sprint_button')
         
     def render_comment(self, value):
         colored_value = '<span style="color: red;">{}</span>'.format(value)
@@ -151,12 +153,25 @@ class UserStoryTable(tables.Table):
         else:
             return value  # Vrne vrednost brez sprememb, če ni ujemanja
     
+    def _get_active_sprint(project_name):
+        project = Project.objects.get(name=project_name)
+        sprints = Sprint.objects.filter(project=project)
+        today = datetime.today()
+        today = datetime.date(today)
+        active_sprint = False
+        for sprint in sprints:
+            if sprint.start_date <= today <= sprint.end_date:
+                active_sprint = sprint
+                break
+        return active_sprint
+
     def render_add_to_sprint_button(self, record):
         user = User.objects.get(id = self.user_id)
         project = Project.objects.get(name = record.project.name)
         methodology_manager = AssignedRole.objects.get(project=project,role = 'methodology_manager').user
+        active_sprint = self._get_active_sprint(project.name)
         if self.admin or (user == methodology_manager):
-            edit_url = reverse('add_to_sprint', kwargs={'project_name': record.name})
+            edit_url = reverse('add_to_sprint', kwargs={'project_name': project.name, 'user_story_id': record.id})
             return format_html('<a href="{}" class="btn btn-primary">Add to sprint</a>', edit_url)
         else:
             return ''
