@@ -4,6 +4,7 @@ from .models import *
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.html import mark_safe
+from datetime import datetime
 
 class ProjectTable(tables.Table):
     name = tables.Column()
@@ -153,7 +154,7 @@ class UserStoryTable(tables.Table):
         else:
             return value  # Vrne vrednost brez sprememb, če ni ujemanja
     
-    def _get_active_sprint(project_name):
+    def _get_active_sprint(self, project_name):
         project = Project.objects.get(name=project_name)
         sprints = Sprint.objects.filter(project=project)
         today = datetime.today()
@@ -170,7 +171,12 @@ class UserStoryTable(tables.Table):
         project = Project.objects.get(name = record.project.name)
         methodology_manager = AssignedRole.objects.get(project=project,role = 'methodology_manager').user
         active_sprint = self._get_active_sprint(project.name)
-        if self.admin or (user == methodology_manager):
+        user_stories_in_sprint = UserStory.objects.filter(sprint=active_sprint)
+        user_stories_size = sum([user_story.size if user_story.size is not None else 0 for user_story in user_stories_in_sprint])
+        correct_size = False
+        if user_stories_size + (record.size if record.size is not None else 0) <= active_sprint.velocity:
+            correct_size = True
+        if (self.admin or (user == methodology_manager)) and correct_size and record.sprint is None:
             edit_url = reverse('add_to_sprint', kwargs={'project_name': project.name, 'user_story_id': record.id})
             return format_html('<a href="{}" class="btn btn-primary">Add to sprint</a>', edit_url)
         else:
