@@ -98,7 +98,7 @@ def user_login(request):
         form = UserLoginForm()
         
         context['form'] = form
-        return render(request, 'login.html', context)
+        return render(request, 'login-v2.html', context)
 
 def user_register(request):
     context = get_context(request)
@@ -1103,3 +1103,15 @@ def edit_task(request, project_name, user_story_id,task_id):
         context['allusers'] = all_users
         context['project'] = project
         return render(request,'edit_task.html',context=context)
+
+def dashboard(request):
+    context = get_context(request)
+    try:
+        my_projects = get_projects(context['id'])
+    except:
+        my_projects = []
+    context['my_projects'] = my_projects
+    queryset = Project.objects.all()
+    other_projects = [p for p in queryset if p not in my_projects]
+    context['other_projects'] = other_projects
+    return render(request, 'dashboard.html', context)

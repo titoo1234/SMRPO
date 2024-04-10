@@ -5,6 +5,10 @@ from .views import user_login,user_register
 from django.contrib.auth.views import LogoutView
 urlpatterns = [
     # path('user/', views.userApi,name='test'),
+    # DASHBOARD ===================================================
+    path('dashboard.html', views.dashboard, name='dashboard'),
+    path('login-v2/', views.user_login, name='login-v2'),
+
     path('', views.home, name='home'),
     path('login/', views.user_login, name='login'),
     path('register/', views.user_register, name='register'),

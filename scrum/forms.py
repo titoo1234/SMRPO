@@ -6,10 +6,13 @@ from django.forms.models import inlineformset_factory
 from datetime import datetime, time
 
 class UserLoginForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput)
     class Meta:
         model = User
         fields = ['username', 'password']
+        widgets = {
+            'username': forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Username'}), 
+            'password': forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Password', 'type': 'password'}), 
+        }
 
 class UserRegisterForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput, required=False, min_length=12, max_length=64,strip=False)
