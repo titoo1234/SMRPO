@@ -1111,7 +1111,16 @@ def dashboard(request):
     except:
         my_projects = []
     context['my_projects'] = my_projects
+    return render(request, 'dashboard.html', context)
+
+def projects(request):
+    context = get_context(request)
+    try:
+        my_projects = get_projects(context['id'])
+    except:
+        my_projects = []
+    context['my_projects'] = my_projects
     queryset = Project.objects.all()
     other_projects = [p for p in queryset if p not in my_projects]
     context['other_projects'] = other_projects
-    return render(request, 'dashboard.html', context)
+    return render(request, 'projects-v2.html', context)

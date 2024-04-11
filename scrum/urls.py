@@ -8,6 +8,7 @@ urlpatterns = [
     # DASHBOARD ===================================================
     path('dashboard.html', views.dashboard, name='dashboard'),
     path('login-v2/', views.user_login, name='login-v2'),
+    path('projects-v2.html', views.projects, name='projects-v2'),
 
     path('', views.home, name='home'),
     path('login/', views.user_login, name='login'),
