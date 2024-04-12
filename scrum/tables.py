@@ -228,7 +228,18 @@ class UserStoryTable(tables.Table):
             reject_button = format_html('<a href="{}" class="btn btn-danger">Reject</a>', reject_url)
             if tasks == complete_tasks:
 
-                return accept_button + reject_button +tasks_info
+                if self.product_owner:
+                    return accept_button + reject_button +tasks_info
+                else:
+                    return tasks_info
+            else:
+                if self.product_owner:
+                    return reject_button +tasks_info
+                else:
+                    return tasks_info
+
+
+
             # return accept_button + reject_button +tasks_info
 
         return tasks_info
