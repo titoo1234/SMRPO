@@ -7,7 +7,7 @@ Sprint {{sprint.id}}
 {% block content %}
 {% load django_tables2 %}
 <h3>Sprint: {{ sprint.start_date }} - {{ sprint.end_date }}</h3>
-<h4>Velocity: {{sprint.velocity}} (pts)</h4>
+<h4>Load/Velocity: {{load}}/{{sprint.velocity}} (pts)</h4>
 {% if show_edit %}
 <a role="button" href="/project/{{project_name}}/sprint/{{sprint.id}}/edit" class="btn btn-primary">Edit</a>
 {% endif %}

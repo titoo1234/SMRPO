@@ -640,6 +640,8 @@ def sprint_details_handler(request, project_name, sprint_id):
             #user_stories = UserStory.objects.filter(project=project,sprint=sprint)
             product_owner = AssignedRole.objects.filter(project = project,role = 'product_owner')
             #methodology_manager = AssignedRole.objects.get(project = project,role = 'methodology_manager').user
+            all_userstories = UserStory.objects.filter(project=project, sprint=sprint)
+            load = sum([story.size for story in all_userstories])
             accepted_userstories = UserStory.objects.filter(project=project, sprint=sprint, accepted = True)
             accepted_userstories = UserStoryTable(accepted_userstories, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
             unaccepted_userstories = UserStory.objects.filter(project=project, sprint=sprint, accepted = False)
@@ -648,6 +650,7 @@ def sprint_details_handler(request, project_name, sprint_id):
             context['project'] = project
             context['accepted_userstories'] = accepted_userstories
             context['unaccepted_userstories'] = unaccepted_userstories
+            context['load'] = load
             ########
 
             #check if sprint is already finished, if it is, disable the edit button
@@ -951,8 +954,20 @@ def get_active_sprint(project_name):
 def add_to_sprint(request, project_name, user_story_id):
     user_story = UserStory.objects.get(id=user_story_id)
     active_sprint = get_active_sprint(project_name)
-    user_story.sprint = active_sprint
-    user_story.save()
+    # preverimo ali lahko damo noter glede na size!
+    if active_sprint:
+        # stories = UserStory.objects.filter(sprint = active_sprint,rejected = False)
+        # load = sum([stori.size for stori in stories])
+        # if user_story.size > active_sprint.velocity - load:
+        #     messages.error(request, "Sprint is loaded.")
+        # else:
+        user_story.sprint = active_sprint
+        user_story.save()
+        messages.success(request, "User story added to active sprint")
+
+    else:
+        messages.error(request, "No active sprint found.")
+
     return redirect('project_name',project_name=project_name)
 
 # Tasks on user story
