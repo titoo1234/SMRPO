@@ -220,6 +220,8 @@ class UserStoryTable(tables.Table):
         complete_tasks = Task.objects.filter(user_story = record.id,done = True,rejected = False,deleted = False).count()
             
         tasks_info = format_html("<strong>{}/{}</strong>", complete_tasks, tasks)
+        if tasks == 0:#ČE NI NOBENE NALOGE ŠE NOT NE MORŠ KONČAT 
+            return tasks_info
         if record.accepted == False and record.sprint:
             accept_url = reverse('accept_user_story', kwargs={'project_name': record.project.name, 'user_story_id': record.id})
             reject_url = reverse('reject_user_story', kwargs={'project_name': record.project.name, 'user_story_id': record.id})
