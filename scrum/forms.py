@@ -296,6 +296,9 @@ class NewTaskForm(forms.ModelForm):
         model = Task
         fields = ['description','user_story' ,'assigned_user','estimate' ]#'time_spent' pri novem še ne rabimo?
         # [ 'name', 'description','user_story' ,'assigned_user' ,'start_date' ,'end_date' ,'time_spent' ]
+        labels = {
+        'estimate': 'Estimate[h]'
+    }
 
 
 class KomentarObrazec(forms.Form):

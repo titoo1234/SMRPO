@@ -321,7 +321,7 @@ class TaskTable(tables.Table):
     # user_story = tables.Column()
     assigned_user = tables.Column()
     #assigned_user = tables.Column(empty_values=(1))
-    estimate = tables.Column()
+    estimate = tables.Column(verbose_name='Estimate[h]')
     time_spent = tables.Column()
     accepted = tables.Column()
     user_story = tables.Column(visible= False)
