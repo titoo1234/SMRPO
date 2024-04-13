@@ -10,10 +10,8 @@ class ProjectTable(tables.Table):
     name = tables.Column(orderable=False)
     creation_date = tables.Column(orderable=False)
     description = tables.Column(orderable=False, verbose_name='Description')
-    actions = tables.Column(orderable=False, verbose_name='Actions')
-    # view_button = tables.Column(empty_values=(), orderable=False, verbose_name='View')
-    # edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
-    # delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
+    edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='')
+    delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='')
 
     def __init__(self, *args, **kwargs):
         self.user_id = kwargs.pop('user_id', 0)
@@ -27,34 +25,34 @@ class ProjectTable(tables.Table):
         # Uporabi HTML oznake za prikaz odstavkov v opisu
         return mark_safe(value.replace('\n', '<br>'))
     
-    # def render_view_button(self, record):
-    #     return format_html('<a class="btn btn-primary btn-sm" href="#"><i class="fas fa-folder" style="margin-right: 2px"></i>View</a>')
-
-    # def render_edit_button(self, record):
-    #     user = User.objects.get(id = self.user_id)
-    #     project = Project.objects.get(name = record.name)
-    #     methodology_manager = AssignedRole.objects.get(project=project,role = 'methodology_manager').user
+    def render_edit_button(self, record):
+        user = User.objects.get(id = self.user_id)
+        project = Project.objects.get(name = record.name)
+        methodology_manager = AssignedRole.objects.get(project=project,role = 'methodology_manager').user
         
-    #     if self.admin or (user == methodology_manager):
-    #         edit_url = reverse('project_edit', kwargs={'project_name': record.name})  # Nadomestite 'ime_pogleda' s pravim imenom pogleda
-    #         return format_html('<a class="btn btn-info btn-sm" href="{}"><i class="fas fa-pencil-alt" style="margin-right: 2px"></i>Edit</a>', edit_url)
-    #     else:
-    #         return ''
+        if self.admin or (user == methodology_manager):
+            edit_url = reverse('project_edit', kwargs={'project_name': record.name})  # Nadomestite 'ime_pogleda' s pravim imenom pogleda
+            return format_html('<a class="btn btn-info btn-sm" href="{}"><i class="fas fa-pencil-alt" style="margin-right:2px"></i>Edit</a>', edit_url)
+        else:
+            return ''
         
-    # def render_delete_button(self, record):
-    #     user = User.objects.get(id = self.user_id)
-    #     project = Project.objects.get(name = record.name)
-    #     methodology_manager = AssignedRole.objects.get(project=project,role = 'methodology_manager').user
-    #     if self.admin or (user == methodology_manager):
-    #         edit_url = reverse('delete_project', kwargs={'project_name': record.name})  # Nadomestite 'ime_pogleda' s pravim imenom pogleda
-    #         return format_html('<a class="btn btn-danger btn-sm" href="{}"><i class="fas fa-trash" style="margin-right: 2px"></i>Delete</a>', edit_url)
-    #     else:
-    #         return ''
+    def render_delete_button(self, record):
+        user = User.objects.get(id = self.user_id)
+        project = Project.objects.get(name = record.name)
+        methodology_manager = AssignedRole.objects.get(project=project,role = 'methodology_manager').user
+        if self.admin or (user == methodology_manager):
+            edit_url = reverse('delete_project', kwargs={'project_name': record.name})  # Nadomestite 'ime_pogleda' s pravim imenom pogleda
+            return format_html('<a class="btn btn-danger btn-sm" href="{}"><i class="fas fa-trash" style="margin-right:2px"></i>Delete</a>', edit_url)
+        else:
+            return ''
         
     class Meta:
         model = Project
         fields = ('id', 'name', 'creation_date','description')
         template_name = "table-custom.html"
+        row_attrs = {
+            "onClick": lambda record: "document.location.href='project/{0}/';".format(record.name)
+        }
 
 
 class UserTable(tables.Table):

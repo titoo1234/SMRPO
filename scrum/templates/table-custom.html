@@ -9,15 +9,27 @@
                 <thead {{ table.attrs.thead.as_html }}>
                     <tr>
                     {% for column in table.columns %}
+                        {% if column.verbose_name != 'View' and column.verbose_name != 'Edit' and column.verbose_name != 'Delete' %}
                             <th {{ column.attrs.th.as_html }}>
                                 {% if column.orderable %}
                                     <a href="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}">{{ column.header }}</a>
                                 {% else %}
-                                    {% if column.verbose_name != 'Actions'%}
+                                    {% if column.verbose_name != 'View' and column.verbose_name != 'Edit' and column.verbose_name != 'Delete' %}
                                         {{ column.header }}
                                     {% endif %}
                                 {% endif %}
                             </th>
+                        {% else %}
+                            <th style="width:7%" {{ column.attrs.th.as_html }}>
+                                {% if column.orderable %}
+                                    <a href="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}">{{ column.header }}</a>
+                                {% else %}
+                                    {% if column.verbose_name != 'View' and column.verbose_name != 'Edit' and column.verbose_name != 'Delete' %}
+                                        {{ column.header }}
+                                    {% endif %}
+                                {% endif %}
+                            </th>
+                        {% endif %}
                     {% endfor %}
                     </tr>
                 </thead>
@@ -29,27 +41,15 @@
                     {% block table.tbody.row %}
                     <tr {{ row.attrs.as_html }}>
                         {% for column, cell in row.items %}
-                            {% if column.verbose_name != 'Actions' %}
-                                <td {{ column.attrs.td.as_html }}>{% if column.localize == None %}{{ cell }}{% else %}{% if column.localize %}{{ cell|localize }}{% else %}{{ cell|unlocalize }}{% endif %}{% endif %}</td>
-                            {% else %}
-                                <td class="project-actions text-right">
-                                    <a class="btn btn-primary btn-sm" href="#">
-                                        <i class="fas fa-folder">
-                                        </i>
-                                        View
-                                    </a>
-                                    <a class="btn btn-info btn-sm" href="#">
-                                        <i class="fas fa-pencil-alt">
-                                        </i>
-                                        Edit
-                                    </a>
-                                    <a class="btn btn-danger btn-sm" href="#">
-                                        <i class="fas fa-trash">
-                                        </i>
-                                        Delete
-                                    </a>
-                                </td>
-                            {% endif %}
+                          {% if column.verbose_name == 'View' %}
+                            <td class="project-actions text-right" style="width:8%; padding-right:0px" {{ column.attrs.td.as_html }}>{% if column.localize == None %}{{ cell }}{% else %}{% if column.localize %}{{ cell|localize }}{% else %}{{ cell|unlocalize }}{% endif %}{% endif %}</td>
+                          {% elif column.verbose_name == 'Edit' %}
+                            <td class="project-actions text-right" style="width:8%; padding-right:0px; padding-left:0px"  {{ column.attrs.td.as_html }}>{% if column.localize == None %}{{ cell }}{% else %}{% if column.localize %}{{ cell|localize }}{% else %}{{ cell|unlocalize }}{% endif %}{% endif %}</td>
+                          {% elif column.verbose_name == 'Delete' %}
+                            <td class="project-actions text-right" style="width:10%" {{ column.attrs.td.as_html }}>{% if column.localize == None %}{{ cell }}{% else %}{% if column.localize %}{{ cell|localize }}{% else %}{{ cell|unlocalize }}{% endif %}{% endif %}</td>
+                          {% else %}
+                            <td {{ column.attrs.td.as_html }}>{% if column.localize == None %}{{ cell }}{% else %}{% if column.localize %}{{ cell|localize }}{% else %}{{ cell|unlocalize }}{% endif %}{% endif %}</td>
+                          {% endif %}
                         {% endfor %}
                     </tr>
                     {% endblock table.tbody.row %}

@@ -92,7 +92,10 @@ class ProjectForm(forms.ModelForm):
         model = Project
         fields = ['name','creation_date','description',"creator"]
         widgets = {
-            'creation_date': forms.DateInput(attrs={'type': 'date'}),
+            'name': forms.TextInput(attrs={'class':'form-control'}), 
+            'creation_date': forms.DateInput(attrs={'type': 'date','class':'form-control'}),
+            'description': forms.Textarea(attrs={'class':'form-control'}), 
+            'creator': forms.TextInput(attrs={'class':'form-control'}), 
         }
 
 class ProjectDisabledForm(forms.ModelForm):

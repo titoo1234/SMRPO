@@ -22,12 +22,19 @@
 
 <!-- Main content -->
 <section class="content">
-
+    {% if admin %}
+    <div class="row">
+        <div class="col-12">
+            <a href="{% url 'new_project' %}"><button type="button" class="btn btn-success"><i class="fa fa-plus"
+                        style="margin-right: 5px;"></i>Create New Project</button></a>
+        </div>
+    </div>
+    </br>
+    {% endif %}
     <!-- Default box -->
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">My Projects</h3>
-
             <div class="card-tools">
                 <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
                     <i class="fas fa-minus"></i>
@@ -35,16 +42,16 @@
             </div>
         </div>
         <div class="card-body p-0">
-            {% render_table tabela  %}
+            {% render_table tabela %}
         </div>
         <!-- /.card-body -->
     </div>
     <!-- /.card -->
     <!-- Default box -->
+    {% if admin %}
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">Other Projects</h3>
-
             <div class="card-tools">
                 <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
                     <i class="fas fa-minus"></i>
@@ -52,12 +59,12 @@
             </div>
         </div>
         <div class="card-body p-0">
-            {% render_table tabela_other  %}
+            {% render_table tabela_other %}
         </div>
         <!-- /.card-body -->
     </div>
+    {% endif %}
     <!-- /.card -->
-
 </section>
 <!-- /.content -->
 {% endblock %}

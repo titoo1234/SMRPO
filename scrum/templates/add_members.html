@@ -1,28 +1,53 @@
-{% extends 'base.html' %}
-
-{% block title %}
-Add members
-{% endblock %}
-
+{% extends 'base-v2.html' %}
+{% load static %}
 {% block content %}
-<h2>Add members to project</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
 
-        <label>Select project members:</label><br>
-        <!-- Možnosti za izbiro članov razvojne skupine -->
-        {% for user in allusers %}
-            <input type="checkbox" id="member_{{ user.id }}" name="project_members" value="{{ user.id }}">
-            <label for="member_{{ user.id }}">{{ user.username }}</label><br>
-        {% endfor %}
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Project Add</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="#">Home</a></li>
+                    <li class="breadcrumb-item active">Project Add</li>
+                </ol>
+            </div>
+        </div>
+    </div><!-- /.container-fluid -->
+</section>
 
-
-        <button type="submit">Next</button>
-        <!-- {% for message in messages %}
-        <p class="error-message">{{ message }}</p>
-        {% endfor %} -->
-    </form>
-   
-
+<section class="content">
+    <div class="row">
+        <div class="col-md-6 offset-3">
+            <div class="card card-primary">
+                <div class="card-header">
+                    <h3 class="card-title">Add Members to Project</h3>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {% for user in allusers %}
+                        <div class="custom-control custom-checkbox">
+                            <input name="project_members" class="custom-control-input" type="checkbox" id="member_{{ user.id }}" value="{{ user.id }}">
+                            <label for="member_{{ user.id }}" class="custom-control-label">{{ user.username }}</label>
+                        </div>
+                        {% endfor %}
+                        <input type="submit" value="Next" class="btn btn-success float-right">
+                    </form>
+                    <!-- /.card-body -->
+                </div>
+                <!-- /.card -->
+            </div>
+        </div>
+    </div>
+</section>
 {% endblock %}
+
