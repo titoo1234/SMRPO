@@ -1116,11 +1116,18 @@ def dashboard(request):
 def projects(request):
     context = get_context(request)
     try:
-        my_projects = get_projects(context['id'])
+        projects = get_projects(context['id'])
     except:
-        my_projects = []
-    context['my_projects'] = my_projects
+        projects = []
+    context['my_projects'] = projects
     queryset = Project.objects.all()
-    other_projects = [p for p in queryset if p not in my_projects]
-    context['other_projects'] = other_projects
+    tabela = ProjectTable(projects, admin = context['admin'],user_id = context['id'])
+    RequestConfig(request).configure(tabela)
+    context['tabela'] = tabela
+
+    other = [p for p in queryset if p not in projects]
+    tabela_other = ProjectTable(other, admin = True,user_id = context['id'])
+    RequestConfig(request).configure(tabela_other)
+    context['tabela_other'] = tabela_other
+
     return render(request, 'projects-v2.html', context)

@@ -6,50 +6,55 @@ from django.utils.html import format_html
 from django.utils.html import mark_safe
 
 class ProjectTable(tables.Table):
-    name = tables.Column()
-    creation_date = tables.Column()
+    id = tables.Column(orderable=False, verbose_name='#')
+    name = tables.Column(orderable=False)
+    creation_date = tables.Column(orderable=False)
     description = tables.Column(orderable=False, verbose_name='Description')
-    edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
-    delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
-
+    actions = tables.Column(orderable=False, verbose_name='Actions')
+    # view_button = tables.Column(empty_values=(), orderable=False, verbose_name='View')
+    # edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
+    # delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
 
     def __init__(self, *args, **kwargs):
         self.user_id = kwargs.pop('user_id', 0)
         self.admin = kwargs.pop('admin', False)
         super().__init__(*args, **kwargs)
+
+    def render_id(self, record):
+        return format_html("#" +str(record.id))
     
     def render_description(self, value):
         # Uporabi HTML oznake za prikaz odstavkov v opisu
         return mark_safe(value.replace('\n', '<br>'))
     
-    def render_name(self, record):
-        project_url = reverse('project_name', kwargs={'project_name': record.name})
-        return format_html('<a style="font-size: 22px;" href="{}">{}</a>'.format(project_url, "#" +str(record.id)+" "+ record.name))
+    # def render_view_button(self, record):
+    #     return format_html('<a class="btn btn-primary btn-sm" href="#"><i class="fas fa-folder" style="margin-right: 2px"></i>View</a>')
 
-    def render_edit_button(self, record):
+    # def render_edit_button(self, record):
+    #     user = User.objects.get(id = self.user_id)
+    #     project = Project.objects.get(name = record.name)
+    #     methodology_manager = AssignedRole.objects.get(project=project,role = 'methodology_manager').user
         
-        user = User.objects.get(id = self.user_id)
-        project = Project.objects.get(name = record.name)
-        methodology_manager = AssignedRole.objects.get(project=project,role = 'methodology_manager').user
+    #     if self.admin or (user == methodology_manager):
+    #         edit_url = reverse('project_edit', kwargs={'project_name': record.name})  # Nadomestite 'ime_pogleda' s pravim imenom pogleda
+    #         return format_html('<a class="btn btn-info btn-sm" href="{}"><i class="fas fa-pencil-alt" style="margin-right: 2px"></i>Edit</a>', edit_url)
+    #     else:
+    #         return ''
         
-        if self.admin or (user == methodology_manager):
-            edit_url = reverse('project_edit', kwargs={'project_name': record.name})  # Nadomestite 'ime_pogleda' s pravim imenom pogleda
-            return format_html('<a href="{}" class="btn btn-primary">Edit</a>', edit_url)
-        else:
-            return ''
-    def render_delete_button(self, record):
-        user = User.objects.get(id = self.user_id)
-        project = Project.objects.get(name = record.name)
-        methodology_manager = AssignedRole.objects.get(project=project,role = 'methodology_manager').user
-        if self.admin or (user == methodology_manager):
-            edit_url = reverse('delete_project', kwargs={'project_name': record.name})  # Nadomestite 'ime_pogleda' s pravim imenom pogleda
-            return format_html('<a href="{}" class="btn btn-danger">Delete</a>', edit_url)
-        else:
-            return ''
+    # def render_delete_button(self, record):
+    #     user = User.objects.get(id = self.user_id)
+    #     project = Project.objects.get(name = record.name)
+    #     methodology_manager = AssignedRole.objects.get(project=project,role = 'methodology_manager').user
+    #     if self.admin or (user == methodology_manager):
+    #         edit_url = reverse('delete_project', kwargs={'project_name': record.name})  # Nadomestite 'ime_pogleda' s pravim imenom pogleda
+    #         return format_html('<a class="btn btn-danger btn-sm" href="{}"><i class="fas fa-trash" style="margin-right: 2px"></i>Delete</a>', edit_url)
+    #     else:
+    #         return ''
+        
     class Meta:
         model = Project
-        fields = ('name', 'creation_date','description')
-        template_name = "django_tables2/bootstrap5.html"
+        fields = ('id', 'name', 'creation_date','description')
+        template_name = "table-custom.html"
 
 
 class UserTable(tables.Table):
