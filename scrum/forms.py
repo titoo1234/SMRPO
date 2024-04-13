@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.hashers import check_password
-from .models import User,Project,AssignedRole,UserStory, Sprint, ProjectWall,Task
+from .models import User,Project,AssignedRole,UserStory, Sprint, ProjectWall,Task,Documentation
 from django.utils import timezone
 from django.forms.models import inlineformset_factory
 from datetime import datetime, time
@@ -143,6 +143,13 @@ class SprintForm(forms.ModelForm):
         self.fields['project'].initial = kwargs['initial']['project']
         self.fields['start_date'].initial = timezone.now().date()
         self.fields['end_date'].initial = timezone.now().date() + timezone.timedelta(days=14)
+        if kwargs['initial']['edit']:
+            self.fields['start_date'].initial = kwargs['initial']['start_date']
+            self.fields['end_date'].initial = kwargs['initial']['end_date']
+            if kwargs['initial']['active']:
+                self.fields['start_date'].widget.attrs['disabled'] = True
+                self.fields['end_date'].widget.attrs['disabled'] = True
+            self.fields['velocity'].initial = kwargs['initial']['velocity']
 
     class Meta:
         model = Sprint
@@ -197,6 +204,8 @@ class UserStoryForm(forms.ModelForm):
         methodology_manager = self.initial['methodology_manager']
         development_team_member = self.initial['development_team_member']
         sprint = self.initial['sprint']
+        if sprint is None:
+            self.fields['sprint'].widget = forms.HiddenInput()
         edit = self.initial['edit']
         today = datetime.today()
         today = datetime.date(today)
@@ -293,10 +302,25 @@ class NewTaskForm(forms.ModelForm):
         model = Task
         fields = ['description','user_story' ,'assigned_user','estimate' ]#'time_spent' pri novem še ne rabimo?
         # [ 'name', 'description','user_story' ,'assigned_user' ,'start_date' ,'end_date' ,'time_spent' ]
+        labels = {
+        'estimate': 'Estimate[h]'
+    }
 
 
 class KomentarObrazec(forms.Form):
     komentar = forms.CharField(label='Komentar', widget=forms.Textarea)
+
+
+class UvozForm(forms.Form):
+    title = forms.CharField(max_length=100)
+
+    # document = forms.FileField()
+    document = forms.FileField(label=('Select File'),help_text='Only .txt formats are allowed',  widget=forms.ClearableFileInput(attrs={'accept': '.txt'}))
+
+class DocumentationForm(forms.ModelForm):
+    class Meta:
+        model = Documentation
+        fields = ['title', 'content']
     
 
 

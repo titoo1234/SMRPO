@@ -40,6 +40,7 @@ urlpatterns = [
     path('project/<str:project_name>/delete_user_story/<int:id>/', views.delete_user_story, name='delete_user_story'),
     path('project/<str:project_name>/accept_user_story/<int:user_story_id>/', views.accept_user_story, name='accept_user_story'),
     path('project/<str:project_name>/reject_user_story/<int:user_story_id>/', views.reject_user_story, name='reject_user_story'),
+    path('project/<str:project_name>/add_to_sprint/<int:user_story_id>/', views.add_to_sprint, name='add_to_sprint'),
     # WALL ============================================================
     path('project/<str:project_name>/wall/', views.wall, name='wall'),
     # TASKS ============================================================
@@ -51,7 +52,14 @@ urlpatterns = [
     path('project/<str:project_name>/tasks/<int:user_story_id>/<int:task_id>/delete/', views.delete_task, name='delete_task'),
     path('project/<str:project_name>/tasks/<int:user_story_id>/<int:task_id>/complete/', views.complete_task, name='complete_task'),
     path('project/<str:project_name>/tasks/<int:user_story_id>/<int:task_id>/start_stop/', views.start_stop_task, name='start_stop_task'),
-    path('project/<str:project_name>/tasks/<int:user_story_id>/<int:task_id>/log_time/', views.log_time_task, name='log_time_task')
+    path('project/<str:project_name>/tasks/<int:user_story_id>/<int:task_id>/log_time/', views.log_time_task, name='log_time_task'),
+
+    # DOCUMENTATION ============================================================
+    path('project/<str:project_name>/documentation/', views.project_documentation, name='project_documentation'),
+    path('project/<str:project_name>/documentation_import/', views.project_documentation_import, name='project_documentation_import'),
+    path('project/<str:project_name>/documentation_export/', views.project_documentation_export, name='project_documentation_export'),
+    path('project/<str:project_name>/documentation_delete/<int:doc_id>/', views.project_documentation_delete, name='project_documentation_delete'),
+    path('project/<str:project_name>/documentation_edit/<int:doc_id>/', views.project_documentation_edit, name='project_documentation_edit')
     # re_path(r'^login/$', views.userApi, name='user_login')
     # re_path(r'user/[0-9]+$', views.userApi,name='test1'),
     # path('user/', views.userApi),

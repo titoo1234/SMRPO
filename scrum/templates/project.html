@@ -7,6 +7,7 @@ Project {{project.name}}
 {% block content %}
 <h2>Project #{{project.id}}: {{project.name}}</h2>
     <a href= '/project/{{project.name}}/wall/'><button type='submit'>Wall</button></a>
+    <a href= '/project/{{project.name}}/documentation/'><button type='submit'>Documentation</button></a>
     {% if editable %}
     <a href= '/project/{{project.name}}/edit'><button type='submit'>Edit</button></a>
     {% endif %}
@@ -32,20 +33,29 @@ Project {{project.name}}
             {{sprint_status}}
         </span>
     </h3>
-        {% if unaccepted_userstories.rows %}
+        <!--{% if unaccepted_userstories.rows %}
         {% render_table unaccepted_userstories %}
         {% endif %}
         {% if accepted_userstories.rows %}
         <h4>Accepted Stories</h4>
         {% render_table accepted_userstories %}
-        {% endif %}
+        {% endif %}-->
     {% endfor %}
 <h3>Backlog:</h3>
 {% if new_user_story_enabled %}
 <a href='/project/{{project.name}}/new_user_story/'><button type='submit'>New User Story</button></a>
 {% endif %}
-{% if Backlog.rows %}
-{% render_table Backlog %}
+{% if active_stories.rows %}
+<h4>Active</h4>
+{% render_table active_stories %}
+{% endif %}
+{% if backlog_stories.rows %}
+<h4>Backlog stories</h4>
+{% render_table backlog_stories %}
+{% endif %}
+{% if accepted_stories.rows %}
+<h4>Accepted</h4>
+{% render_table accepted_stories %}
 {% endif %}
 {% endblock %}
 
