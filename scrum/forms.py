@@ -5,8 +5,9 @@ from django.utils import timezone
 from django.forms.models import inlineformset_factory
 from datetime import datetime, time
 
+#from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm
 class UserLoginForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput)
+    password = forms.CharField(widget=forms.PasswordInput, max_length=64)
     class Meta:
         model = User
         fields = ['username', 'password']
@@ -19,7 +20,7 @@ class UserRegisterForm(forms.ModelForm):
 
 class UserRegisterForm1(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput, min_length=12, max_length=64,strip=False)
-    confirm_password = forms.CharField(widget=forms.PasswordInput, label='Confirm password')
+    confirm_password = forms.CharField(widget=forms.PasswordInput, min_length=12, max_length=64, label='Confirm password')
 
     class Meta:
         model = User
@@ -42,9 +43,9 @@ class UserRegisterForm1(forms.ModelForm):
 from django import forms
 
 class UserUpdateForm(forms.ModelForm):
-    current_password = forms.CharField(widget=forms.PasswordInput, label='Current password', required=False)
-    new_password = forms.CharField(widget=forms.PasswordInput, label='New password', required=False)
-    confirm_new_password = forms.CharField(widget=forms.PasswordInput, label='Confirm new password', required=False)
+    current_password = forms.CharField(widget=forms.PasswordInput, max_length=64,label='Current password', required=False)
+    new_password = forms.CharField(widget=forms.PasswordInput, min_length=12, max_length=64, label='New password', required=False)
+    confirm_new_password = forms.CharField(widget=forms.PasswordInput, min_length=12, max_length=64, label='Confirm new password', required=False)
 
     class Meta:
         model = User
