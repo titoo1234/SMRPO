@@ -39,7 +39,7 @@ def logout(request):
         del request.session['admin']
     except:
         pass
-    return redirect('home')
+    return redirect('login-v2')
 
 def get_projects(uporabnik_id):
     project_ids = ProjectMember.objects.filter(user=uporabnik_id).values_list('project', flat=True).distinct()

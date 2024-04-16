@@ -57,13 +57,13 @@
       <!-- Documentation -->
       <li class="nav-item">
         <a onclick="openDocumentationPopup()" class="nav-link">
-          <i class="fas fa-book" aria-hidden="true" title="Documentation"></i>
+          <i class="fas fa-book" aria-hidden="true"></i>
         </a>
       </li>
       <!-- Logout -->
       <li class="nav-item">
-        <a class="nav-link" href="{% url 'logout' %}">
-          <i class="fa fa-sign-out" aria-hidden="true" title="Sign out"></i>
+        <a class="nav-link" href="/logout">
+          <i class="fa fa-sign-out" aria-hidden="true"></i>
         </a>
       </li>
     </ul>
@@ -120,7 +120,7 @@
               </p>
             </a>
           </li>
-          <!-- <li class="nav-item">
+          <li class="nav-item">
             <a href="#" class="nav-link">
               <i class="nav-icon fa fa-calendar"></i>
               <p>
@@ -145,13 +145,21 @@
             </a>
           </li>
           <li class="nav-item">
-            <a href="#" class="nav-link">
+            <a href='/project/{{project.name}}/wall/' class="nav-link">
               <i class="nav-icon fa fa-comments"></i>
               <p>
                 Wall
               </p>
             </a>
-          </li> -->
+          </li>
+          <li class="nav-item">
+            <a href='/project/{{project.name}}/documentation/' class="nav-link">
+              <i class="nav-icon fa fa-file-text"></i>
+              <p>
+                Documentation
+              </p>
+            </a>
+          </li>
         </ul>
       </nav>
       <!-- /.sidebar-menu -->

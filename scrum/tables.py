@@ -57,12 +57,13 @@ class ProjectTable(tables.Table):
 
 
 class UserTable(tables.Table):
-    username = tables.Column()
-    name = tables.Column()
-    surname = tables.Column()
-    mail = tables.Column()
-    admin_user = tables.Column()
+    username = tables.Column(orderable=False)
+    name = tables.Column(orderable=False)
+    surname = tables.Column(orderable=False)
+    mail = tables.Column(orderable=False)
+    admin_user = tables.Column(orderable=False)
     edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
+    delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
 
     def __init__(self, *args, **kwargs):
         self.admin = kwargs.pop('admin', False)
@@ -71,22 +72,29 @@ class UserTable(tables.Table):
     def render_edit_button(self, record):
         if self.admin:
             edit_url = reverse('edit_user', kwargs={'user_id': record.id})  # Nadomestite 'ime_pogleda' s pravim imenom pogleda
-            return format_html('<a href="{}" class="btn btn-primary">Edit</a>', edit_url)
+            return format_html('<a class="btn btn-info btn-sm" href="{}"><i class="fas fa-pencil-alt" style="margin-right:2px"></i>Edit</a>', edit_url)
+        else:
+            return ''
+        
+    def render_delete_button(self, record):
+        if self.admin:
+            edit_url = reverse('delete_user', kwargs={'user_id': record.id})
+            return format_html('<a class="btn btn-danger btn-sm" href="{}"><i class="fas fa-trash" style="margin-right:2px"></i>Delete</a>', edit_url)
         else:
             return ''
 
     class Meta:
         model = User
         fields = ('username','name', 'surname','mail','admin_user')
-        template_name = "django_tables2/bootstrap5.html"
+        template_name = "table-custom.html"
 
 
 class DeletedUserTable(tables.Table):
-    username = tables.Column()
-    name = tables.Column()
-    surname = tables.Column()
-    mail = tables.Column()
-    admin_user = tables.Column()
+    username = tables.Column(orderable=False)
+    name = tables.Column(orderable=False)
+    surname = tables.Column(orderable=False)
+    mail = tables.Column(orderable=False)
+    admin_user = tables.Column(orderable=False)
     edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
 
     def __init__(self, *args, **kwargs):
@@ -96,14 +104,14 @@ class DeletedUserTable(tables.Table):
     def render_edit_button(self, record):
         if self.admin:
             edit_url = reverse('edit_deleted_user', kwargs={'user_id': record.id})  # Nadomestite 'ime_pogleda' s pravim imenom pogleda
-            return format_html('<a href="{}" class="btn btn-primary">Edit</a>', edit_url)
+            return format_html('<a class="btn btn-info btn-sm" href="{}"><i class="fas fa-pencil-alt" style="margin-right:2px"></i>Edit</a>', edit_url)
         else:
             return ''
 
     class Meta:
         model = User
         fields = ('username','name', 'surname','mail','admin_user')
-        template_name = "django_tables2/bootstrap5.html"
+        template_name = "table-custom.html"
 
 # User story
 # ==============================================
@@ -178,8 +186,9 @@ class UserStoryTable(tables.Table):
         user_stories_size = sum([user_story.size if user_story.size is not None else 0 for user_story in user_stories_in_sprint])
         correct_size = False
         record_size = record.size if record.size is not None else 0
-        if user_stories_size + record_size <= active_sprint.velocity and record.size is not None:
-            correct_size = True
+        if active_sprint:
+            if user_stories_size + record_size <= active_sprint.velocity and record.size is not None:
+                correct_size = True
         if (self.admin or (user == methodology_manager)) and correct_size and record.sprint is None:
             edit_url = reverse('add_to_sprint', kwargs={'project_name': project.name, 'user_story_id': record.id})
             return format_html('<a href="{}" class="btn btn-primary">Add to sprint</a>', edit_url)

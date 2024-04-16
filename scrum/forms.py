@@ -21,17 +21,26 @@ class UserRegisterForm(forms.ModelForm):
         fields = ['name','surname','mail', 'username', 'password','admin_user']
 
 class UserRegisterForm1(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput, min_length=12, max_length=64,strip=False)
-    confirm_password = forms.CharField(widget=forms.PasswordInput, label='Confirm password')
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'}), min_length=12, max_length=64,strip=False)
+    confirm_password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'}), label='Confirm password')
 
     class Meta:
         model = User
         fields = ['name', 'surname', 'mail', 'username', 'password', 'confirm_password', 'admin_user']
+        widgets = {
+            'name': forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Name'}), 
+            'surname': forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Surname'}), 
+            'mail': forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Mail'}), 
+            'username': forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Username'}), 
+            'admin_user': forms.CheckboxInput(attrs={'class':'form-control'}), 
+        }
 
     def clean(self):
         cleaned_data = super().clean()
         password = cleaned_data.get("password")
         confirm_password = cleaned_data.get("confirm_password")
+        self.fields['password'].widget = forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Password', 'type': 'password'})
+        self.fields['confirm_password'].widget = forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Password', 'type': 'password'})
 
         if password != confirm_password:
             raise forms.ValidationError("Passwords do not match. Please enter the same password in both fields.")
@@ -45,13 +54,20 @@ class UserRegisterForm1(forms.ModelForm):
 from django import forms
 
 class UserUpdateForm(forms.ModelForm):
-    current_password = forms.CharField(widget=forms.PasswordInput, label='Current password', required=False)
-    new_password = forms.CharField(widget=forms.PasswordInput, label='New password', required=False)
-    confirm_new_password = forms.CharField(widget=forms.PasswordInput, label='Confirm new password', required=False)
+    current_password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'}), label='Current password', required=False)
+    new_password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'}), label='New password', required=False)
+    confirm_new_password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'}), label='Confirm new password', required=False)
 
     class Meta:
         model = User
         fields = ['name', 'surname', 'mail', 'username', 'current_password', 'new_password', 'confirm_new_password', 'admin_user']
+        widgets = {
+            'name': forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Name'}), 
+            'surname': forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Surname'}), 
+            'mail': forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Mail'}), 
+            'username': forms.TextInput(attrs={'class':'form-control', 'placeholder': 'Username'}), 
+            'admin_user': forms.CheckboxInput(attrs={'class':'form-control'}), 
+        }
 
     def clean(self):
         cleaned_data = super().clean()
@@ -134,12 +150,12 @@ class VelocityInput(forms.TextInput):
         return super().render(name, value, final_attrs, renderer)
 
 class SprintForm(forms.ModelForm):
-    velocity = forms.IntegerField(label='Velocity (pts)')
+    velocity = forms.IntegerField(widget=forms.NumberInput(attrs={'class':'form-control'}), label='Velocity (pts)')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Set project field as a TextInput widget and disable it
-        self.fields['project'].widget = forms.TextInput(attrs={'readonly': True, 'style': 'pointer-events: none;'})
+        self.fields['project'].widget = forms.TextInput(attrs={'readonly': True, 'style': 'pointer-events: none;', 'class':'form-control'})
         self.fields['project'].initial = kwargs['initial']['project']
         self.fields['start_date'].initial = timezone.now().date()
         self.fields['end_date'].initial = timezone.now().date() + timezone.timedelta(days=14)
@@ -155,11 +171,11 @@ class SprintForm(forms.ModelForm):
         model = Sprint
         fields = ['project','start_date','end_date','velocity']
         widgets = {
-            'start_date': forms.DateInput(attrs={'type': 'date'}),
-            'end_date': forms.DateInput(attrs={'type': 'date'})
+            'start_date': forms.DateInput(attrs={'type': 'date','class':'form-control'}),
+            'end_date': forms.DateInput(attrs={'type': 'date','class':'form-control'}), 
         }
         '''widgets = {
-            'name': forms.TextInput(attrs={'disabled': 'disabled'}),
+            'name': forms.TextInput(attrs={'disabled': 'disabled', 'class':'form-control'}),
             'start_date': forms.DateInput(attrs={'disabled': 'disabled'}),
             'end_date': forms.Textarea(attrs={'disabled': 'disabled'}),
         }'''

@@ -1,22 +1,60 @@
-{% extends 'base.html' %}
-
-{% block title %}
-Začetna stran
-{% endblock %}
-
+{% extends 'base-v2.html' %}
+{% load static %}
+{% load render_table from django_tables2 %}
+{% load django_tables2 %}
 {% block content %}
-<h1>All users</h1>
 
-{% load django_tables2 %}
-{% render_table active_users  %}
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Users</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+                    <li class="breadcrumb-item active">Users</li>
+                </ol>
+            </div>
+        </div>
+    </div><!-- /.container-fluid -->
+</section>
 
-
-<h1>Deleted users</h1>
-
-{% load django_tables2 %}
-{% render_table no_active_users  %}
-
-
-
-
+<!-- Main content -->
+<section class="content">
+    <!-- Default box -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Active Users</h3>
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                    <i class="fas fa-minus"></i>
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            {% render_table active_users %}
+        </div>
+        <!-- /.card-body -->
+    </div>
+    <!-- /.card -->
+    <!-- Default box -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Deleted Users</h3>
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                    <i class="fas fa-minus"></i>
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            {% render_table no_active_users %}
+        </div>
+        <!-- /.card-body -->
+    </div>
+    <!-- /.card -->
+</section>
+<!-- /.content -->
 {% endblock %}
