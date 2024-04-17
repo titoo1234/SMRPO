@@ -116,19 +116,18 @@ class DeletedUserTable(tables.Table):
 # User story
 # ==============================================
 class UserStoryTable(tables.Table):
-    name = tables.Column()
-    priority = tables.Column()
-    size = tables.Column()
-    workflow = tables.Column(visible=False)
-    comment = tables.Column()
-    user = tables.Column()
-    accepted = tables.Column(visible= False)
-    sprint = tables.Column(visible= False)
+    story_number = tables.Column(orderable=False, verbose_name='#')
+    name = tables.Column(orderable=False)
+    priority = tables.Column(orderable=False)
+    size = tables.Column(orderable=False)
+    workflow = tables.Column(visible=False, orderable=False)
+    comment = tables.Column(orderable=False)
+    user = tables.Column(orderable=False)
+    accepted = tables.Column(visible= False, orderable=False)
+    sprint = tables.Column(visible= False, orderable=False)
     add_to_sprint_button = tables.Column(empty_values=(), orderable=False, verbose_name='Add to sprint')
     edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
     delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
-    #tasks_button = tables.Column(empty_values=(), orderable=False, verbose_name='Tasks')
-    
     finish_button = tables.Column(empty_values=(), orderable=False, verbose_name='Finish|completed tasks')
 
     def __init__(self, *args, **kwargs):
@@ -138,6 +137,10 @@ class UserStoryTable(tables.Table):
         super().__init__(*args, **kwargs)
         if (not self.product_owner):
             self.exclude = ('finish_button',)
+
+    def render_story_number(self, record):
+        return format_html("#" +str(record.story_number))
+
     def before_render(self, request):
         for row in self.rows:
             if row.record.accepted:
@@ -151,10 +154,6 @@ class UserStoryTable(tables.Table):
         html_value = mark_safe(colored_value.replace('\n', '<br>'))
         return format_html(html_value)
 
-    def render_name(self, record):
-        #user_story_url = reverse('edit_user_story', kwargs={'project_name': record.project.name,'id': record.id})
-        user_story_url = reverse('tasks', kwargs={'project_name': record.project.name,'user_story_id': record.id})
-        return format_html(f'<a style="font-size: 22px;" href="{user_story_url}">#{record.story_number} - {record.name}</a>')
     def render_workflow(self, value):
         if value == 'To Do':
             return format_html('<span style="color: red;">{}</span>', value)
@@ -201,7 +200,7 @@ class UserStoryTable(tables.Table):
         methodology_manager = AssignedRole.objects.filter(project=project,user=user, role = 'methodology_manager').first()
         product_owner = AssignedRole.objects.filter(project=project,user=user, role = 'product_owner').first()
         development_team_member = AssignedRole.objects.filter(project=project,user=user, role = 'development_team_member').first()
-        if self.admin or ((methodology_manager or product_owner) and record.sprint is None) or ((development_team_member or methodology_manager) and record.sprint is not None):
+        if (self.admin or ((methodology_manager or product_owner) and record.sprint is None) or ((development_team_member or methodology_manager) and record.sprint is not None)) and (not record.accepted):
             edit_url = reverse('edit_user_story', kwargs={'project_name': record.project.name,'id': record.id})
             return format_html('<a href="{}" class="btn btn-primary">Edit</a>', edit_url)
         else:
@@ -212,7 +211,7 @@ class UserStoryTable(tables.Table):
         project = Project.objects.get(name = record.project.name)
         methodology_manager = AssignedRole.objects.filter(project=project,user=user,role = 'methodology_manager').first()
         product_owner = AssignedRole.objects.filter(project=project,user=user,role = 'product_owner').first()
-        if self.admin or ((methodology_manager or product_owner) and record.sprint is None):
+        if (self.admin or ((methodology_manager or product_owner) and record.sprint is None)) and ((not record.accepted)):
             edit_url = reverse('delete_user_story', kwargs={'project_name': record.project.name, 'id': record.id})
             return format_html('<a href="{}" class="btn btn-danger">Delete</a>', edit_url)
         else:
@@ -259,8 +258,11 @@ class UserStoryTable(tables.Table):
 
     class Meta:
         model = UserStory
-        fields = ('name','priority', 'size', 'workflow', 'user', 'edit_button','delete_button')#,'tasks_button')
-        template_name = "django_tables2/bootstrap5.html"
+        fields = ('story_number', 'name','priority', 'size', 'workflow', 'user', 'comment', 'finish_button', 'edit_button','delete_button')#,'tasks_button')
+        template_name = "table-custom.html"
+        row_attrs = {
+            "onClick": lambda record: "document.location.href='/project/{0}/tasks/{1}/';".format(record.project.name, record.id)
+        }
 
 
 

@@ -33,7 +33,7 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <form method="post">
+                    <form method="post" action="{% url 'create_sprint' %}">
                         {% csrf_token %}
                         {{ form.as_p }}
                         <a href="{% url 'project_name' project.name %}" class="btn btn-secondary">Cancel</a>
