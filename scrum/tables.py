@@ -173,7 +173,9 @@ class UserStoryTable(tables.Table):
         methodology_manager = AssignedRole.objects.get(project=project,role = 'methodology_manager').user
         active_sprint = self._get_active_sprint(project.name)
         user_stories_in_sprint = UserStory.objects.filter(sprint=active_sprint)
+        print(user_stories_in_sprint)
         user_stories_size = sum([user_story.size if user_story.size is not None else 0 for user_story in user_stories_in_sprint])
+        print(user_stories_size)
         correct_size = False
         record_size = record.size if record.size is not None else 0
         if user_stories_size + record_size <= active_sprint.velocity and record.size is not None:
@@ -415,14 +417,31 @@ class TaskTable(tables.Table):
 class TimeEntryTable(tables.Table):
     user = tables.Column()
     task = tables.Column()
-    start_time = tables.Column()
-    end_time = tables.Column()
+    date = tables.Column()
     logged_time = tables.Column()
-    
+    time_to_finish = tables.Column()
+    edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
+
     def render_task(self, value):
         # Uporabi HTML oznake za prikaz odstavkov v opisu
         return mark_safe(value.description)
+
+    #def render_date(self, value):
+    #    return format_html("{}", value)
+
+    def render_logged_time(self, value):
+        return format_html("{}", value//3600)
+
+    def render_time_to_finish(self, value):
+        return format_html("{}", value//3600)
+
+    def render_edit_button(self, record):
+        edit_url = reverse('edit_time_entry', kwargs={'project_name': record.task.user_story.project.name,'user_story_id': record.task.user_story.id,'task_id': record.task.id, 'time_entry_id': record.id}) #project_name,user_story_id,task_id
+        return format_html('<a href="{}" class="btn btn-primary">Edit</a>', edit_url)
+    #def render_start_time(self, value):
+    #    return format_html(value.strftime('%H:%M:%S'))
+
     class Meta:
         model = TimeEntry
-        fields = ('user', 'task', 'start_time', 'end_time', 'logged_time')
+        fields = ('user', 'task', 'date', 'logged_time', 'time_to_finish')
         template_name = "django_tables2/bootstrap4.html"

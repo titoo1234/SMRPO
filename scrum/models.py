@@ -163,16 +163,18 @@ class Task(models.Model):
         return self.name
 
 class TimeEntry(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE,null=True, blank=True)
     task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    date = models.DateField(null=True, blank=True)
     start_time = models.DateTimeField(null=True, blank=True)
     end_time = models.DateTimeField(null=True, blank=True)
     logged_time = models.PositiveIntegerField(default=0)
+    time_to_finish = models.PositiveIntegerField(default=1)
 
     def save(self, *args, **kwargs):
         if self.end_time:
             # Izračunajte porabljeni čas, če je končni čas nastavljen
-            time_spent = (self.end_time - self.start_time).seconds #// 60  # Pretvorite čas v minute
+            time_spent = (self.end_time - self.start_time).seconds #// 3600  # Pretvorite čas v ure
             self.logged_time = time_spent
         super().save(*args, **kwargs) 
     

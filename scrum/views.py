@@ -15,6 +15,7 @@ from datetime import datetime, time
 from django.utils import timezone
 from .tables import *
 from django_tables2 import RequestConfig
+from datetime import timedelta
 # Create your views here.
 def get_context(request):
     
@@ -993,6 +994,18 @@ def tasks(request, project_name, user_story_id):
     context["tasks_table_rejected"] = tasks_table_rejected
     context['accepted'] = user_story.accepted
     context["user_story_info_table"] = user_story_info_table
+
+    # get total time to finish and logged time
+    total_time_to_finish = 0
+    total_logged_time = 0
+    for task in all_uncompleted_tasks:
+        time_entries = TimeEntry.objects.filter(task=task)
+        for time_entry in time_entries:
+            total_time_to_finish += time_entry.time_to_finish
+            total_logged_time += time_entry.logged_time
+    context["total_time_to_finish"] = total_time_to_finish // 3600
+    context["total_logged_time"] = total_logged_time // 3600
+
     return render(request, "tasks.html", context=context)
 
 def new_task(request, project_name, user_story_id):
@@ -1011,7 +1024,21 @@ def new_task(request, project_name, user_story_id):
         # Project.objects.all().delete()
         form = NewTaskForm(request.POST,project_name = project_name,user_story_id=user_story_id)
         if form.is_valid(): 
-            form.save()
+            task = form.save()
+            user_story = UserStory.objects.get(id = user_story_id)
+            current_sprint = Sprint.objects.get(id = user_story.sprint.id)
+            start_date = current_sprint.start_date
+            end_date = current_sprint.end_date
+            # get the difference between end_date and start_date in days
+            num_days = (end_date - start_date).days + 1
+
+            for i in range(num_days):
+                date = start_date + timedelta(days=i)
+                if date.weekday() < 5:
+                    t_e = TimeEntry.objects.create(user=task.assigned_user, task=task, start_time=None, end_time=None, date=date, time_to_finish=task.estimate*3600)
+                    t_e.save()
+                else:
+                    continue
             messages.success(request,"Task added successfully!")
             # path('project/<str:project_name>/tasks/<int:user_story_id>/', views.tasks, name='tasks'),
             return redirect('tasks',project_name,user_story_id)
@@ -1032,6 +1059,10 @@ def accept_task(request,project_name,user_story_id,task_id):
         context = get_context(request)
         user = User.objects.get(id = context['id'])
         task.assigned_user = user
+        time_entries = TimeEntry.objects.filter(task=task)
+        for time_entry in time_entries:
+            time_entry.user = user
+            time_entry.save()
     task.accepted = True
     task.save()
     messages.success(request,"Task accepted!")
@@ -1043,9 +1074,8 @@ def decline_task(request,project_name,user_story_id,task_id):
     task.accepted = False
     task.assigned_user = None
     task.started = False
-    time_entry = TimeEntry.objects.filter(task=task, end_time__isnull=True).first()
+    time_entry = TimeEntry.objects.filter(task=task, start_time__isnull=False, end_time__isnull=True).first()
     if time_entry:
-        
         time_entry.end_time = timezone.now()
         time_entry.save()
     task.save()
@@ -1060,30 +1090,23 @@ def start_stop_task(request,project_name,user_story_id,task_id):
     task.started = not task.started
     #TODO a se bo tukaj kaj logiralo???
     # recimo da nekak tak
-
+    today = timezone.now().date()
     
     if task.started:
-        TimeEntry.objects.create(user=user, task=task,start_time = timezone.now())
+        time_entry = TimeEntry.objects.get(task=task, date=today)
+        
+        #TimeEntry.objects.create(user=user, task=task, start_time=timezone.now(), end_time=None, date=time_entry.date)
+        
         messages.success(request,"Task started!")
     else:
-        time_entries = TimeEntry.objects.filter(task=task)
-        time_entry = TimeEntry.objects.filter(task=task, end_time__isnull=True).first()
+        time_entry = TimeEntry.objects.filter(task=task, start_time__isnull=False, end_time__isnull=True).first()
         if time_entry:
             time_entry.end_time = timezone.now()
-            merged = False
-            for t_e in time_entries:
-                if t_e.id == time_entry.id:
-                    continue
-                if t_e.end_time.date() == time_entry.end_time.date():
-                    t_e.logged_time += (time_entry.end_time - t_e.start_time).seconds
-                    t_e.end_time = time_entry.end_time
-                    merged = True
-                    t_e.save()
-                    break
-            if merged:
-                time_entry.delete()
-            else:
-                time_entry.save()
+            time_entry.logged_time += (time_entry.end_time - time_entry.start_time).seconds
+            time_entry.time_to_finish -= (time_entry.end_time - time_entry.start_time).seconds
+            if time_entry.time_to_finish < 0:
+                time_entry.time_to_finish = 0
+            time_entry.save()
         messages.success(request,"Task stoped!")
 
     task.save()
@@ -1093,7 +1116,7 @@ def complete_task(request,project_name,user_story_id,task_id):
     task = Task.objects.get(id = task_id)
     if task.started:
         # poskrbimo da se logira, če se še ni
-        time_entry = TimeEntry.objects.filter(task=task, end_time__isnull=True).first()
+        time_entry = TimeEntry.objects.filter(task=task, start_time__isnull=False,end_time__isnull=True).first()
         if time_entry:
             time_entry.end_time = timezone.now()
             time_entry.save()
@@ -1107,13 +1130,10 @@ def complete_task(request,project_name,user_story_id,task_id):
 def log_time_task(request,project_name,user_story_id,task_id):
     task = Task.objects.get(id = task_id)
     
-    
-
-    #  bo treba render neki neki GLEJ reject_user_story ko odpre stran za komentiranje pa se tam nardi nova forma recimo
-    #  lahk pa tud kako drugače
-    #  TODO
     context = get_context(request)
     time_entrys = TimeEntry.objects.filter(task=task)#, end_time__isnull=False
+    # only show the time entries that have a date <= today
+    time_entrys = [time_entry for time_entry in time_entrys if time_entry.date <= timezone.now().date()]
     time_entrys_table = TimeEntryTable(time_entrys)
     context['time_entrys_table'] = time_entrys_table
     return render(request,'loged_time_task.html',context=context)
@@ -1174,7 +1194,22 @@ def edit_task(request, project_name, user_story_id,task_id):
         context['project'] = project
         return render(request,'edit_task.html',context=context)
     
-
+def edit_time_entry(request, project_name, user_story_id, task_id, time_entry_id):
+    if request.method == "POST":
+        time_entry = TimeEntry.objects.get(id=time_entry_id)
+        logged_time = int(request.POST.get('logged_time'))
+        time_to_finish = int(request.POST.get('time_to_finish'))
+        time_entry.logged_time = logged_time * 3600
+        time_entry.time_to_finish = time_to_finish * 3600
+        time_entry.save()
+        messages.success(request, "Time entry edited successfully!")
+        return redirect('log_time_task', project_name, user_story_id, task_id)
+    if request.method == "GET":
+        time_entry = TimeEntry.objects.get(id=time_entry_id)
+        form = TimeEntryForm(instance=time_entry, initial={'task': task_id, 'user': time_entry.user.id, 'date': time_entry.date, 'start_time': time_entry.start_time, 'end_time': time_entry.end_time, 'logged_time': time_entry.logged_time, 'time_to_finish': time_entry.time_to_finish})
+        context = get_context(request)
+        context['form'] = form
+        return render(request, 'edit_time_entry.html', context=context)
 # DOKUMENTACIJA NA PROJEKTU================================================================================
 def project_documentation(request, project_name):
     project = Project.objects.get(name=project_name)  # pridobivanje povezanega projekta
