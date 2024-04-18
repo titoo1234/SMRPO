@@ -20,8 +20,8 @@ def create_default_data(apps, schema_editor):
     # SPRINT
     # =============================================
     sprint_start_date = datetime.datetime(2024, 3, 26)
-    sprint_end_date = datetime.datetime(2024, 4, 10)
-    default_sprint = Sprint.objects.create(project=project, start_date=sprint_start_date, end_date=sprint_end_date,velocity = 15)
+    sprint_end_date = datetime.datetime(2024, 4, 26)
+    default_sprint = Sprint.objects.create(project=project, start_date=sprint_start_date, end_date=sprint_end_date,velocity = 20)
 
     
 class Migration(migrations.Migration):

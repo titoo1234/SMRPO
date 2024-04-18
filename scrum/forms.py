@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.hashers import check_password
-from .models import User,Project,AssignedRole,UserStory, Sprint, ProjectWall,Task,Documentation
+from .models import User,Project,AssignedRole,UserStory, Sprint, ProjectWall,Task,Documentation, TimeEntry
 from django.utils import timezone
 from django.forms.models import inlineformset_factory
 from datetime import datetime, time
@@ -301,6 +301,23 @@ class NewTaskForm(forms.ModelForm):
         'estimate': 'Estimate[h]'
     }
 
+class TimeEntryForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['date'].initial = kwargs['initial']['date']
+        self.fields['logged_time'].initial = kwargs['initial']['logged_time']
+        self.fields['time_to_finish'].initial = kwargs['initial']['time_to_finish']
+        self.fields['user'].widget = forms.HiddenInput()
+        self.fields['task'].widget = forms.HiddenInput()
+        self.fields['start_time'].widget = forms.HiddenInput()
+        self.fields['end_time'].widget = forms.HiddenInput()
+        self.fields['date'].widget.attrs['disabled'] = True
+
+    class Meta:
+        model = TimeEntry
+        fields = ['user', 'task', 'date', 'start_time', 'end_time', 'logged_time', 'time_to_finish']
+        # [ 'name', 'description','user_story' ,'assigned_user' ,'start_date' ,'end_date' ,'time_spent' ]
+        # fields = ['date', 'start_time', 'end_time', 'time_to_finish']
 
 class KomentarObrazec(forms.Form):
     komentar = forms.CharField(label='Komentar', widget=forms.Textarea)
