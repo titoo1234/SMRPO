@@ -324,8 +324,8 @@ class TaskTable(tables.Table):
     assigned_user = tables.Column()
     #assigned_user = tables.Column(empty_values=(1))
     estimate = tables.Column(verbose_name='Estimate[h]')
-    time_spent = tables.Column()
-    time_to_finish = tables.Column(empty_values=(), orderable=False, verbose_name='Time left')
+    time_spent = tables.Column(verbose_name='Time spent[h]')
+    time_to_finish = tables.Column(verbose_name='Time left[h]')
     accepted = tables.Column()
     user_story = tables.Column(visible= False)
     started = tables.Column(visible= False)
@@ -344,7 +344,7 @@ class TaskTable(tables.Table):
         self.deleted = kwargs.pop('deleted', False)
         super().__init__(*args, **kwargs)
         if self.product_owner:
-            self.exclude = ('edit_button','delete_button','decline_button','accept_button','complete_button','start_button')
+            self.exclude = ('edit_button','delete_button','decline_button','accept_button','complete_button','start_button','log_button')
         if not self.active_sprint:
             self.exclude = ('edit_button','delete_button','decline_button','accept_button','complete_button','start_button')
         if self.deleted:
@@ -358,7 +358,7 @@ class TaskTable(tables.Table):
         for row in self.rows:
             user_story = UserStory.objects.get(id = row.record.user_story.id)
             if user_story.accepted:
-                self.exclude = ('accept_button','decline_button','edit_button','complete_button','delete_button','log_button','start_button')#finish_button
+                self.exclude = ('accept_button','decline_button','edit_button','complete_button','delete_button','start_button')#finish_button
     
     def render_accept_button(self, record):
         if record.assigned_user:
@@ -419,23 +419,20 @@ class TaskTable(tables.Table):
                 return format_html('<a href="{}" class="btn btn-warning" onclick="return confirm(\'Ali ste prepričani, da želite zaključiti nalogo?\')">Complete</a>', url)
         return ''
         
-    def render_time_spent(self, record):
-        time_entries = TimeEntry.objects.filter(task = record.id)
-        time_spent = 0
-        for time_entry in time_entries:
-            time_spent += time_entry.logged_time
-        return time_spent//3600
+    def render_time_spent(self, value):
+        return value//3600
 
-    def render_time_to_finish(self, record):
-        # time_entries = TimeEntry.objects.filter(task = record.id)
-        # time_to_finish = 0
-        # for time_entry in time_entries:
-        #     time_to_finish += time_entry.time_to_finish
-        # return time_to_finish//3600
-        try:
-            time_entry = TimeEntry.objects.get(task=record.id, date=datetime.now().date())
-        except Exception as e:
-            print("NE DELA")
+
+    # def render_time_to_finish(self, record):
+    #     # time_entries = TimeEntry.objects.filter(task = record.id)
+    #     # time_to_finish = 0
+    #     # for time_entry in time_entries:
+    #     #     time_to_finish += time_entry.time_to_finish
+    #     # return time_to_finish//3600
+    #     try:
+    #         time_entry = TimeEntry.objects.get(task=record.id, date=datetime.now().date())
+    #     except Exception as e:
+    #         print("NE DELA")
     class Meta:
         model = Task
         fields = ('task_number','description', 'assigned_user', 'estimate','time_spent','time_to_finish', 'accepted', 'accept_button','decline_button','edit_button')
@@ -448,8 +445,28 @@ class TimeEntryTable(tables.Table):
     task = tables.Column()
     date = tables.Column()
     logged_time = tables.Column()
-    time_to_finish = tables.Column()
+    # time_to_finish = tables.Column()
     edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
+
+
+    def __init__(self, *args, **kwargs):
+        self.other = kwargs.pop('other', False)
+
+        super().__init__(*args, **kwargs)
+        if self.other:
+            self.exclude = ('edit_button')
+        
+
+
+    def before_render(self, request):
+        for row in self.rows:
+            task = row.record.task
+            stori = task.user_story
+            if stori.accepted:
+                self.exclude = ('edit_button')
+
+
+
 
     def render_task(self, value):
         # Uporabi HTML oznake za prikaz odstavkov v opisu
@@ -461,8 +478,8 @@ class TimeEntryTable(tables.Table):
     def render_logged_time(self, value):
         return format_html("{}", value//3600)
 
-    def render_time_to_finish(self, value):
-        return format_html("{}", value//3600)
+    # def render_time_to_finish(self, value):
+    #     return format_html("{}", value)#//3600
 
     def render_edit_button(self, record):
 
@@ -473,5 +490,5 @@ class TimeEntryTable(tables.Table):
 
     class Meta:
         model = TimeEntry
-        fields = ('user', 'task', 'date', 'logged_time', 'time_to_finish')
+        fields = ('user', 'task', 'date', 'logged_time')
         template_name = "django_tables2/bootstrap4.html"

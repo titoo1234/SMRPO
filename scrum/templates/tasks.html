@@ -6,9 +6,10 @@ Project {{project.name}}
 
 {% block content %}
 <h2>Project #{{project.id}}: <a href = '/project/{{project.name}}/'>{{project.name}}</a></h2>
+<h3>User Story #{{user_story.story_number}}: {{user_story.name}}</h3>
 <h3>Time spent: {{total_logged_time}}</h3>
 <h3>Time left: {{total_time_to_finish}}</h3>
-<h3>User Story #{{user_story.story_number}}: {{user_story.name}}</h3>
+
 {% load django_tables2 %}
 {% render_table user_story_info_table %}
 {%if not accepted%}

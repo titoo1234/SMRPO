@@ -1011,13 +1011,20 @@ def tasks(request, project_name, user_story_id):
 
     # get total time to finish and logged time
     total_time_to_finish = 0
-    total_logged_time = 0
-    for task in all_uncompleted_tasks:
+    total_logged_time = 0 
+    tasks_table_completed
+    for task in all_completed_tasks:
         time_entries = TimeEntry.objects.filter(task=task)
         for time_entry in time_entries:
-            total_time_to_finish += time_entry.time_to_finish
+            # total_time_to_finish += time_entry.time_to_finish
             total_logged_time += time_entry.logged_time
-    context["total_time_to_finish"] = total_time_to_finish // 3600
+    for task in all_uncompleted_tasks:
+        total_time_to_finish += task.time_to_finish
+        time_entries = TimeEntry.objects.filter(task=task)
+        for time_entry in time_entries:
+            # total_time_to_finish += time_entry.time_to_finish
+            total_logged_time += time_entry.logged_time
+    context["total_time_to_finish"] = total_time_to_finish 
     context["total_logged_time"] = total_logged_time // 3600
 
     return render(request, "tasks.html", context=context)
@@ -1049,7 +1056,7 @@ def new_task(request, project_name, user_story_id):
             for i in range(num_days):
                 date = start_date + timedelta(days=i)
                 if date.weekday() < 5:
-                    t_e = TimeEntry.objects.create(user=task.assigned_user, task=task, start_time=None, end_time=None, date=date, time_to_finish=task.estimate*3600)
+                    t_e = TimeEntry.objects.create(user=task.assigned_user, task=task, start_time=None, end_time=None, date=date )#time_to_finish=task.estimate*3600
                     t_e.save()
                 else:
                     continue
@@ -1073,10 +1080,21 @@ def accept_task(request,project_name,user_story_id,task_id):
         context = get_context(request)
         user = User.objects.get(id = context['id'])
         task.assigned_user = user
-        time_entries = TimeEntry.objects.filter(task=task)
-        for time_entry in time_entries:
-            time_entry.user = user
-            time_entry.save()
+        time_entries = TimeEntry.objects.filter(task=task,user = user).first()
+        if not time_entries:
+            user_story = UserStory.objects.get(id = user_story_id)
+            current_sprint = user_story.sprint #Sprint.objects.get(id = user_story.sprint.id)
+            start_date = current_sprint.start_date
+            end_date = current_sprint.end_date
+            # get the difference between end_date and start_date in days
+            num_days = (end_date - start_date).days + 1
+            for i in range(num_days):
+                date = start_date + timedelta(days=i)
+                if date.weekday() < 5:
+                    t_e = TimeEntry.objects.create(user=task.assigned_user, task=task, start_time=None, end_time=None, date=date )#time_to_finish=task.estimate*3600
+                    t_e.save()
+                else:
+                    continue
     task.accepted = True
     task.save()
     messages.success(request,"Task accepted!")
@@ -1102,24 +1120,47 @@ def start_stop_task(request,project_name,user_story_id,task_id):
     task = Task.objects.get(id = task_id)
     user = task.assigned_user
     task.started = not task.started
-    #TODO a se bo tukaj kaj logiralo???
-    # recimo da nekak tak
     today = timezone.now().date()
     
     if task.started:
-        time_entry = TimeEntry.objects.get(task=task, date=today)
-        
+
+        time_entry = TimeEntry.objects.get(task=task, date=today,user = user)
+        time_entry.start_time = timezone.now()
+        time_entry.save()
         #TimeEntry.objects.create(user=user, task=task, start_time=timezone.now(), end_time=None, date=time_entry.date)
         
         messages.success(request,"Task started!")
-    else:
-        time_entry = TimeEntry.objects.filter(task=task, start_time__isnull=False, end_time__isnull=True).first()
+    else: #Končali smo zu delom
+        time_entry = TimeEntry.objects.filter(task=task, date = today,user = user).first()#start_time__isnull=False, end_time__isnull=True).first() #NAJDEMO PRVEGA??
         if time_entry:
-            time_entry.end_time = timezone.now()
-            time_entry.logged_time += (time_entry.end_time - time_entry.start_time).seconds
-            time_entry.time_to_finish -= (time_entry.end_time - time_entry.start_time).seconds
-            if time_entry.time_to_finish < 0:
-                time_entry.time_to_finish = 0
+            end_time1 = timezone.now()
+            time_entry.end_time = end_time1
+            if time_entry.start_time:
+                porabljen_cas = (end_time1 - time_entry.start_time).seconds
+            else:
+                porabljen_cas = 0
+            time_entry.logged_time = time_entry.logged_time +  porabljen_cas
+            task.time_spent += porabljen_cas
+
+
+            if task.time_to_finish - (porabljen_cas//3600) <= 0:#//3600 #zmanjkalo je časa
+                task.time_to_finish = 0
+                task.done = True
+                task.save()
+                time_entry_id = time_entry.id
+                return redirect('edit_time_entry',project_name,user_story_id,task_id,time_entry_id)
+
+            else:
+                task.time_to_finish = task.time_to_finish - (porabljen_cas//3600) 
+
+
+
+
+
+            task.save()
+            # time_entry.time_to_finish -= (time_entry.end_time - time_entry.start_time).seconds
+            # if time_entry.time_to_finish < 0:
+                # time_entry.time_to_finish = 0
             time_entry.save()
         messages.success(request,"Task stoped!")
 
@@ -1135,27 +1176,37 @@ def complete_task(request,project_name,user_story_id,task_id):
             time_entry.end_time = timezone.now()
             time_entry.save()
         task.started = False
-        time_entries = TimeEntry.objects.filter(task=task)
-        for t_e in time_entries:
-            if t_e.date < timezone.now().date():
-                print(t_e.date)
-                t_e.time_to_finish = 0
-                t_e.save()
-        # TODO a se bo tukaj kaj logiralo
+        # time_entries = TimeEntry.objects.filter(task=task)
+        # for t_e in time_entries:
+        #     if t_e.date < timezone.now().date():
+        #         print(t_e.date)
+        #         # t_e.time_to_finish = 0
+        #         t_e.save()
+        
     task.done = True
+    task.time_to_finish = 0
     task.save()
     messages.success(request,"Task completed!")
     return redirect('tasks',project_name,user_story_id)
 
 def log_time_task(request,project_name,user_story_id,task_id):
     task = Task.objects.get(id = task_id)
-    
     context = get_context(request)
-    time_entrys = TimeEntry.objects.filter(task=task)#, end_time__isnull=False
+    user = User.objects.get(id = context['id'])
+    time_entrys = TimeEntry.objects.filter(task=task,user = user)#, end_time__isnull=False
     # only show the time entries that have a date <= today
     time_entrys = [time_entry for time_entry in time_entrys if time_entry.date <= timezone.now().date()]
     time_entrys_table = TimeEntryTable(time_entrys)
     context['time_entrys_table'] = time_entrys_table
+    context['time_left'] = task.time_to_finish
+    context['project_name'] = project_name
+    context['user_story_id'] = user_story_id
+
+    # EVIDENCA ZA OSTALE
+    ostali_uporabniki = User.objects.exclude(id=user.id)
+    time_entrys_other = TimeEntry.objects.filter(task=task, user__in=ostali_uporabniki, logged_time__gt=0)
+    time_entrys_other = TimeEntryTable(time_entrys_other,other = True)
+    context['time_entrys_other'] = time_entrys_other
     return render(request,'loged_time_task.html',context=context)
 
 #     return redirect('tasks',project_name,user_story_id)
@@ -1215,27 +1266,42 @@ def edit_task(request, project_name, user_story_id,task_id):
         return render(request,'edit_task.html',context=context)
     
 def edit_time_entry(request, project_name, user_story_id, task_id, time_entry_id):
+    task = Task.objects.get(id=task_id)
+    context = get_context(request)
+    user = User.objects.get(id = context['id'])
     if request.method == "POST":
         time_entry = TimeEntry.objects.get(id=time_entry_id)
+        time_before = time_entry.logged_time
         logged_time = int(request.POST.get('logged_time'))
         time_to_finish = int(request.POST.get('time_to_finish'))
         if time_to_finish < 0:
             messages.error(request, 'time_to_finish should be a non negative value')
-            return redirect(reqest.path)
-        task = Task.objects.get(id=task_id)
+            return redirect(request.path)
+        
         if task.done and time_to_finish > 0:
             task.done = False
-            task.save()
+        task.time_to_finish = time_to_finish
+        task.time_spent += (logged_time*3600-time_before) 
+        
         time_entry.logged_time = logged_time * 3600
-        time_entry.time_to_finish = time_to_finish * 3600
+        # time_entry.time_to_finish = time_to_finish * 3600
         time_entry.save()
+        
+        # ČE JE time_to_finish = 0 pol kar končaj task
+        if time_to_finish == 0:
+            task.done = True
+        else:
+            task.done = False
+        task.save()
         messages.success(request, "Time entry edited successfully!")
         return redirect('log_time_task', project_name, user_story_id, task_id)
     if request.method == "GET":
         time_entry = TimeEntry.objects.get(id=time_entry_id)
-        form = TimeEntryForm(instance=time_entry, initial={'task': task_id, 'user': time_entry.user.id, 'date': time_entry.date, 'start_time': time_entry.start_time, 'end_time': time_entry.end_time, 'logged_time': time_entry.logged_time // 3600, 'time_to_finish': time_entry.time_to_finish // 3600})
-        context = get_context(request)
+        form = TimeEntryForm(instance=time_entry, user_assigned = (user == task.assigned_user),logged_time = time_entry.logged_time // 3600 )#initial={'task': task_id, 'user': time_entry.user.id, 'date': time_entry.date, 'start_time': time_entry.start_time, 'end_time': time_entry.end_time, 'logged_time': time_entry.logged_time // 3600} # 'time_to_finish': time_entry.time_to_finish // 3600
+        
         context['form'] = form
+
+ 
         return render(request, 'edit_time_entry.html', context=context)
 # DOKUMENTACIJA NA PROJEKTU================================================================================
 def project_documentation(request, project_name):

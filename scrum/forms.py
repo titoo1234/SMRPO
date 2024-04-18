@@ -302,23 +302,46 @@ class NewTaskForm(forms.ModelForm):
     }
 
 class TimeEntryForm(forms.ModelForm):
+    time_to_finish = forms.IntegerField(label='Time to finish[h]')  
     def __init__(self, *args, **kwargs):
+        user_assigned = kwargs.pop('user_assigned', True)
+        logged_time = kwargs.pop('logged_time', 0)
         super().__init__(*args, **kwargs)
-        self.fields['date'].initial = kwargs['initial']['date']
-        self.fields['logged_time'].initial = kwargs['initial']['logged_time']
-        self.fields['time_to_finish'].initial = kwargs['initial']['time_to_finish']
+        # self.fields['date'].initial = kwargs['initial']['date']
+        # # self.fields['logged_time'].initial = kwargs['initial']['logged_time']
+        # self.fields['logged_time'].initial = self.instance.logged_time if self.instance else None
+        instance = kwargs.get('instance')
+        if instance:
+            task = instance.task
+            initial = kwargs.get('initial', {})
+            initial['time_to_finish'] = task.time_to_finish
+            kwargs['initial'] = initial
+        if logged_time:
+            initial['logged_time'] = logged_time
+            kwargs['initial'] = initial
+          
+        
+        super().__init__(*args, **kwargs)
+        if not user_assigned:
+
+            self.fields['time_to_finish'].widget.attrs['hidden'] = True
+        
         self.fields['user'].widget = forms.HiddenInput()
         self.fields['task'].widget = forms.HiddenInput()
         self.fields['start_time'].widget = forms.HiddenInput()
         self.fields['end_time'].widget = forms.HiddenInput()
         self.fields['date'].widget.attrs['disabled'] = True
+        self.fields['logged_time'].label = 'Logged Time[h]'
+        
 
     class Meta:
         model = TimeEntry
-        fields = ['user', 'task', 'date', 'start_time', 'end_time', 'logged_time', 'time_to_finish']
+        fields = ['user', 'task', 'date', 'start_time', 'end_time', 'logged_time']#, 'time_to_finish'
         # [ 'name', 'description','user_story' ,'assigned_user' ,'start_date' ,'end_date' ,'time_spent' ]
         # fields = ['date', 'start_time', 'end_time', 'time_to_finish']
 
+# time_to_finish
+#       self.fields['time_to_finish'].initial = kwargs['initial']['time_to_finish']
 class KomentarObrazec(forms.Form):
     komentar = forms.CharField(label='Komentar', widget=forms.Textarea)
 
