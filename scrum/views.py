@@ -593,7 +593,6 @@ def check_sprint_dates(start_date, end_date, velocity, sprints, sprint_id=-1):
 def sprints_list_handler(request, project_name):
     if request.method == 'POST':
         try:
-            print(project_name)
             project = Project.objects.get(name=project_name)
             #print("project: ",project.id)
             # get start and end date and check for regularity
@@ -1121,6 +1120,12 @@ def complete_task(request,project_name,user_story_id,task_id):
             time_entry.end_time = timezone.now()
             time_entry.save()
         task.started = False
+        time_entries = TimeEntry.objects.filter(task=task)
+        for t_e in time_entries:
+            if t_e.date < timezone.now().date():
+                print(t_e.date)
+                t_e.time_to_finish = 0
+                t_e.save()
         # TODO a se bo tukaj kaj logiralo
     task.done = True
     task.save()
@@ -1199,6 +1204,13 @@ def edit_time_entry(request, project_name, user_story_id, task_id, time_entry_id
         time_entry = TimeEntry.objects.get(id=time_entry_id)
         logged_time = int(request.POST.get('logged_time'))
         time_to_finish = int(request.POST.get('time_to_finish'))
+        if time_to_finish < 0:
+            messages.error(request, 'time_to_finish should be a non negative value')
+            return redirect(reqest.path)
+        task = Task.objects.get(id=task_id)
+        if task.done and time_to_finish > 0:
+            task.done = False
+            task.save()
         time_entry.logged_time = logged_time * 3600
         time_entry.time_to_finish = time_to_finish * 3600
         time_entry.save()
@@ -1206,7 +1218,7 @@ def edit_time_entry(request, project_name, user_story_id, task_id, time_entry_id
         return redirect('log_time_task', project_name, user_story_id, task_id)
     if request.method == "GET":
         time_entry = TimeEntry.objects.get(id=time_entry_id)
-        form = TimeEntryForm(instance=time_entry, initial={'task': task_id, 'user': time_entry.user.id, 'date': time_entry.date, 'start_time': time_entry.start_time, 'end_time': time_entry.end_time, 'logged_time': time_entry.logged_time, 'time_to_finish': time_entry.time_to_finish})
+        form = TimeEntryForm(instance=time_entry, initial={'task': task_id, 'user': time_entry.user.id, 'date': time_entry.date, 'start_time': time_entry.start_time, 'end_time': time_entry.end_time, 'logged_time': time_entry.logged_time // 3600, 'time_to_finish': time_entry.time_to_finish // 3600})
         context = get_context(request)
         context['form'] = form
         return render(request, 'edit_time_entry.html', context=context)
