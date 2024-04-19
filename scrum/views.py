@@ -680,7 +680,33 @@ def sprint_details_handler(request, project_name, sprint_id):
         except Sprint.DoesNotExist:
             messages.error(request,"Sprint does not exist")
             return render(request.path)#JsonResponse({'message': 'Sprint does not exist'}, status=404)
+
+def active_sprint_overview(request, project_name):
+    project = Project.objects.get(name=project_name)
+    sprint = get_active_sprint(project_name)
+    user_stories = UserStory.objects.filter(project=project, sprint=sprint)
     
+    accepted_userstories = UserStory.objects.filter(project=project, sprint=sprint, accepted = True)
+    accepted_userstories = UserStoryTable(accepted_userstories, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
+    unaccepted_userstories = UserStory.objects.filter(project=project, sprint=sprint, accepted = False)
+    unaccepted_userstories = UserStoryTable(unaccepted_userstories, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
+    context['accepted_userstories'] = accepted_userstories
+    context['unaccepted_userstories'] = unaccepted_userstories
+
+    for user_story in user_stories:
+        context[user_story.id] = {}
+        accepted_tasks = Task.objects.filter(user_story=user_story, accepted=True, completed=False)
+        unaccepted_tasks = Task.objects.filter(user_story=user_story, accepted=False, completed=False)
+        completed_tasks = Task.objects.filter(user_story=user_story, completed=True)
+        active_tasks = Task.objects.filter(user_story=user_story, completed=False, started=True)
+        context[user_story.id]['accepted_tasks'] = accepted_tasks
+        context[user_story.id]['unaccepted_tasks'] = unaccepted_tasks
+        context[user_story.id]['completed_tasks'] = completed_tasks
+        context[user_story.id]['active_tasks'] = active_tasks
+
+    return render(request, 'active_sprint_overview.html', context)
+
+
 def new_sprint(request,project_name):
     context = get_context(request)
     project = Project.objects.get(name=project_name)
