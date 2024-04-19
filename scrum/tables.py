@@ -331,31 +331,38 @@ class SprintTable(tables.Table):
 
 
 class TaskTable(tables.Table):
-    task_number = tables.Column(verbose_name='#')
-    description = tables.Column()
+    task_number = tables.Column(orderable=False, verbose_name='#')
+    description = tables.Column(orderable=False)
     # user_story = tables.Column()
-    assigned_user = tables.Column()
+    assigned_user = tables.Column(orderable=False)
     #assigned_user = tables.Column(empty_values=(1))
-    estimate = tables.Column(verbose_name='Estimate[h]')
-    time_spent = tables.Column(verbose_name='Time spent[h]')
-    time_to_finish = tables.Column(verbose_name='Time left[h]')
-    accepted = tables.Column()
-    user_story = tables.Column(visible= False)
-    started = tables.Column(visible= False)
-    accept_button = tables.Column(empty_values=(), orderable=False, verbose_name='Accept')
-    decline_button = tables.Column(empty_values=(), orderable=False, verbose_name='Decline')
-    edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
-    delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
-    start_button = tables.Column(empty_values=(), orderable=False, verbose_name='Start/Stop')
-    log_button = tables.Column(empty_values=(), orderable=False, verbose_name='loged time')
+    estimate = tables.Column(orderable=False, verbose_name='Estimate[h]')
+    time_spent = tables.Column(orderable=False, verbose_name='Time spent[h]')
+    time_to_finish = tables.Column(orderable=False, verbose_name='Time left[h]')
+    accepted = tables.Column(orderable=False)
+    user_story = tables.Column(visible= False, orderable=False)
+    started = tables.Column(visible= False, orderable=False)
+    # accept_button = tables.Column(empty_values=(), orderable=False, verbose_name='Accept')
+    # decline_button = tables.Column(empty_values=(), orderable=False, verbose_name='Decline')
+    # edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
+    # delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
+    # start_button = tables.Column(empty_values=(), orderable=False, verbose_name='Start/Stop')
+    # log_button = tables.Column(empty_values=(), orderable=False, verbose_name='')
     complete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Complete')
+    status = tables.Column(empty_values=(), orderable=False, verbose_name='Status')
+    actions_edit = tables.Column(empty_values=(), orderable=False, verbose_name='')
+    actions_accept = tables.Column(empty_values=(), orderable=False, verbose_name='')
+    actions_logging = tables.Column(empty_values=(), orderable=False, verbose_name='')
     
     def __init__(self, *args, **kwargs):
+        self.info = kwargs.pop('info', False)
         self.user_id = kwargs.pop('user_id', 0)
         self.product_owner = kwargs.pop('product_owner', False)
         self.active_sprint = kwargs.pop('active_sprint', False)
         self.deleted = kwargs.pop('deleted', False)
         super().__init__(*args, **kwargs)
+        if not self.info:
+            self.exclude = ('status')
         if self.product_owner:
             self.exclude = ('edit_button','delete_button','decline_button','accept_button','complete_button','start_button','log_button')
         if not self.active_sprint:
@@ -378,51 +385,52 @@ class TaskTable(tables.Table):
             if (record.assigned_user.id == self.user_id) and (not record.accepted):
                 project = record.user_story.project
                 url = reverse('accept_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
-                return format_html('<a href="{}" class="btn btn-success">Accept</a>', url)    
+                return format_html('<a href="{}"><i class="fa fa-check" style="color:green"></i></a>', url)    
         if (not record.assigned_user) and (not record.accepted):
             project = record.user_story.project
             development_team_member = AssignedRole.objects.filter(project = project, user=self.user_id,role = 'development_team_member')
             if development_team_member:
                 
                 url = reverse('accept_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
-                return format_html('<a href="{}" class="btn btn-success">Accept</a>', url)   
-        return ''
-    
+                return format_html('<a href="{}"><i class="fa fa-check" style="color:green"></i></a>', url)   
+        return format_html('')
+
     def render_log_button(self, record):
         # if record.assigned_user and  record.accepted:
         #     if record.assigned_user.id == self.user_id:
         project = record.user_story.project
         url = reverse('log_time_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
-        return format_html('<a href="{}" class="btn btn-secondary">Logged time</a>', url)
-        return ''
+        return format_html('<a href="{}"><i class="fas fa-clock" style="color:black"></i></a>', url)
+
     def render_start_button(self, record):
         if record.assigned_user and record.accepted:
             if record.assigned_user.id == self.user_id:
                 project = record.user_story.project
                 if not record.started:
                     url = reverse('start_stop_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
-                    return format_html('<a href="{}" class="btn btn-success">Start</a>', url)
+                    return format_html('<a href="{}"><i class="fa fa-play" style="color:green"></i></a>', url)
                 else:
                     url = reverse('start_stop_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
-                    return format_html('<a href="{}" class="btn btn-danger">Stop</a>', url)
-        return ''
+                    return format_html('<a href="{}"><i class="fa fa-stop" style="color:red"></i></a>', url)
+        return format_html('')
     
     def render_decline_button(self, record):
         if record.assigned_user:
             if record.assigned_user.id == self.user_id:
                 project = record.user_story.project
                 url = reverse('decline_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
-                return format_html('<a href="{}" class="btn btn-danger">Decline</a>', url)
-        return ''
+                return format_html('<a href="{}"><i class="fa fa-times" style="color:red"></i></a>', url)
+        return format_html('')
+
     def render_edit_button(self, record):
         project = record.user_story.project
         edit_url = reverse('edit_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
-        return format_html('<a href="{}" class="btn btn-primary">Edit</a>', edit_url)
+        return format_html('<a class="btn btn-info btn-sm" style="margin-right:1px" href="{}"><i class="fas fa-pencil-alt" style="margin-right:2px"></i>Edit</a>', edit_url)
     
     def render_delete_button(self, record):
         project = record.user_story.project
         edit_url = reverse('delete_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
-        return format_html('<a href="{}" class="btn btn-danger">Delete</a>', edit_url)
+        return format_html('<a class="btn btn-danger btn-sm" style="margin-right:1px" href="{}"><i class="fas fa-trash" style="margin-right:2px"></i>Delete</a>', edit_url)
     
     def render_complete_button(self, record):
         if record.assigned_user:
@@ -430,10 +438,31 @@ class TaskTable(tables.Table):
                 project = record.user_story.project
                 url = reverse('complete_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
                 return format_html('<a href="{}" class="btn btn-warning" onclick="return confirm(\'Ali ste prepričani, da želite zaključiti nalogo?\')">Complete</a>', url)
-        return ''
+        return format('')
         
     def render_time_spent(self, value):
         return value//3600
+    
+    def render_actions_edit(self, record):
+        return self.render_edit_button(record) + self.render_delete_button(record)
+    
+    def render_actions_accept(self, record):
+        return self.render_accept_button(record) + self.render_decline_button(record)
+    
+    def render_actions_logging(self, record):
+        return self.render_log_button(record) + self.render_start_button(record)
+    
+    def render_status(self, record):
+        if record.done:
+            return format_html('<span class="badge badge-info">Completed</span>')
+        if record.accepted:
+            if record.started:
+                return format_html('<span class="badge badge-success">Active</span>')
+            else:
+                return format_html('<span class="badge badge-secondary">Accepted</span>')
+        else:
+            return format_html('<span class="badge badge-danger">Unaccepted</span>')
+
 
 
     # def render_time_to_finish(self, record):
@@ -448,8 +477,8 @@ class TaskTable(tables.Table):
     #         print("NE DELA")
     class Meta:
         model = Task
-        fields = ('task_number','description', 'assigned_user', 'estimate','time_spent','time_to_finish', 'accepted', 'accept_button','decline_button','edit_button')
-        template_name = "django_tables2/bootstrap4.html"
+        fields = ('task_number','description', 'assigned_user', 'estimate','time_spent', 'status', 'time_to_finish', 'accepted', 'actions_accept', 'actions_logging', 'actions_accept')
+        template_name = "table-custom.html"
 
 
 

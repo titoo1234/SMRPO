@@ -10,6 +10,7 @@ urlpatterns = [
     path('login-v2/', views.user_login, name='login-v2'),
     path('projects-v2.html', views.projects, name='projects-v2'),
     path('project/<str:project_name>/product_backlog/', views.product_backlog, name='product_backlog'),
+    path('project/<str:project_name>/sprint_backlog/', views.sprint_backlog, name='sprint_backlog'),
 
     path('', views.home, name='home'),
     path('login/', views.user_login, name='login'),
@@ -35,7 +36,6 @@ urlpatterns = [
     path('project/<str:project_name>/new_sprint/', views.new_sprint, name='new_sprint'),
     path('project/<str:project_name>/sprint/<int:sprint_id>/edit', views.edit_sprint, name='sprint_edit'),
     path('delete_sprint/<str:project>/<int:id>', views.delete_sprint, name='delete_sprint'),
-    path('project/<str:project_name>/active_sprint', views.active_sprint_overview, name='active_sprint'),
     # USER_STORY ============================================================
     path('project/<str:project_name>/new_user_story/', views.new_user_story, name='new_user_story'),
     path('project/<str:project_name>/edit_user_story/<int:id>/', views.edit_user_story, name='edit_user_story'),

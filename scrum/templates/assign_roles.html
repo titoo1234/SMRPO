@@ -54,10 +54,10 @@
                     </br>
                         <div class="row">
                             <div class="col-sm-12">
-                            <label for="methodology_manager">Development Team Members</label>
+                            <label for="development_team_members">Development Team Members</label>
                             {% for user in allusers %}
                             <div class="custom-control custom-checkbox">
-                                <input name="project_members" class="custom-control-input" type="checkbox" id="member_{{ user.id }}" value="{{ user.id }}">
+                                <input name="development_team_members" class="custom-control-input" type="checkbox" id="member_{{ user.id }}" value="{{ user.id }}">
                                 <label for="member_{{ user.id }}" class="custom-control-label">{{ user.username }}</label>
                             </div>
                             {% endfor %}

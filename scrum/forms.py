@@ -324,8 +324,13 @@ class NewTaskForm(forms.ModelForm):
         fields = ['description','user_story' ,'assigned_user','estimate' ]#'time_spent' pri novem še ne rabimo?
         # [ 'name', 'description','user_story' ,'assigned_user' ,'start_date' ,'end_date' ,'time_spent' ]
         labels = {
-        'estimate': 'Estimate[h]'
-    }
+            'estimate': 'Estimate[h]'
+        }
+        widgets = {
+            'description': forms.Textarea(attrs={'class':'form-control'}), 
+            'assigned_user': forms.Select(attrs={'class':'form-control'}), 
+            'estimate': forms.NumberInput(attrs={'class':'form-control'}), 
+        }
 
 class TimeEntryForm(forms.ModelForm):
     time_to_finish = forms.IntegerField(label='Time to finish[h]')  
