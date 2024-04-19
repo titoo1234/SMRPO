@@ -54,7 +54,7 @@ urlpatterns = [
     path('project/<str:project_name>/tasks/<int:user_story_id>/<int:task_id>/complete/', views.complete_task, name='complete_task'),
     path('project/<str:project_name>/tasks/<int:user_story_id>/<int:task_id>/start_stop/', views.start_stop_task, name='start_stop_task'),
     path('project/<str:project_name>/tasks/<int:user_story_id>/<int:task_id>/log_time/', views.log_time_task, name='log_time_task'),
-
+    path('project/<str:project_name>/tasks/<int:user_story_id>/<int:task_id>/edit_time_entry/<int:time_entry_id>/', views.edit_time_entry, name='edit_time_entry'),
     # DOCUMENTATION ============================================================
     path('project/<str:project_name>/documentation/', views.project_documentation, name='project_documentation'),
     path('project/<str:project_name>/documentation_import/', views.project_documentation_import, name='project_documentation_import'),

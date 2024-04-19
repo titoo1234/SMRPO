@@ -5,12 +5,21 @@ Loged time
 {% endblock %}
 
 {% block content %}
+
+<h2>Loged time <a href = '/project/{{project_name}}/tasks/{{user_story_id}}/'>nazaj</a></h2>
 <h2>Loged time</h2>
 {% load django_tables2 %}
 {% if time_entrys_table.rows %}
 {% render_table time_entrys_table %}
-
+<h2>Time left: {{time_left}}</h2>
 {% endif %}
+
+{% if time_entrys_other.rows %}
+<h2>Other entries</h2>
+{% render_table time_entrys_other %}
+{% endif %}
+
+
 
 
 {% endblock %}

@@ -140,6 +140,7 @@ class Task(models.Model):
     started = models.BooleanField(default=False)
     deleted = models.BooleanField(default=False)
     task_number = models.IntegerField()
+    time_to_finish = models.PositiveIntegerField()
     class Meta:
         ordering = ['task_number']  # Razvrščanje zgodbe po številki zgodbe v padajočem vrstnem redu
         constraints = [
@@ -157,23 +158,28 @@ class Task(models.Model):
     def save(self, *args, **kwargs):
         if not self.task_number:
             self.task_number = self.get_next_task_number(self.user_story_id)
+        if not self.pk:
+            if not self.time_to_finish:  # Nastavitev time_to_finish ob ustvarjanju objekta, če ni že določeno
+                self.time_to_finish = self.estimate
         super().save(*args, **kwargs)
         
     def __str__(self):
         return self.name
 
 class TimeEntry(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE,null=True, blank=True)
     task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    date = models.DateField(null=True, blank=True)
     start_time = models.DateTimeField(null=True, blank=True)
     end_time = models.DateTimeField(null=True, blank=True)
     logged_time = models.PositiveIntegerField(default=0)
+    # time_to_finish = models.PositiveIntegerField(default=1)
 
     def save(self, *args, **kwargs):
-        if self.end_time:
-            # Izračunajte porabljeni čas, če je končni čas nastavljen
-            time_spent = (self.end_time - self.start_time).seconds #// 60  # Pretvorite čas v minute
-            self.logged_time = time_spent
+        # if self.end_time:
+        #     # Izračunajte porabljeni čas, če je končni čas nastavljen
+        #     time_spent = (self.end_time - self.start_time).seconds #// 3600  # Pretvorite čas v ure
+        #     self.logged_time = time_spent
         super().save(*args, **kwargs) 
     
 
