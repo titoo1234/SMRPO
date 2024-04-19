@@ -1,49 +1,83 @@
 
-{% extends 'base.html' %}
-
-{% block title %}
-Assign Roles
-{% endblock %}
-
+{% extends 'base-v2.html' %}
+{% load static %}
 {% block content %}
 
-<h2>Assign Roles</h2>
-<form method="post">
-    <h1>Project: {{project_name}}</h1>
-    {% csrf_token %}
-    <label for="product_owner">Product Owner:</label>
-    <select name="product_owner" id="product_owner">
-        <!-- Možnosti za izbiro lastnika izdelka -->
-        {% for user in project_members %}
-        {% if user.id == product_owner.id %}
-            <option value="{{ user.id }}" selected>{{ user.username }}</option>
-        {% else %}
-            <option value="{{ user.id }}">{{ user.username }}</option>
-        {% endif %}
-        {% endfor %}
-    </select>
-    <br>
-    <label for="methodology_manager">Scrum Master:</label>
-    <select name="methodology_manager" id="methodology_manager">
-        {% for user in project_members %}
-        {% if user.id == methodology_manager.id %}
-            <option value="{{ user.id }}" selected>{{ user.username }}</option>
-        {% else %}
-            <option value="{{ user.id }}">{{ user.username }}</option>
-        {% endif %}
-    {% endfor %}
-    </select>
-    <br>
-    <label>Development Team Members:</label><br>
-    <!-- Možnosti za izbiro članov razvojne skupine -->
-    {% for user in project_members %}
-        <input type="checkbox" id="member_{{ user.id }}" name="development_team_members" value="{{ user.id }}" {% if user in development_team_members %}checked{% endif %}>
-        <!-- <input type="checkbox" id="member_{{ user.id }}" name="development_team_members" value="{{ user.id }}"> -->
-        <label for="member_{{ user.id }}">{{ user.username }}</label><br>
-    {% endfor %}
-    <br>
-    <button type="submit">Submit</button>
-</form>
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Project Edit</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+                    <li class="breadcrumb-item active">Project Edit</li>
+                </ol>
+            </div>
+        </div>
+    </div><!-- /.container-fluid -->
+</section>
 
-
+<section class="content">
+    <div class="row">
+        <div class="col-md-6 offset-3">
+            <div class="card card-primary">
+                <div class="card-header">
+                    <h3 class="card-title">Assign Roles for this Project</h3>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row">
+                            <label for="product_owner">Product Owner</label>
+                            <select name="product_owner" id="product_owner" class="custom-select">
+                                {% for user in project_members %}
+                                    {% if user.id == product_owner.id %}
+                                        <option value="{{ user.id }}" selected>{{ user.username }}</option>
+                                    {% else %}
+                                        <option value="{{ user.id }}">{{ user.username }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="row">
+                            <label for="methodology_manager">Scrum Master</label>
+                            <select class="custom-select" name="methodology_manager" id="methodology_manager">
+                                {% for user in project_members %}
+                                    {% if user.id == methodology_manager.id %}
+                                        <option value="{{ user.id }}" selected>{{ user.username }}</option>
+                                    {% else %}
+                                        <option value="{{ user.id }}">{{ user.username }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </br>
+                        <div class="row">
+                            <div class="col-sm-12">
+                            <label for="methodology_manager">Development Team Members</label>
+                            {% for user in allusers %}
+                            <div class="custom-control custom-checkbox">
+                                <input name="project_members" class="custom-control-input" type="checkbox" id="member_{{ user.id }}" value="{{ user.id }}" {% if user in development_team_members %}checked{% endif %}>
+                                <label for="member_{{ user.id }}" class="custom-control-label">{{ user.username }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        </div>
+                        <input type="submit" value="Save Changes" class="btn btn-success float-right">
+                    </form>
+                    <!-- /.card-body -->
+                </div>
+                <!-- /.card -->
+            </div>
+        </div>
+    </div>
+</section>
 {% endblock %}

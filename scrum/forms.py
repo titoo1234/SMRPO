@@ -290,6 +290,9 @@ class ProjectWallForm(forms.ModelForm):
     class Meta:
         model = ProjectWall
         fields = ["text"]
+        widgets = {
+            'text': forms.Textarea(attrs={'class':'form-control'}), 
+        }
 
 
 

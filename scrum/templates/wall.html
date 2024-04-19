@@ -1,10 +1,105 @@
-{% extends 'base.html' %}
+{% extends 'base-v1.html' %}
+{% load static %}
+{% block content %}
 
-{% block title %}
-Project {{project.name}}
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Project Wall</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'project_name' project.name %}">{{project.name}}</a></li>
+                    <li class="breadcrumb-item active">Project Wall</li>
+                </ol>
+            </div>
+        </div>
+    </div><!-- /.container-fluid -->
+</section>
+
+<section class="content">
+    <div class="card-body">
+        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#modal-default"><i class="fa fa-plus" style="margin-right: 5px;"></i>
+          Create New Post
+        </button>
+    </div>
+    <div class="container-fluid">
+      <!-- Timelime example  -->
+      <div class="row">
+        <div class="col-md-12">
+          <!-- The time line -->
+          <div class="timeline">
+            <!-- timeline time label -->
+            <!-- <div class="time-label">
+              <span class="bg-red">{{post.post_date}}</span>
+            </div> -->
+            <!-- /.timeline-label -->
+            <!-- timeline item -->
+            {% for post in posts %}
+            <div>
+              <i class="fas fa-user bg-gray"></i>
+              <div class="timeline-item">
+                <span class="time"><i class="fas fa-clock"></i> {{post.post_date}} </span>
+                <h3 class="timeline-header direct-chat-name">{{post.post}}</h3>
+
+                <div class="timeline-body">
+                    {{ post.text }}
+                </div>
+              </div>
+            </div>
+            {% empty %}
+            <div>
+                <i class="fa fa-exclamation-circle bg-gray"></i>
+                <div class="timeline-item">
+                  <h3 class="timeline-header direct-chat-name">No posts available.</h3>
+                </div>
+            </div>
+            {% endfor %}
+            <!-- END timeline item -->
+            <div>
+                <i class="fas fa-clock bg-gray"></i>
+            </div>
+        </div>
+    </div>
+    <!-- /.col -->
+  </div>
+</div>
+<!-- /.timeline -->
+</section>
+
+<div class="modal fade" id="modal-default">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Create New Post</h4>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form method="post">
+            <div class="modal-body">
+                {% csrf_token %}
+                {{ form.as_p }}
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Post</button>
+            </div>
+        </form>
+      </div>
+      <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+  </div>
+  <!-- /.modal -->
 {% endblock %}
 
-{% block content %}
+
+
+<!-- 
 <h2>Project {{project.name}}</h2>
 <h3>Posts</h3>
     {% for post in posts %}
@@ -28,7 +123,7 @@ Project {{project.name}}
         {% for message in messages %}
         <p class="error-message">{{ message }}</p>
         {% endfor %}
-    </form>
+    </form> -->
     <!--
     <form method="post" action="/project/{{project.name}}/wall/">
         {% csrf_token %}
@@ -39,4 +134,4 @@ Project {{project.name}}
         {% endfor %}
     </form>
 -->
-    {% endblock %}
+ 

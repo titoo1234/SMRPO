@@ -95,7 +95,7 @@
           <!-- Add icons to the links using the .nav-icon class
                with font-awesome or any other icon font library -->
           <li class="nav-item">
-            <a href="{% url 'dashboard' %}" class="nav-link">
+            <a id="Dashboard_nav_item" href="{% url 'dashboard' %}" class="nav-link">
               <i class="nav-icon fa fa fa-tachometer"></i>
               <p>
                 Dashboard
@@ -104,7 +104,7 @@
           </li>
           {% if admin %}
           <li class="nav-item">
-            <a href="{% url 'allusers' %}" class="nav-link">
+            <a id="Users_nav_item" href="{% url 'allusers' %}" class="nav-link">
               <i class="nav-icon fa fa-users"></i>
               <p>
                 Users
@@ -113,7 +113,7 @@
           </li>
           {% endif %}
           <li class="nav-item">
-            <a href="{% url 'projects-v2' %}" class="nav-link">
+            <a id="Projects_nav_item" href="{% url 'projects-v2' %}" class="nav-link">
               <i class="nav-icon fa fa-folder-open"></i>
               <p>
                 Projects
@@ -121,7 +121,7 @@
             </a>
           </li>
           <li class="nav-item">
-            <a href="#" class="nav-link">
+            <a id="Sprints_nav_item" href="{% url 'project_name' project.name %}" class="nav-link">
               <i class="nav-icon fa fa-calendar"></i>
               <p>
                 Sprints
@@ -129,23 +129,23 @@
             </a>
           </li>
           <li class="nav-item">
-            <a href="#" class="nav-link">
+            <a id="Product_Backlog_nav_item" href="{% url 'product_backlog' project.name %}" class="nav-link">
               <i class="nav-icon fa fa-book"></i>
               <p>
-                User Stories
+                Product Backlog
               </p>
             </a>
           </li>
           <li class="nav-item">
-            <a href="#" class="nav-link">
+            <a id="Sprint_Backlog_nav_item" href="#" class="nav-link">
               <i class="nav-icon fa fa-tasks"></i>
               <p>
-                Tasks
+                Sprint Backlog
               </p>
             </a>
           </li>
           <li class="nav-item">
-            <a href='/project/{{project.name}}/wall/' class="nav-link">
+            <a id="Wall_nav_item" href="{% url 'wall' project.name %}" class="nav-link">
               <i class="nav-icon fa fa-comments"></i>
               <p>
                 Wall
@@ -153,7 +153,7 @@
             </a>
           </li>
           <li class="nav-item">
-            <a href='/project/{{project.name}}/documentation/' class="nav-link">
+            <a id="Documentation_nav_item" href="{% url 'project_documentation' project.name %}" class="nav-link">
               <i class="nav-icon fa fa-file-text"></i>
               <p>
                 Documentation
@@ -228,16 +228,19 @@
 <!-- AdminLTE App -->
 <script src="{% static 'dist/js/adminlte.js' %}"></script>
 <script>
-    $(document).ready(function(){
-    var currentUrl = window.location.href;
-    $('.nav-sidebar .nav-link').each(function() {
-      var linkUrl = $(this).attr('href');
-      if (currentUrl.indexOf(linkUrl) !== -1) {
-        $(this).addClass('active');
+  $(document).ready(function(){
+      var activeLinkId = localStorage.getItem('activeLinkId');
+      if (activeLinkId) {
+          $('#' + localStorage.getItem('activeLinkId')).addClass('active');
       }
-    });
+      $('.nav-sidebar .nav-link').click(function() {
+          $(this).addClass('active');
+          var linkId = $(this).attr('id');
+          console.log(linkId)
+          localStorage.setItem('activeLinkId', linkId);
+      });
   });
-</script>
+  </script>
 <script>
   // JavaScript za upravljanje pojavno okno dokumentacije
   var currentPosition;

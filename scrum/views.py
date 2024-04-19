@@ -482,6 +482,77 @@ def project_view(request,project_name):
 
     return render(request, 'project.html', context)
 
+def product_backlog(request,project_name):
+    context = get_context(request)
+    project = Project.objects.get(name=project_name)
+    user = User.objects.get(id = context['id'])
+    sprints = Sprint.objects.filter(project=project).order_by('start_date')
+    user_stories = UserStory.objects.filter(project=project)
+    product_owner = AssignedRole.objects.get(project = project,role = 'product_owner').user
+    methodology_manager = AssignedRole.objects.get(project = project,role = 'methodology_manager').user
+    form = ProjectDisabledForm(instance=project)
+    is_creator = (project.creator.id == context['id'])
+    context['new_user_story_enabled'] = (user.admin_user or (user == methodology_manager or user == product_owner))
+    context['project'] = project
+    context['form'] = form
+    context['is_creator'] = is_creator
+    context['editable'] = (user.admin_user or (user == methodology_manager))
+    context['sprints'] = (sprints)
+    product_owner = AssignedRole.objects.filter(project = project, user=context['id'],role = 'product_owner')
+    user_story_table = UserStoryTable(user_stories, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
+    RequestConfig(request).configure(user_story_table)
+    context['user_story_table'] = user_story_table
+    
+    sprint_tables = []
+    today = datetime.today()
+    # .today() vrne datetime, ki ga nemores primerjat date objektom zato ga je treba pretvorit
+    today = datetime.date(today)
+    for sprint in sprints:
+        userstories = UserStory.objects.filter(project=project, sprint=sprint)
+        deleteable = False
+        #print(len(userstories))
+        if len(userstories) == 0:
+            deleteable = True
+        accepted_userstories = UserStory.objects.filter(project=project, sprint=sprint, accepted = True)
+        accepted_userstories = UserStoryTable(accepted_userstories, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
+        unaccepted_userstories = UserStory.objects.filter(project=project, sprint=sprint, accepted = False)
+        unaccepted_userstories = UserStoryTable(unaccepted_userstories, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
+        # sprint_table = SprintTable([sprint])
+        userstory_table = UserStoryTable(userstories, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
+        if sprint.end_date < today:
+            sprint_status = "Finished"
+        elif sprint.start_date <= today <= sprint.end_date:
+            sprint_status = "Active"
+        else:
+            sprint_status = "Unfinished"
+        sprint_tables.append((sprint, userstory_table, accepted_userstories, unaccepted_userstories, deleteable, sprint_status))
+    context['sprint_tables'] = sprint_tables
+    #Backlog = UserStory.objects.filter(project=project, sprint=None)
+    #Backlog = UserStoryTable(Backlog, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
+    #context['Backlog'] = Backlog
+    methodology_manager = AssignedRole.objects.get(project = project, role = 'methodology_manager')
+    # methodology_manager = User.objects.get(id = methodology_manager)
+
+    if (methodology_manager.user.id == context['id']) or context['admin']:
+        context['create_sprint'] = True
+    else:
+        context['create_sprint'] = False
+
+    accepted_stories = UserStory.objects.filter(project=project, accepted = True)
+    accepted_stories = UserStoryTable(accepted_stories, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
+    context['accepted_stories'] = accepted_stories
+
+    backlog_stories = UserStory.objects.filter(project=project, accepted = False, sprint__isnull=True)
+    backlog_stories = UserStoryTable(backlog_stories, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
+    context['backlog_stories'] = backlog_stories
+
+    active_stories = UserStory.objects.filter(project=project, accepted = False, sprint__isnull=False)
+    active_stories = UserStoryTable(active_stories, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
+    context['active_stories'] = active_stories
+        
+
+    return render(request, 'product_backlog.html', context)
+
 def project_edit(request,project_name):
     project = Project.objects.get(name=project_name)
     if request.method == 'POST':
@@ -761,7 +832,9 @@ def wall(request, project_name):
             return redirect(request.path)
             #return render(request, 'project.html', {'form': form})
     else:
-        posts = ProjectWall.objects.filter(project=project)
+        posts = ProjectWall.objects.filter(project=project).order_by('-post_date')
+        form = ProjectWallForm()
+        context['form'] = form
         for post in posts:
             post.text = post.text.replace('\n', '<br>')
             post.text = mark_safe(post.text)
@@ -806,7 +879,7 @@ def new_user_story(request, project_name):
                     return redirect(request.path)
             instance = form.save() 
             messages.success(request, f"User story \"{instance.name}\" created!!")
-            return redirect('project_name', project_name=project_name)
+            return redirect('product_backlog', project_name=project_name)
         else:
             messages.error(request, form.errors)
             return redirect(request.path)
@@ -872,7 +945,7 @@ def edit_user_story(request, project_name, id):
                     return redirect(request.path)
             form.save() 
             messages.success(request, f"User story \"{user_story.name}\" updated!!")
-            return redirect('project_name', project_name=project_name)
+            return redirect('product_backlog', project_name=project_name)
         else:
             messages.error(request, form.errors)
             return redirect(request.path)
@@ -898,7 +971,7 @@ def delete_user_story(request, project_name, id):
                 return redirect('project_name', project_name=project_name)
         else:
             messages.error(request, "User story can be deleted only by Product Owner or Scrum Master")
-            return redirect('project_name', project_name=project_name)
+            return redirect('product_backlog', project_name=project_name)
     context["user_story_id"] = user_story.id
     context["user_story_name"] = user_story.name
     context["project_name"] = project.name
