@@ -1137,12 +1137,46 @@ def start_stop_task(request,project_name,user_story_id,task_id):
             time_entry.end_time = end_time1
             if time_entry.start_time:
                 porabljen_cas = (end_time1 - time_entry.start_time).seconds
+                time_entry.logged_time = time_entry.logged_time +  porabljen_cas
             else:#Smo pustili preko noči, torej bomo dali kar cel dan?
+                # TO JE ZA DANAŠNJI DATUM
                 trenurni = datetime(end_time1.year, end_time1.month, end_time1.day, end_time1.hour, end_time1.minute, end_time1.second)
                 midnight = datetime(end_time1.year, end_time1.month, end_time1.day, 0, 0, 0)
                 difference = trenurni - midnight
                 porabljen_cas = difference.total_seconds()
-            time_entry.logged_time = time_entry.logged_time +  porabljen_cas
+                time_entry.logged_time = time_entry.logged_time +  porabljen_cas
+
+
+
+                #ZA PRVI DAN KO JE START VNESEN
+                current_date = timezone.now().date()
+                first_e_t = TimeEntry.objects.filter(start_time__isnull=False, date__lt=current_date, user=user).last()
+                
+                if first_e_t is not None:
+                    date = first_e_t.date
+                    next_midnight = datetime(date.year, date.month, date.day +1 , 0, 0, 0)
+                    trenurni = datetime(date.year, date.month, date.day, first_e_t.start_time.hour, first_e_t.start_time.minute, first_e_t.start_time.second)
+                    difference = next_midnight - trenurni
+                    porabljen_cas += difference.total_seconds()
+                    first_e_t.logged_time += difference.total_seconds()
+                    first_e_t.save()
+                #ZA VMESNE DNEVE KO JE CEL DAN ŠEL 
+                
+                if first_e_t: 
+
+                    entries_without_start_time = TimeEntry.objects.filter(start_time__isnull=True, date__lt=current_date,date__gt = first_e_t.date,user= user)
+                else:
+                    entries_without_start_time = TimeEntry.objects.filter(start_time__isnull=True, date__lt=current_date,user= user)
+                for e_t in entries_without_start_time:
+                    start_datetime = timezone.datetime.combine(e_t.date, timezone.datetime.min.time()) + timezone.timedelta(hours=8)
+                    e_t.start_time = timezone.make_aware(start_datetime)
+                    e_t.logged_time = 8 * 3600
+                    porabljen_cas += (8 * 3600)
+                    e_t.save()
+
+
+
+
             task.time_spent += porabljen_cas
 
 
