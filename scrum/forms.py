@@ -367,10 +367,10 @@ class TimeEntryForm(forms.ModelForm):
 
     class Meta:
         model = TimeEntry
-        fields = ['user', 'task', 'date', 'start_time', 'end_time', 'logged_time']#, 'time_to_finish'
+        fields = ['user', 'task', 'date', 'start_time', 'end_time', 'logged_time',]#, 'time_to_finish'
         # [ 'name', 'description','user_story' ,'assigned_user' ,'start_date' ,'end_date' ,'time_spent' ]
         # fields = ['date', 'start_time', 'end_time', 'time_to_finish']
-
+        # fields['date'].widget.attrs.update({'class': 'form-control'})
 # time_to_finish
 #       self.fields['time_to_finish'].initial = kwargs['initial']['time_to_finish']
 class KomentarObrazec(forms.Form):

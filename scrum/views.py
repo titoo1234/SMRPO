@@ -796,12 +796,14 @@ def new_sprint(request,project_name):
     return render(request,'new_sprint.html',context=context)
 
 def edit_sprint(request,project_name,sprint_id):
+    sprint = Sprint.objects.get(id=sprint_id)
+    project = Project.objects.get(name=project_name)
+    context = get_context(request)
+    context['sprint'] = sprint
+    context['project_name'] = project_name
+    context['project'] = project
     if request.method == 'GET':
-        sprint = Sprint.objects.get(id=sprint_id)
-        project = Project.objects.get(name=project_name)
-        context = get_context(request)
-        context['sprint'] = sprint
-        context['project_name'] = project_name
+        
         isActiveSprint = False
         if sprint.start_date <= timezone.now().date() and sprint.end_date >= timezone.now().date():
             isActiveSprint = True
@@ -1081,6 +1083,7 @@ def add_to_sprint(request, project_name, user_story_id):
 def tasks(request, project_name, user_story_id):
     context = get_context(request)
     user_story = UserStory.objects.get(id=user_story_id)
+    context['user_story'] = user_story
     project = Project.objects.get(name = project_name)
     methodology_manager = AssignedRole.objects.filter(project = project, user=context['id'],role = 'methodology_manager')
     product_owner = AssignedRole.objects.filter(project = project, user=context['id'],role = 'product_owner')
@@ -1340,6 +1343,8 @@ def complete_task(request,project_name,user_story_id,task_id):
 def log_time_task(request,project_name,user_story_id,task_id):
     task = Task.objects.get(id = task_id)
     context = get_context(request)
+    project = Project.objects.get(name = project_name)
+    user_story = UserStory.objects.get(id = user_story_id)
     user = User.objects.get(id = context['id'])
     time_entrys = TimeEntry.objects.filter(task=task,user = user)#, end_time__isnull=False
     # only show the time entries that have a date <= today
@@ -1348,7 +1353,8 @@ def log_time_task(request,project_name,user_story_id,task_id):
     context['time_entrys_table'] = time_entrys_table
     context['time_left'] = task.time_to_finish
     context['project_name'] = project_name
-    context['user_story_id'] = user_story_id
+    context['user_story'] = user_story
+    context['project'] = project
 
     # EVIDENCA ZA OSTALE
     ostali_uporabniki = User.objects.exclude(id=user.id)
@@ -1411,12 +1417,19 @@ def edit_task(request, project_name, user_story_id,task_id):
         context['form'] = form
         context['allusers'] = all_users
         context['project'] = project
+        user_story = UserStory.objects.get(id = user_story_id)
+        context['user_story'] = user_story
         return render(request,'edit_task.html',context=context)
     
 def edit_time_entry(request, project_name, user_story_id, task_id, time_entry_id):
     task = Task.objects.get(id=task_id)
     context = get_context(request)
     user = User.objects.get(id = context['id'])
+    context['task'] = task
+    project = Project.objects.get(name = project_name)
+    user_story = UserStory.objects.get(id = user_story_id)
+    context['user_story'] = user_story
+    context['project'] = project
     if request.method == "POST":
         time_entry = TimeEntry.objects.get(id=time_entry_id)
         time_before = time_entry.logged_time
@@ -1447,6 +1460,7 @@ def edit_time_entry(request, project_name, user_story_id, task_id, time_entry_id
         time_entry = TimeEntry.objects.get(id=time_entry_id)
         form = TimeEntryForm(instance=time_entry, user_assigned = (user == task.assigned_user),logged_time = time_entry.logged_time // 3600 )#initial={'task': task_id, 'user': time_entry.user.id, 'date': time_entry.date, 'start_time': time_entry.start_time, 'end_time': time_entry.end_time, 'logged_time': time_entry.logged_time // 3600} # 'time_to_finish': time_entry.time_to_finish // 3600
         context['form'] = form
+        context['time_entry'] = time_entry
         return render(request, 'edit_time_entry.html', context=context)
 # DOKUMENTACIJA NA PROJEKTU================================================================================
 def project_documentation(request, project_name):

@@ -1,23 +1,69 @@
-{% extends 'base.html' %}
-
-{% block title %}
-Loged time
-{% endblock %}
-
+{% extends 'base-v1.html' %}
+{% load static %}
+{% load render_table from django_tables2 %}
+{% load django_tables2 %}
 {% block content %}
 
-<h2>Loged time <a href = '/project/{{project_name}}/tasks/{{user_story_id}}/'>nazaj</a></h2>
-<h2>Loged time</h2>
-{% load django_tables2 %}
-{% if time_entrys_table.rows %}
-{% render_table time_entrys_table %}
-<h2>Time left: {{time_left}}</h2>
-{% endif %}
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Time Entries | Time Left: {{time_left}} </h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'project_name' project.name %}">{{project.name}}</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'tasks' project.name user_story.id %}">{{user_story.name}}</a></li>
+                    <li class="breadcrumb-item active">Time Entries</li>
+                </ol>
+            </div>
+        </div>
+    </div><!-- /.container-fluid -->
+</section>
 
-{% if time_entrys_other.rows %}
-<h2>Other entries</h2>
-{% render_table time_entrys_other %}
-{% endif %}
+<section class="content">
+    <!-- /.card -->
+    <!-- Default box -->
+    <h5 class="mb-2">Your Loged Time</h5>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Loged Time</h3>
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                    <i class="fas fa-minus"></i>
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            {% render_table time_entrys_table %}
+        </div>
+        <!-- /.card-body -->
+    </div>
+
+
+
+
+    <h5 class="mb-2">Others Loged Time</h5>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Loged Time</h3>
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                    <i class="fas fa-minus"></i>
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            {% render_table time_entrys_other %}
+        </div>
+        <!-- /.card-body -->
+    </div>
+
+    <!-- /.card -->
+</section>
 
 
 

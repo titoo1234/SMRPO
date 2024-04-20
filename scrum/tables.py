@@ -483,10 +483,10 @@ class TaskTable(tables.Table):
 
 
 class TimeEntryTable(tables.Table):
-    user = tables.Column()
-    task = tables.Column()
-    date = tables.Column()
-    logged_time = tables.Column()
+    user = tables.Column(orderable=False)
+    task = tables.Column(orderable=False)
+    date = tables.Column(orderable=False)
+    logged_time = tables.Column(orderable=False)
     # time_to_finish = tables.Column()
     edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
 
@@ -526,14 +526,14 @@ class TimeEntryTable(tables.Table):
     def render_edit_button(self, record):
 
         edit_url = reverse('edit_time_entry', kwargs={'project_name': record.task.user_story.project.name,'user_story_id': record.task.user_story.id,'task_id': record.task.id, 'time_entry_id': record.id}) #project_name,user_story_id,task_id
-        return format_html('<a href="{}" class="btn btn-primary">Edit</a>', edit_url)
+        return format_html('<a class="btn btn-info btn-sm" style="margin-right:1px" href="{}"><i class="fas fa-pencil-alt" style="margin-right:2px"></i>Edit</a>', edit_url)
     #def render_start_time(self, value):
     #    return format_html(value.strftime('%H:%M:%S'))
 
     class Meta:
         model = TimeEntry
         fields = ('user', 'task', 'date', 'logged_time')
-        template_name = "django_tables2/bootstrap4.html"
+        template_name = "table-custom.html"
 
 
 
