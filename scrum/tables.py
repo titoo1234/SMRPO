@@ -534,3 +534,30 @@ class TimeEntryTable(tables.Table):
         model = TimeEntry
         fields = ('user', 'task', 'date', 'logged_time')
         template_name = "django_tables2/bootstrap4.html"
+
+
+
+class DocumentationTable(tables.Table):
+    
+
+    project =  tables.Column(visible=False)
+    title =  tables.Column(visible = False)
+    content =  tables.Column(orderable=False)
+    author =  tables.Column(visible=False)
+    last_edit_date =  tables.Column(visible=False)
+    edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
+
+    
+
+    def render_edit_button(self, record):
+        # <a href="/project/{{ project.name }}/documentation_edit/{{ dokument.id }}/"><button class="btn">Edit Documentation</button></a>
+        edit_url = reverse('project_documentation_edit', kwargs={'project_name': record.project.name,'doc_id':record.id})  # Nadomestite 'ime_pogleda' s pravim imenom pogleda
+        return format_html('<a class="btn btn-info btn-sm" href="{}"><i class="fas fa-pencil-alt" style="margin-right:2px"></i>Edit</a>', edit_url)
+        
+    def render_content(self, value):
+        # Uporabi HTML oznake za prikaz odstavkov v opisu
+        return mark_safe(value.replace('\n', '<br>'))
+    class Meta:
+        model = Documentation
+        fields = ('content','edit_button')
+        template_name = "table-custom.html"

@@ -1229,8 +1229,11 @@ def start_stop_task(request,project_name,user_story_id,task_id):
     today = timezone.now().date()
     
     if task.started:
-
-        time_entry = TimeEntry.objects.get(task=task, date=today,user = user)
+        try:
+            time_entry = TimeEntry.objects.get(task=task, date=today,user = user)
+        except:
+            messages.error(request,"You can't work today :)!")
+            return redirect('tasks',project_name,user_story_id)
         time_entry.start_time = timezone.now()
         time_entry.save()
         #TimeEntry.objects.create(user=user, task=task, start_time=timezone.now(), end_time=None, date=time_entry.date)
@@ -1467,6 +1470,11 @@ def project_documentation(request, project_name):
     else:
         form = DocumentationForm()
         context['form'] = form
+        docs = []
+        for doc in dokumenti:
+            d = Documentation.objects.filter(project=project,title = doc.title)
+            docs.append((doc,DocumentationTable(d)))
+        context['docs'] = docs
         context['dokumenti'] = dokumenti
         context['project'] = project
     return render(request, 'project_documentation.html', context=context)
@@ -1510,6 +1518,7 @@ def project_documentation_import(request, project_name):
     else:
         form = UvozForm()
         context['form'] = form
+        context['project'] = project
     return render(request, 'project_documentation_import.html', context = context)
 
 

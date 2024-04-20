@@ -378,15 +378,21 @@ class KomentarObrazec(forms.Form):
 
 
 class UvozForm(forms.Form):
-    title = forms.CharField(max_length=100)
+    title = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class':'form-control'}))
+    document = forms.FileField(label='Select File', help_text='Only .txt formats are allowed', widget=forms.ClearableFileInput(attrs={'class':'form-control-file', 'accept': '.txt'}))
 
-    # document = forms.FileField()
-    document = forms.FileField(label=('Select File'),help_text='Only .txt formats are allowed',  widget=forms.ClearableFileInput(attrs={'accept': '.txt'}))
-
+    def __init__(self, *args, **kwargs):
+        super(UvozForm, self).__init__(*args, **kwargs)
+        self.fields['title'].widget.attrs.update({'class': 'form-control'})
+        # self.fields['document'].widget.attrs.update({'class': 'form-control'})
 class DocumentationForm(forms.ModelForm):
     class Meta:
         model = Documentation
         fields = ['title', 'content']
+        widgets = {
+            'title': forms.TextInput(attrs={'class':'form-control'}), 
+            'content': forms.Textarea(attrs={'class':'form-control'}), 
+        }
     
 
 
