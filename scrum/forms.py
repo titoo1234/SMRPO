@@ -377,7 +377,7 @@ class TimeEntryForm(forms.ModelForm):
 # time_to_finish
 #       self.fields['time_to_finish'].initial = kwargs['initial']['time_to_finish']
 class KomentarObrazec(forms.Form):
-    komentar = forms.CharField(label='Komentar', widget=forms.Textarea)
+    komentar = forms.CharField(label='Komentar', widget=forms.Textarea(attrs={'class':'form-control'}))
 
 
 class UvozForm(forms.Form):
