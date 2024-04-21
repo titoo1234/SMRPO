@@ -400,7 +400,7 @@ class TaskTable(tables.Table):
         #     if record.assigned_user.id == self.user_id:
         project = record.user_story.project
         url = reverse('log_time_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
-        return format_html('<a href="{}"><i class="fas fa-clock" style="color:black"></i></a>', url)
+        return format_html('<a href="{}"><i class="fas fa-clock" style="color:black; margin: 3px"></i></a>', url)
 
     def render_start_button(self, record):
         if record.assigned_user and record.accepted:
@@ -408,10 +408,10 @@ class TaskTable(tables.Table):
                 project = record.user_story.project
                 if not record.started:
                     url = reverse('start_stop_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
-                    return format_html('<a href="{}"><i class="fa fa-play" style="color:green"></i></a>', url)
+                    return format_html('<a href="{}" disabled><i class="fa fa-stop" style="color:red; margin: 3px; pointers-events:none; opacity:0.5"></i></a><a href="{}"><i class="fa fa-play" style="color:green; margin: 3px"></i></a>', '#', url)
                 else:
                     url = reverse('start_stop_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
-                    return format_html('<a href="{}"><i class="fa fa-stop" style="color:red"></i></a>', url)
+                    return format_html('<a href="{}"><i class="fa fa-stop" style="color:red; margin: 3px"></i></a><a href="{}" disabled><i class="fa fa-play" style="color:green; margin: 3px; pointers-events:none; opacity:0.5"></i></a>', url, '#')
         return format_html('')
     
     def render_decline_button(self, record):
@@ -450,7 +450,7 @@ class TaskTable(tables.Table):
         return self.render_accept_button(record) + self.render_decline_button(record)
     
     def render_actions_logging(self, record):
-        return self.render_log_button(record) + self.render_start_button(record)
+        return self.render_start_button(record) + self.render_log_button(record)
     
     def render_status(self, record):
         if record.done:
