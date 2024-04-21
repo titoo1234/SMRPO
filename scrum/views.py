@@ -1020,6 +1020,7 @@ def accept_user_story(request, project_name, user_story_id):
     
 def reject_user_story(request, project_name, user_story_id):
     user_story = UserStory.objects.get(id=user_story_id)
+    project = Project.objects.get(name=project_name)
     if request.method == 'POST':
         obrazec = KomentarObrazec(request.POST)
         if obrazec.is_valid():
@@ -1043,6 +1044,7 @@ def reject_user_story(request, project_name, user_story_id):
         context = get_context(request)
         context['obrazec'] = obrazec
         context['project_name'] = project_name
+        context['project'] = project
 
     return render(request, 'komentar_obrazec.html', context)
 
@@ -1592,10 +1594,8 @@ def projects(request):
     tabela = ProjectTable(projects, admin = context['admin'],user_id = context['id'])
     RequestConfig(request).configure(tabela)
     context['tabela'] = tabela
-
     other = [p for p in queryset if p not in projects]
     tabela_other = ProjectTable(other, admin = True,user_id = context['id'])
     RequestConfig(request).configure(tabela_other)
     context['tabela_other'] = tabela_other
-
     return render(request, 'projects-v2.html', context)
