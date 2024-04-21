@@ -25,6 +25,15 @@
 
 <section class="content">
     <!-- /.card -->
+    {%if new_task_button%}
+    <div class="row">
+        <div class="col-12">
+            <a href="{% url 'new_task' project.name user_story.id %}"><button type="button" class="btn btn-success"><i class="fa fa-plus"
+                        style="margin-right: 5px;"></i>Create New Task</button></a>
+        </div>
+    </div>
+    </br>
+    {%endif%}
     <!-- Default box -->
     <h5 class="mb-2">User Story Info</h5>
 

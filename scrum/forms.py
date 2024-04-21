@@ -333,7 +333,7 @@ class NewTaskForm(forms.ModelForm):
         }
 
 class TimeEntryForm(forms.ModelForm):
-    time_to_finish = forms.IntegerField(label='Time to finish[h]')  
+    time_to_finish = forms.IntegerField(widget=forms.NumberInput(attrs={'class':'form-control'}),label='Time to finish[h]')  
     def __init__(self, *args, **kwargs):
         user_assigned = kwargs.pop('user_assigned', True)
         logged_time = kwargs.pop('logged_time', 0)
@@ -356,13 +356,16 @@ class TimeEntryForm(forms.ModelForm):
         if not user_assigned:
 
             self.fields['time_to_finish'].widget.attrs['hidden'] = True
+            self.fields['time_to_finish'].widget.attrs['class'] = 'form-control'
         
-        self.fields['user'].widget = forms.HiddenInput()
-        self.fields['task'].widget = forms.HiddenInput()
-        self.fields['start_time'].widget = forms.HiddenInput()
-        self.fields['end_time'].widget = forms.HiddenInput()
+        self.fields['user'].widget = forms.HiddenInput(attrs={'class':'form-control'})
+        self.fields['task'].widget = forms.HiddenInput(attrs={'class':'form-control'})
+        self.fields['start_time'].widget = forms.HiddenInput(attrs={'class':'form-control'})
+        self.fields['end_time'].widget = forms.HiddenInput(attrs={'class':'form-control'})
         self.fields['date'].widget.attrs['disabled'] = True
         self.fields['logged_time'].label = 'Logged Time[h]'
+        self.fields['date'].widget.attrs['class'] = 'form-control'
+        self.fields['logged_time'].widget.attrs['class'] = 'form-control'
         
 
     class Meta:

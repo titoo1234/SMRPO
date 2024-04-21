@@ -128,7 +128,7 @@ class UserStoryTable(tables.Table):
     add_to_sprint_button = tables.Column(empty_values=(), orderable=False, verbose_name='Add to sprint')
     edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
     delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
-    finish_button = tables.Column(empty_values=(), orderable=False, verbose_name='Finish|completed tasks')
+    finish_button = tables.Column(empty_values=(), orderable=False, verbose_name='Completed tasks')
 
     def __init__(self, *args, **kwargs):
         self.user_id = kwargs.pop('user_id', 0)
@@ -339,7 +339,7 @@ class TaskTable(tables.Table):
     estimate = tables.Column(orderable=False, verbose_name='Estimate[h]')
     time_spent = tables.Column(orderable=False, verbose_name='Time spent[h]')
     time_to_finish = tables.Column(orderable=False, verbose_name='Time left[h]')
-    accepted = tables.Column(orderable=False)
+    accepted = tables.Column(orderable=False, visible=False)
     user_story = tables.Column(visible= False, orderable=False)
     started = tables.Column(visible= False, orderable=False)
     # accept_button = tables.Column(empty_values=(), orderable=False, verbose_name='Accept')
@@ -348,7 +348,7 @@ class TaskTable(tables.Table):
     # delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
     # start_button = tables.Column(empty_values=(), orderable=False, verbose_name='Start/Stop')
     # log_button = tables.Column(empty_values=(), orderable=False, verbose_name='')
-    complete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Complete')
+    # complete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Complete')
     status = tables.Column(empty_values=(), orderable=False, verbose_name='Status')
     actions_edit = tables.Column(empty_values=(), orderable=False, verbose_name='')
     actions_accept = tables.Column(empty_values=(), orderable=False, verbose_name='')
@@ -361,14 +361,12 @@ class TaskTable(tables.Table):
         self.active_sprint = kwargs.pop('active_sprint', False)
         self.deleted = kwargs.pop('deleted', False)
         super().__init__(*args, **kwargs)
-        if not self.info:
-            self.exclude = ('status')
         if self.product_owner:
-            self.exclude = ('edit_button','delete_button','decline_button','accept_button','complete_button','start_button','log_button')
+            self.exclude = ('edit_button','delete_button','actions_accept','complete_button','start_button','log_button')
         if not self.active_sprint:
-            self.exclude = ('edit_button','delete_button','decline_button','accept_button','complete_button','start_button')
+            self.exclude = ('edit_button','delete_button','actions_accept','complete_button','start_button')
         if self.deleted:
-            self.exclude = ('edit_button','delete_button','decline_button','accept_button','complete_button','start_button','accepted','assigned_user')
+            self.exclude = ('edit_button','delete_button','actions_accept','complete_button','status', 'start_button','accepted','assigned_user')
     def render_description(self, value):
         # Uporabi HTML oznake za prikaz odstavkov v opisu
         return mark_safe(value.replace('\n', '<br>'))
@@ -437,20 +435,23 @@ class TaskTable(tables.Table):
             if (record.assigned_user.id == self.user_id) and (record.accepted): 
                 project = record.user_story.project
                 url = reverse('complete_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
-                return format_html('<a href="{}" class="btn btn-warning" onclick="return confirm(\'Ali ste prepričani, da želite zaključiti nalogo?\')">Complete</a>', url)
-        return format('')
+                return format_html('<a href="{}" class="btn btn-warning btn-sm" style="margin-right:1px" onclick="return confirm(\'Do you really want to complete this task?\')">Complete</a>', url)
+        return format_html('')
         
     def render_time_spent(self, value):
         return value//3600
     
     def render_actions_edit(self, record):
-        return self.render_edit_button(record) + self.render_delete_button(record)
+        return self.render_complete_button(record) + self.render_edit_button(record) + self.render_delete_button(record)
     
     def render_actions_accept(self, record):
         return self.render_accept_button(record) + self.render_decline_button(record)
     
     def render_actions_logging(self, record):
-        return self.render_start_button(record) + self.render_log_button(record)
+        if self.product_owner:
+            return self.render_log_button(record)
+        else:
+            return self.render_start_button(record) + self.render_log_button(record)
     
     def render_status(self, record):
         if record.done:
@@ -477,7 +478,7 @@ class TaskTable(tables.Table):
     #         print("NE DELA")
     class Meta:
         model = Task
-        fields = ('task_number','description', 'assigned_user', 'estimate','time_spent', 'status', 'time_to_finish', 'accepted', 'actions_accept', 'actions_logging', 'actions_accept')
+        fields = ('task_number','description', 'assigned_user', 'estimate','time_spent', 'status', 'time_to_finish', 'actions_accept', 'actions_logging')
         template_name = "table-custom.html"
 
 
