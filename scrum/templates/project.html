@@ -38,10 +38,11 @@
     {% for sprint, userstory_table,accepted_userstories,unaccepted_userstories, deleteable, sprint_status in sprint_tables %}
         {% if sprint_status == 'Active' %}
             <div class="card collapsed-card">
-                <a href="{% url 'sprint_details' project.name sprint.id %}" style="color:black">
+                <a href="{% url 'sprint_details' project.name sprint.id %}" style="color:rgb(0, 0, 0)">
                     <div class="card-header sprint_header_custom">
                         <h3 class="card-title">#{{sprint.id}} Sprint: {{ sprint.start_date }} - {{ sprint.end_date }}</h3>
                         <div class="card-tools">
+                            <a class="btn btn-info btn-sm" href="{% url 'sprint_edit' project.name sprint.id %}"><i class="fas fa-pencil-alt" style="margin-right:2px"></i>Edit</a>
                             <label>{{sprint_status}}</label>
                         </div>
                     </div>
@@ -60,6 +61,7 @@
                     <div class="card-header sprint_header_custom">
                         <h3 class="card-title">#{{sprint.id}} Sprint: {{ sprint.start_date }} - {{ sprint.end_date }}</h3>
                         <div class="card-tools">
+                            <a class="btn btn-info btn-sm" href="{% url 'sprint_edit' project.name sprint.id %}"><i class="fas fa-pencil-alt" style="margin-right:2px"></i>Edit</a>
                             <label>{{sprint_status}}</label>
                         </div>
                     </div>

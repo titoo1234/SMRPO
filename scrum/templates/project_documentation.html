@@ -1,32 +1,89 @@
-{% extends 'base.html' %}
-
-{% block title %}
-Project documentation
-{% endblock %}
-
+{% extends 'base-v1.html' %}
+{% load static %}
+{% load render_table from django_tables2 %}
+{% load django_tables2 %}
 {% block content %}
-<h2>Project <a href="/project/{{ project.name }}/">{{ project.name }}</a> documentation</h2>
-<button type="submit" id="newDocumentationBtn">New Documentation</button>
-<form method="post" id="newDocumentationForm" style="display: none;">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Save documentation</button>
-</form>
-<a href="/project/{{ project.name }}/documentation_import/"><button type="submit">Import Documentation</button></a>
-<a href="/project/{{ project.name }}/documentation_export/"><button type="submit">Export Documentation</button></a>
-<h2>Titles</h2>
-<ul>
-    {% for dokument in dokumenti %}
-        <li>
-            <a href="#" class="toggle-content">{{ dokument.title }}</a>
-            <div class="content" style="border: 1px solid #ddd; padding: 10px; margin-top: 10px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);">
-                {{ dokument.content | linebreaksbr }}
-                <br>
-                <a href="/project/{{ project.name }}/documentation_edit/{{ dokument.id }}/"><button class="btn">Edit Documentation</button></a>
+
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Project Documentation</h1>
             </div>
-        </li>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'project_name' project.name %}">{{project.name}}</a></li>
+                    <li class="breadcrumb-item active">Project Documentation</li>
+                </ol>
+            </div>
+        </div>
+    </div><!-- /.container-fluid -->
+</section>
+
+
+<section class="content">
+
+    <div class="card-body">
+        <div class="row">
+            <div class="col">
+                <button type="button" class="btn btn-success" data-toggle="modal" data-target="#modal-default">
+                    <i class="fa fa-plus" style="margin-right: 5px;"></i>New Documentation
+                </button>
+                <a href="/project/{{ project.name }}/documentation_import/">
+                    <button  type="button" class="btn btn-success mr-2"><i class="fa fa-plus" style="margin-right: 5px;"></i>Import Documentation</button>
+                </a>
+                <a href="/project/{{ project.name }}/documentation_export/">
+                    <button  type="button" class="btn btn-success">Export Documentation</button>
+                </a>
+            </div>
+        </div>
+    </div>
+    <!-- /.card -->
+    <!-- Default box -->
+    <h5 class="mb-2">Titles </h5>
+    {% for doc, table in docs %}
+    <div class="card collapsed">
+        <div class="card-header">
+            <h3 class="card-title">{{doc.title}}</h3>
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-0" style="display: none;">
+            {% render_table table %}
+        </div>
+        <!-- /.card-body -->
+    </div>
     {% endfor %}
-</ul>
+    <!-- /.card -->
+</section>
+<div class="modal fade" id="modal-default">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Create New Documentation</h4>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form method="post">
+            <div class="modal-body">
+                {% csrf_token %}
+                {{ form.as_p }}
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Post</button>
+            </div>
+        </form>
+      </div>
+      <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+  </div>
 
 <script>
     document.getElementById('newDocumentationBtn').addEventListener('click', function() {
@@ -46,22 +103,5 @@ Project documentation
         });
     });
 </script>
-
-<style>
-    li {
-        margin-bottom: 10px;
-    }
-    .content {
-        display: none;
-        margin-top: 10px;
-    }
-    a {
-        text-decoration: none;
-        color: #007bff;
-    }
-    a:hover {
-        text-decoration: underline;
-    }
-</style>
 
 {% endblock %}

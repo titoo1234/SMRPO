@@ -1,19 +1,54 @@
-{% extends 'base.html' %}
-
-{% block title %}
-Edit Time Entry
-{% endblock %}
-
+{% extends 'base-v1.html' %}
+{% load static %}
+{% load render_table from django_tables2 %}
+{% load django_tables2 %}
 {% block content %}
-<h2>Edit Time Entry</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Edit</button>
-        <!-- {% for message in messages %}
-        <p class="error-message">{{ message }}</p>
-        {% endfor %} -->
-    </form>
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Edit Time Entry </h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'project_name' project.name %}">{{project.name}}</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'tasks' project.name user_story.id %}">{{user_story.name}}</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'log_time_task' project.name user_story.id task.id%}">Time Entries</a></li>
+                    <li class="breadcrumb-item active">Edit Time Entry</li>
+                </ol>
+            </div>
+        </div>
+    </div><!-- /.container-fluid -->
+</section>
+
+
+<section class="content">
+    <div class="row">
+        <div class="col-md-6 offset-3">
+            <div class="card card-primary">
+                <div class="card-header">
+                    <h3 class="card-title">Edit Time Entry</h3>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <a href="{% url 'log_time_task' project.name user_story.id task.id %}" class="btn btn-secondary">Cancel</a>
+                        <input type="submit" value="Edit" class="btn btn-success float-right">
+                    </form>
+                    <!-- /.card-body -->
+                </div>
+                <!-- /.card -->
+            </div>
+        </div>
+    </div>
+</section>
    
 
 {% endblock %}
