@@ -125,10 +125,11 @@ class UserStoryTable(tables.Table):
     user = tables.Column(orderable=False)
     accepted = tables.Column(visible= False, orderable=False)
     sprint = tables.Column(visible= False, orderable=False)
-    add_to_sprint_button = tables.Column(empty_values=(), orderable=False, verbose_name='Add to sprint')
-    edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
-    delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
-    finish_button = tables.Column(empty_values=(), orderable=False, verbose_name='Completed tasks')
+    # add_to_sprint_button = tables.Column(empty_values=(), orderable=False, verbose_name='Add to sprint')
+    # edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
+    # delete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Delete')
+    task_info = tables.Column(empty_values=(), orderable=False, verbose_name='Completed tasks')
+    actions_edit = tables.Column(empty_values=(), orderable=False, verbose_name='')
 
     def __init__(self, *args, **kwargs):
         self.user_id = kwargs.pop('user_id', 0)
@@ -192,9 +193,9 @@ class UserStoryTable(tables.Table):
                 correct_size = True
         if (self.admin or (user == methodology_manager)) and correct_size and record.sprint is None:
             edit_url = reverse('add_to_sprint', kwargs={'project_name': project.name, 'user_story_id': record.id})
-            return format_html('<a href="{}" class="btn btn-primary">Add to sprint</a>', edit_url)
+            return format_html('<a href="{}" class="btn btn-outline-primary btn-sm" style="margin-right:1px"><i class="fa fa-plus-circle" style="margin-right:2px"></i>Add to sprint</a>', edit_url)
         else:
-            return ''
+            return format_html('')
 
     def render_edit_button(self, record):
         user = User.objects.get(id = self.user_id)
@@ -204,9 +205,9 @@ class UserStoryTable(tables.Table):
         development_team_member = AssignedRole.objects.filter(project=project,user=user, role = 'development_team_member').first()
         if (self.admin or ((methodology_manager or product_owner) and record.sprint is None) or ((development_team_member or methodology_manager) and record.sprint is not None)) and (not record.accepted):
             edit_url = reverse('edit_user_story', kwargs={'project_name': record.project.name,'id': record.id})
-            return format_html('<a href="{}" class="btn btn-primary">Edit</a>', edit_url)
+            return format_html('<a class="btn btn-info btn-sm" style="margin-right:1px" href="{}"><i class="fas fa-pencil-alt" style="margin-right:2px"></i>Edit</a>', edit_url)
         else:
-            return ''
+            return format_html('')
         
     def render_delete_button(self, record):
         user = User.objects.get(id = self.user_id)
@@ -215,52 +216,51 @@ class UserStoryTable(tables.Table):
         product_owner = AssignedRole.objects.filter(project=project,user=user,role = 'product_owner').first()
         if (self.admin or ((methodology_manager or product_owner) and record.sprint is None)) and ((not record.accepted)):
             edit_url = reverse('delete_user_story', kwargs={'project_name': record.project.name, 'id': record.id})
-            return format_html('<a href="{}" class="btn btn-danger">Delete</a>', edit_url)
+            return format_html('<a class="btn btn-danger btn-sm" style="margin-right:1px" href="{}"><i class="fas fa-trash" style="margin-right:2px"></i>Delete</a>', edit_url)
         else:
-            return ''
+            return format_html('')
         
     # def render_tasks_button(self, record):
     #     tasks_url = reverse('tasks', kwargs={'project_name': record.project.name, 'user_story_id': record.id})
     #     #return format_html(f'<a href="{record.project.name}/tasks/{record.id}" class="btn btn-info">Tasks</a>')#, tasks_url)
     #     return format_html('<a href="{}" class="btn btn-info">Tasks</a>', tasks_url)
-    
+    def render_task_info(self, record):
+        tasks = Task.objects.filter(user_story = record.id,rejected = False,deleted = False).count()
+        complete_tasks = Task.objects.filter(user_story = record.id,done = True,rejected = False,deleted = False).count()
+        tasks_info = format_html("<strong>{}/{}</strong>", complete_tasks, tasks)
+        return tasks_info
+
     def render_finish_button(self, record):
-        # user = User.objects.get(id = self.user_id)
-        # project = Project.objects.get(name = record.project.name)
-        # print(record.workflow)
         tasks = Task.objects.filter(user_story = record.id,rejected = False,deleted = False).count()
         complete_tasks = Task.objects.filter(user_story = record.id,done = True,rejected = False,deleted = False).count()
             
-        tasks_info = format_html("<strong>{}/{}</strong>", complete_tasks, tasks)
-        if tasks == 0:#ČE NI NOBENE NALOGE ŠE NOT NE MORŠ KONČAT 
-            return tasks_info
+        # tasks_info = format_html("<strong>{}/{}</strong>", complete_tasks, tasks)
+        # if tasks == 0:#ČE NI NOBENE NALOGE ŠE NOT NE MORŠ KONČAT 
+        #     return tasks_info
         if record.accepted == False and record.sprint:
             accept_url = reverse('accept_user_story', kwargs={'project_name': record.project.name, 'user_story_id': record.id})
             reject_url = reverse('reject_user_story', kwargs={'project_name': record.project.name, 'user_story_id': record.id})
-            #return format_html(f'<a href="{record.project.name}/tasks/{record.id}" class="btn btn-info">Tasks</a>')#, tasks_url)
-            accept_button = format_html('<a href="{}" class="btn btn-success">Accept</a>', accept_url)
-            reject_button = format_html('<a href="{}" class="btn btn-danger">Reject</a>', reject_url)
-            if tasks == complete_tasks:
-
+            accept_button = format_html('<a href="{}" class="btn btn-outline-success btn-sm" style="margin-right:1px"><i class="fa fa-check" style="margin-right:2px"></i>Accept</a>', accept_url)
+            reject_button = format_html('<a href="{}" class="btn btn-outline-danger btn-sm" style="margin-right:1px"><i class="fa fa-times" style="margin-right:2px"></i>Reject</a>', reject_url)
+            if (tasks == complete_tasks) and tasks != 0:
                 if self.product_owner:
-                    return accept_button + reject_button +tasks_info
-                else:
-                    return tasks_info
+                    return accept_button + reject_button #+tasks_info
+                # else:
+                #     return #tasks_info
             else:
                 if self.product_owner:
-                    return reject_button +tasks_info
-                else:
-                    return tasks_info
-
-
-
-            # return accept_button + reject_button +tasks_info
-
-        return tasks_info
-
+                    return reject_button #+tasks_info
+                #else:
+                    #return tasks_info
+        # return tasks_info
+        return format_html('')
+    
+    def render_actions_edit(self, record):
+        return self.render_add_to_sprint_button(record) + self.render_finish_button(record) + self.render_edit_button(record) + self.render_delete_button(record)
+    
     class Meta:
         model = UserStory
-        fields = ('story_number', 'name','priority', 'size', 'workflow', 'user', 'comment', 'finish_button', 'edit_button','delete_button')#,'tasks_button')
+        fields = ('story_number', 'name','priority', 'size', 'workflow', 'user', 'comment', 'task_info','actions_edit')#,'tasks_button')
         template_name = "table-custom.html"
         row_attrs = {
             "onClick": lambda record: "document.location.href='/project/{0}/tasks/{1}/';".format(record.project.name, record.id)
@@ -543,12 +543,10 @@ class DocumentationTable(tables.Table):
 
     project =  tables.Column(visible=False)
     title =  tables.Column(visible = False)
-    content =  tables.Column(orderable=False)
+    content =  tables.Column(orderable=False, verbose_name='')
     author =  tables.Column(visible=False)
     last_edit_date =  tables.Column(visible=False)
     edit_button = tables.Column(empty_values=(), orderable=False, verbose_name='Edit')
-
-    
 
     def render_edit_button(self, record):
         # <a href="/project/{{ project.name }}/documentation_edit/{{ dokument.id }}/"><button class="btn">Edit Documentation</button></a>

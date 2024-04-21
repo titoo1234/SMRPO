@@ -75,12 +75,12 @@
 
 
 
-    <div class="card" style="background-color: rgba(0, 255, 13, 0.2);">
+    <div class="card collapsed-card" style="background-color: rgba(0, 255, 13, 0.2);">
         <div class="card-header">
             <h3 class="card-title" >Completed Tasks</h3>
             <div class="card-tools">
                 <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
-                    <i class="fas fa-minus"></i>
+                    <i class="fas fa-plus"></i>
                 </button>
             </div>
         </div>
@@ -91,12 +91,12 @@
     </div>
 
     {%if tasks_table_rejected.rows%}
-    <div class="card" style="background-color: rgba(247, 0, 255, 0.2);">
+    <div class="card collapsed-card" style="background-color: rgba(247, 0, 255, 0.2);">
         <div class="card-header">
             <h3 class="card-title">Rejected Tasks</h3>
             <div class="card-tools">
                 <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
-                    <i class="fas fa-minus"></i>
+                    <i class="fas fa-plus"></i>
                 </button>
             </div>
         </div>
@@ -107,12 +107,12 @@
     </div>
     {%endif%}
     {%if tasks_table_deleted.rows%}
-    <div class="card" style="background-color: rgba(255, 0, 0, 0.2);">
+    <div class="card collapsed-card" style="background-color: rgba(255, 0, 0, 0.2);">
         <div class="card-header">
             <h3 class="card-title">Deleted Tasks</h3>
             <div class="card-tools">
                 <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
-                    <i class="fas fa-minus"></i>
+                    <i class="fas fa-plus"></i>
                 </button>
             </div>
         </div>
