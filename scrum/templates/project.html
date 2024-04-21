@@ -35,41 +35,53 @@
     </br>
     {% endif %}
     <!-- Default box -->
-    {% for sprint, userstory_table,accepted_userstories,unaccepted_userstories, deleteable, sprint_status in sprint_tables %}
+    {% for sprint, userstory_table,accepted_userstories,unaccepted_userstories, deleteable, sprint_status, count_user_stories, count_completed_user_stories, sprint_completion in sprint_tables %}
         {% if sprint_status == 'Active' %}
+        <a href="{% url 'sprint_details' project.name sprint.id %}" style="color:rgb(0, 0, 0)">
             <div class="card collapsed-card">
-                <a href="{% url 'sprint_details' project.name sprint.id %}" style="color:rgb(0, 0, 0)">
                     <div class="card-header sprint_header_custom">
-                        <h3 class="card-title">#{{sprint.id}} Sprint: {{ sprint.start_date }} - {{ sprint.end_date }}</h3>
+                        <div class="row">
+                            <h3 class="card-title">#{{sprint.id}} Sprint</h3>
+                            <span title="Sprint Status" class="badge badge-success" style="margin: 3px">{{sprint_status}}</span>
+                            <span title="Velocity" class="badge badge-warning" style="margin: 3px">{{sprint.velocity}} points</span>
+                            <div class="col-2">
+                                <div class="progress progress-sm" title="{{count_completed_user_stories}} of {{count_user_stories}} points completed"><div class="progress-bar bg-green" role="progressbar" aria-valuenow="{{count_completed_user_stories}}" aria-valuemin="0" aria-valuemax="{{count_user_stories}}" style="width: {{sprint_completion}}%"></div></div><small>{{sprint_completion}}% Complete</small>
+                            </div>
+                            <!-- <span title="Velocity" class="badge badge-warning" style="margin: 3px">{{count_completed_user_stories}} / {{count_user_stories}}</span> -->
+                        </div>
+                        <small>{{ sprint.start_date }} - {{ sprint.end_date }}</small>
                         <div class="card-tools">
-                            <label>{{sprint_status}}</label>
-                            <a class="btn btn-info btn-sm" href="{% url 'sprint_edit' project.name sprint.id %}"><i class="fas fa-pencil-alt" style="margin-right:2px"></i>Edit</a>
+                             <a class="btn btn-info btn-sm" href="{% url 'sprint_edit' project.name sprint.id %}"><i class="fas fa-pencil-alt" style="margin-right:2px"></i>Edit</a>
                         </div>
                     </div>
-                </a>
-                <div class="card-body p-0">
+                    <div class="card-body p-0">
+                    </div>
+                    <!-- /.card-body -->
                 </div>
-                <!-- /.card-body -->
-            </div>
+            </a>
         {% endif %}
     {% endfor %}
 
-    {% for sprint, userstory_table,accepted_userstories,unaccepted_userstories, deleteable, sprint_status in sprint_tables %}
+    {% for sprint, userstory_table,accepted_userstories,unaccepted_userstories, deleteable, sprint_status, count_user_stories, count_completed_user_stories, sprint_completion in sprint_tables %}
         {% if sprint_status != 'Active' %}
+        <a href="{% url 'sprint_details' project.name sprint.id %}" style="color:black">
             <div class="card collapsed-card">
-                <a href="{% url 'sprint_details' project.name sprint.id %}" style="color:black">
                     <div class="card-header sprint_header_custom">
-                        <h3 class="card-title">#{{sprint.id}} Sprint: {{ sprint.start_date }} - {{ sprint.end_date }}</h3>
+                        <div class="row">
+                            <h3 class="card-title">#{{sprint.id}} Sprint</h3>
+                            <span title="Sprint Status" class="badge badge-danger" style="margin: 3px">{{sprint_status}}</span>
+                            <span title="Velocity" class="badge badge-warning" style="margin: 3px">{{sprint.velocity}} points</span>
+                        </div>
+                        <small>{{ sprint.start_date }} - {{ sprint.end_date }}</small>
                         <div class="card-tools">
-                            <label>{{sprint_status}}</label>
                             <a class="btn btn-info btn-sm" href="{% url 'sprint_edit' project.name sprint.id %}"><i class="fas fa-pencil-alt" style="margin-right:2px"></i>Edit</a>
                         </div>
                     </div>
-                </a>
-                <div class="card-body p-0">
+                    <div class="card-body p-0">
+                    </div>
+                    <!-- /.card-body -->
                 </div>
-                <!-- /.card-body -->
-            </div>
+            </a>
         {% endif %}
     {% endfor %}
 </section>

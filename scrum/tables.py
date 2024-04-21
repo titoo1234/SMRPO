@@ -332,12 +332,12 @@ class SprintTable(tables.Table):
 
 
 class TaskTable(tables.Table):
-    task_number = tables.Column(orderable=False, verbose_name='#')
+    # task_number = tables.Column(orderable=False, verbose_name='#')
     description = tables.Column(orderable=False)
     # user_story = tables.Column()
     assigned_user = tables.Column(orderable=False)
     #assigned_user = tables.Column(empty_values=(1))
-    estimate = tables.Column(orderable=False, verbose_name='Estimate[h]')
+    # estimate = tables.Column(orderable=False, verbose_name='Estimate[h]')
     # time_spent = tables.Column(orderable=False, verbose_name='Time spent[h]')
     # time_to_finish = tables.Column(orderable=False, verbose_name='Time left[h]')
     accepted = tables.Column(orderable=False, visible=False)
@@ -400,7 +400,7 @@ class TaskTable(tables.Table):
         #     if record.assigned_user.id == self.user_id:
         project = record.user_story.project
         url = reverse('log_time_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
-        return format_html('<a href="{}"><i class="fas fa-clock" style="color:black; margin: 3px"></i></a>', url)
+        return format_html('<a href="{}"><i title="Logged Time" class="fas fa-clock" style="color:black; margin: 3px"></i></a>', url)
 
     def render_start_button(self, record):
         if record.assigned_user and record.accepted:
@@ -408,10 +408,10 @@ class TaskTable(tables.Table):
                 project = record.user_story.project
                 if not record.started:
                     url = reverse('start_stop_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
-                    return format_html('<a href="{}" disabled><i class="fa fa-stop" style="color:red; margin: 3px; pointers-events:none; opacity:0.5"></i></a><a href="{}"><i class="fa fa-play" style="color:green; margin: 3px"></i></a>', '#', url)
+                    return format_html('<a href="{}" disabled><i title="Stop Time" class="fa fa-stop" style="color:red; margin: 3px; pointers-events:none; opacity:0.5"></i></a><a href="{}"><i title="Start Time" class="fa fa-play" style="color:green; margin: 3px"></i></a>', '#', url)
                 else:
                     url = reverse('start_stop_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
-                    return format_html('<a href="{}"><i class="fa fa-stop" style="color:red; margin: 3px"></i></a><a href="{}" disabled><i class="fa fa-play" style="color:green; margin: 3px; pointers-events:none; opacity:0.5"></i></a>', url, '#')
+                    return format_html('<a href="{}"><i title="Stop Time"  class="fa fa-stop" style="color:red; margin: 3px"></i></a><a href="{}" disabled><i title="Start Time"  class="fa fa-play" style="color:green; margin: 3px; pointers-events:none; opacity:0.5"></i></a>', url, '#')
         return format_html('')
     
     def render_decline_button(self, record):
@@ -437,7 +437,7 @@ class TaskTable(tables.Table):
             if (record.assigned_user.id == self.user_id) and (record.accepted): 
                 project = record.user_story.project
                 url = reverse('complete_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
-                return format_html('<a href="{}" class="btn btn-warning btn-sm" style="margin-right:1px" onclick="return confirm(\'Do you really want to complete this task?\')">Complete</a>', url)
+                return format_html('<a href="{}" class="btn btn-warning btn-sm" style="margin-right:1px" onclick="return confirm(\'Do you really want to complete this task?\')"><i class="fa fa-check-circle-o" style="margin-right:2px"></i>Complete</a>', url)
         return format_html('')
         
     def render_time_spent(self, value):
@@ -458,7 +458,8 @@ class TaskTable(tables.Table):
     def render_time_spent_left(self, record):
         time_spent = self.render_time_spent(record.time_spent)
         time_left = record.time_to_finish
-        return format_html('<span title="Time Spent / Time Left" class="badge badge-warning">{} / {} hours</span>', time_spent,  time_left)
+        time_estimate = record.estimate
+        return format_html('<span title="Time Estimate" class="badge badge-success" style="margin: 3px">{} points</span>', time_estimate) + format_html('<span title="Time Spent / Time Left" class="badge badge-warning" style="margin: 3px">{} / {} hours</span>', time_spent,  time_left)
     
     def render_status(self, record):
         if record.done:
@@ -485,7 +486,7 @@ class TaskTable(tables.Table):
     #         print("NE DELA")
     class Meta:
         model = Task
-        fields = ('task_number','description', 'assigned_user', 'estimate', 'status', 'time_spent_left', 'actions_accept', 'actions_logging')
+        fields = ('assigned_user','description',  'status', 'time_spent_left', 'actions_accept', 'actions_logging')
         template_name = "table-custom.html"
 
 

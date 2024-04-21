@@ -1,0 +1,109 @@
+<!-- HTML za pojavno okno dokumentacije -->
+
+<div id="documentation-popup-container">
+    
+    <div id="fixed-content">
+        <!-- Vsebina vašega pojavno okna dokumentacije -->
+        <h2>Dokumentacija</h2>
+        <div class="category">
+            <h3 onclick="toggleCategory('category1')">Prijava in dodajanje novega uporabnika</h3>
+            <div id="category1" style="display: none">
+                <p>Uporabnik se prijavi v zavihku »Login«. Ob neuspeli prijavi dobi opozorilo. </p>
+                <p>Če ima uporabnik admin pravice lahko doda nove uporabnike, ki jim dodeli ime, priimer, uporabniško ime, mail in geslo. Doda jih v zavihku "Register".</p>
+                <p>Mail mora biti pravilno generiran, uporabniško ime mora biti unikatno.</p>
+            </div>
+        </div>
+        <div class="category">
+            <h3 onclick="toggleCategory('category2')">Vzdrževanje uporabniških računov</h3>
+            <div id="category2" style="display: none">
+                <p>Uporabnik, ki ima admin pravice, lahko dostopa do vseh uporabniških računov in ureja njihove podatke. Te najde pod zavitkom »All Users«.</p>
+                <p>Spremeni lahko vse podatke, pri tem pa se preverja, da je uporabniško ime še neuporabljeno.</p>
+                <p>Možnost ima tudi brisati račune. Račun, ki je zbrisan, je še vedno lahko dostopen. Najdemo ga pod »Deleted users«</p>
+                <p>Zbrisane račune je možno ponovno aktivirati.</p>
+            </div>
+        </div>
+        <div class="category">
+            <h3 onclick="toggleCategory('category3')">Spreminjanje lastnih uporabniških podatkov</h3>
+            <div id="category3" style="display: none">
+                <p>Vsak uporabnik lahko spreminja svoje podatke(uporabniško ime, geslo, ime, priimek, mail). Podatka o pravicah admina ne more spreminjat, če le ta ni admin.</p>
+                <p>Podatke lahko spreminja le v dovoljenih mejah. Držati se mora oblike, prav tako pa se ne dovoljuje, da imata dva uporabnika isto uporabniško ime.</p>
+                <p>Podatke spreminja v zavihku »My Profile«</p>
+            </div>
+        </div>
+        <div class="category">
+            <h3 onclick="toggleCategory('category4')">Projekt</h3>
+            <div id="category4" style="display: none">
+                <div class="category">
+                    <h4 onclick="toggleCategory('category4_1')">Dodajanje projekta</h4>
+                    <div id="category4_1" style="display: none">
+                        <p>Administrator lahko ustvari nov projekt, izbere uporabnike za delo na tem projektu in določi njihove projektne vloge (produktni vodja, skrbnik metodologije, član razvojne skupine).</p>
+                        <p>To stori na začetni strani s klikom na 'New Project'</p>
+                        <p></p>
+                        <p>Določiti mora univerazlno ime in opis. Datum in kreator sta že izpolnjena.</p>
+                        <p>V naslenjem koraku mora izbrati člane projekta. Izbrati mora vsaj enega. Kreator je član projekta.</p>
+                        <p>V zadnjem koraku je  potrebno določiti še vloge. Potrebno je določiti produktnega vodjo in skrbnika metodologije, člane razvojne skupine pa se lahko določi naknadno.</p>
+
+                    </div>
+                </div>
+                <div class="category">
+                    <h4 onclick="toggleCategory('category4_2')">Vzdrževanje projekta</h4>
+                    <div id="category4_2" style="display: none">
+                        <p>Obstoječe projekte je možno urejati. To lahko počne administrator sistema in skrbnik metodologije.</p>
+                        <p>Do obrazca se lahko dostopa direktno iz kartice projekta ali iz začetne strani. Na obeh straneh preko gumba 'Edit'</p>
+                        <p> Lahko se spreminjajo lastnsoti že obstoječega projekta, dodaja nove člane v projekt, ureja vloge obstoječih članov v projektu in odstranjevanje članov iz projekta. Odstranijo se lahko le člani, ki jim ni dodeljena nobena vloga.</p>
+
+                    </div>
+                </div>
+                <div class="category">
+                    <h4 onclick="toggleCategory('category4_3')">Objavljanje na projektnem zidu</h4>
+                    <div id="category4_3" style="display: none">
+                        <p>Vsi sodelujoči na projektu lahko na projektni zid pripenjajo nove objave.</p>
+                        <p>Do zida lahko dostopate z gumbom "Wall", ki se nahaja na kartici od projekta</p>     
+                    </div>
+                </div>
+                      
+            </div>
+        </div>
+            <div class="category">
+                <h3 onclick="toggleCategory('category5')">Dodajanje sprintov v projekt</h3>
+                <div id="category5" style="display: none">
+                    <p>Skrbnik metodologije lahko ustvari nov sprint s klikom na 'Create sprint' znotraj projekta</p>
+                    <p>Datuma začetka in konca sprinta morata biti skladna s trajanjem sprinta. Začetek pa ne sme biti pred trenutnim. Prav tako se preveri, da se ne prekriva z ostalimi sprinti</p>
+                </div>
+            </div>
+            <div class="category">
+                <h3 onclick="toggleCategory('category6')">Urejanje in brisanje sprintov</h3>
+                <div id="category6" style="display: none">
+                    <p>Skrbnik metodologije lahko ureja in briše sprinte, tako da v seznamu sprintov, izbere željeni sprint in nato s pomočjo gumbov "Edit" in "delete" ureja izbrani sprint</p>
+                    <p>Pri spreminjanju datuma sprinta, se novi datumi ne smejo prekrivati z obstoječimi sprinti. Datum začetka se prav tako ne sme spremeniti pred današnji dan.</p>
+                </div>
+            </div>
+            <div class="category">
+                <h3 onclick="toggleCategory('category7')">Uporabniška zgodba</h3>
+                <div id="category7" style="display: none">
+                    <div class="category">
+                        <h4 onclick="toggleCategory('category7_1')">Dodajanje uporabniške zgodbe</h4>
+                        <div id="category7_1" style="display: none">
+                            <p>Novo uporabniško zgodbo lahko ustvari produktni vodja ali skrbnik metodologije.</p>
+                            <p>Najprej mora iti na izbrani projekt, potem pa klikne gumb "New User Story"</p>
+                            <p></p>
+                            <p>Za vsako zgodbo lahko določi njeno ime, besedilo, sprejemne teste, prioriteto (must have, could have, should have, won't have this time) in poslovno vrednost.</p>
+                        
+                        </div>
+                    </div>
+                    <div class="category">
+                        <h4 onclick="toggleCategory('category7_2')">Urejanje in brisanje uporabniških zgodb</h4>
+                        <div id="category7_2" style="display: none">
+                            <p>Produktni vodja in skrbnik metodologije lahko tudi urejata in brišeta uporabniške zgodbe, ki še niso dodane v sprint in niso realizirane.</p>
+                            <p>To storita s klikom na gumb "Edit" oziroma klikom na ime uporabniške zgodbe.</p>
+                            <p>Produktni vodja lahko spremeni: ime, besedilo, sprejemne teste, prioriteto (must have, could have, should have, won't have this time) in poslovno vrednost.</p>
+                            <p>Skrbnik metodologije pa lahko spremeni vsa polja razen polja "Workflow"</p>
+                            <p>Polje "Workflow" lahko spreminja samo udeleženec projektne skupine.</p>
+                        </div>
+                    </div>   
+                </div>
+            </div>
+            <button class="close-button" onclick="closeDocumentationPopup()">Close</button>
+        </div>  
+    </div>
+</div>

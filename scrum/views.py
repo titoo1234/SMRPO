@@ -439,6 +439,20 @@ def project_view(request,project_name):
     today = datetime.date(today)
     for sprint in sprints:
         userstories = UserStory.objects.filter(project=project, sprint=sprint)
+        count_user_stories = 0
+        count_completed_user_stories = 0
+        for user_story in userstories:
+            count_user_stories += user_story.original_estimate
+            tasks = Task.objects.filter(user_story=user_story)
+            completed = True
+            for task in tasks:
+                if not task.done:
+                    completed = False
+            if completed:
+                count_completed_user_stories += user_story.original_estimate
+        print(count_user_stories)
+        print(count_completed_user_stories)
+        sprint_completion = int((count_completed_user_stories/count_user_stories)*100) if count_completed_user_stories != 0 else 0
         deleteable = False
         #print(len(userstories))
         if len(userstories) == 0:
@@ -455,7 +469,7 @@ def project_view(request,project_name):
             sprint_status = "Active"
         else:
             sprint_status = "Unfinished"
-        sprint_tables.append((sprint, userstory_table, accepted_userstories, unaccepted_userstories, deleteable, sprint_status))
+        sprint_tables.append((sprint, userstory_table, accepted_userstories, unaccepted_userstories, deleteable, sprint_status, count_user_stories, count_completed_user_stories, sprint_completion))
     context['sprint_tables'] = sprint_tables
     #Backlog = UserStory.objects.filter(project=project, sprint=None)
     #Backlog = UserStoryTable(Backlog, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))

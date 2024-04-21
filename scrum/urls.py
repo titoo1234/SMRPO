@@ -12,7 +12,7 @@ urlpatterns = [
     path('project/<str:project_name>/product_backlog/', views.product_backlog, name='product_backlog'),
     path('project/<str:project_name>/sprint_backlog/', views.sprint_backlog, name='sprint_backlog'),
 
-    path('', views.home, name='home'),
+    path('', views.dashboard, name='dashboard'),
     path('login/', views.user_login, name='login'),
     path('register/', views.user_register, name='register'),
     path('logout/', views.logout, name='logout'),
