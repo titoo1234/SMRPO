@@ -8,15 +8,13 @@
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1>User Story #{{user_story.story_number}}: {{user_story.name}}</h1>
-                <h1>Time spent: {{total_logged_time}}</h1>
-                <h1>Time left: {{total_time_to_finish}}</h1>
+                <h1>User Story Overview</h1>
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
                     <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
                     <li class="breadcrumb-item"><a href="{% url 'project_name' project.name %}">{{project.name}}</a></li>
-                    <li class="breadcrumb-item active">{{user_story.name}}</li>
+                    <li class="breadcrumb-item active">User Story Overview</li>
                 </ol>
             </div>
         </div>
@@ -35,102 +33,104 @@
     </br>
     {%endif%}
     <!-- Default box -->
-    <h5 class="mb-2">User Story Info</h5>
-
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">{{user_story.name}}</h3>
-            <div class="card-tools">
-                <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
-                    <i class="fas fa-minus"></i>
-                </button>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">#{{user_story.story_number}} - {{user_story.name}} ({{user_story.priority}})</h3>
+                    <div class="card-tools">
+                        <span title="Time spent / Time left" class="badge badge-primary">{{total_logged_time}} / {{total_time_to_finish}} hours</span>
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                    </div>
+                </div>
+                <form>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <textarea class="form-control" id="description" disabled>{{user_story.description}}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="acceptence_tests">Acceptance Tests</label>
+                            <textarea  rows="5" class="form-control" id="acceptence_tests" disabled>{{user_story.acceptance_tests}}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="user">User</label>
+                            <input rows="5" class="form-control" id="user" value="{{user_story.user}}" disabled></input>
+                        </div>
+                        <div class="form-group">
+                            <label for="comment">Comment</label>
+                            <input class="form-control" id="comment" value="{{user_story.comment}}" disabled></input>
+                        </div>
+                    </div>
+                </form>
+                <!-- /.card-body -->
             </div>
         </div>
-        <div class="card-body p-0">
-            {% render_table user_story_info_table %}
+        <div class="col-md-8">
+            <div class="card" style="background-color: rgba(255, 179, 0, 0.2);">
+                <div class="card-header">
+                    <h3 class="card-title" style = "color: rgb(0, 0, 0);">Uncompleted Tasks</h3>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% render_table tasks_table_uncompleted %}
+                </div>
+                <!-- /.card-body -->
+            </div>
+            <div class="card collapsed-card" style="background-color: rgba(0, 255, 13, 0.2);">
+                <div class="card-header">
+                    <h3 class="card-title" >Completed Tasks</h3>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% render_table tasks_table_completed %}
+                </div>
+                <!-- /.card-body -->
+            </div>
+            {%if tasks_table_rejected.rows%}
+            <div class="card collapsed-card" style="background-color: rgba(247, 0, 255, 0.2);">
+                <div class="card-header">
+                    <h3 class="card-title">Rejected Tasks</h3>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% render_table tasks_table_rejected %}
+                </div>
+                <!-- /.card-body -->
+            </div>
+            {%endif%}
+            {%if tasks_table_deleted.rows%}
+            <div class="card collapsed-card" style="background-color: rgba(255, 0, 0, 0.2);">
+                <div class="card-header">
+                    <h3 class="card-title">Deleted Tasks</h3>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% render_table tasks_table_deleted %}
+                </div>
+                <!-- /.card-body -->
+            </div>
+            {%endif%}
         </div>
-        <!-- /.card-body -->
     </div>
 </section>
-
-
-<section class="content">
-    <!-- /.card -->
-    <!-- Default box -->
-
-    <div class="card" style="background-color: rgba(255, 179, 0, 0.2);">
-        <div class="card-header">
-            <h3 class="card-title" style = "color: rgb(0, 0, 0);">Uncompleted Tasks</h3>
-            <div class="card-tools">
-                <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
-                    <i class="fas fa-minus"></i>
-                </button>
-            </div>
-        </div>
-        <div class="card-body p-0">
-            {% render_table tasks_table_uncompleted %}
-        </div>
-        <!-- /.card-body -->
-    </div>
-
-
-
-    <div class="card collapsed-card" style="background-color: rgba(0, 255, 13, 0.2);">
-        <div class="card-header">
-            <h3 class="card-title" >Completed Tasks</h3>
-            <div class="card-tools">
-                <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
-                    <i class="fas fa-plus"></i>
-                </button>
-            </div>
-        </div>
-        <div class="card-body p-0">
-            {% render_table tasks_table_completed %}
-        </div>
-        <!-- /.card-body -->
-    </div>
-
-    {%if tasks_table_rejected.rows%}
-    <div class="card collapsed-card" style="background-color: rgba(247, 0, 255, 0.2);">
-        <div class="card-header">
-            <h3 class="card-title">Rejected Tasks</h3>
-            <div class="card-tools">
-                <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
-                    <i class="fas fa-plus"></i>
-                </button>
-            </div>
-        </div>
-        <div class="card-body p-0">
-            {% render_table tasks_table_rejected %}
-        </div>
-        <!-- /.card-body -->
-    </div>
-    {%endif%}
-    {%if tasks_table_deleted.rows%}
-    <div class="card collapsed-card" style="background-color: rgba(255, 0, 0, 0.2);">
-        <div class="card-header">
-            <h3 class="card-title">Deleted Tasks</h3>
-            <div class="card-tools">
-                <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
-                    <i class="fas fa-plus"></i>
-                </button>
-            </div>
-        </div>
-        <div class="card-body p-0">
-            {% render_table tasks_table_deleted %}
-        </div>
-        <!-- /.card-body -->
-    </div>
-    {%endif%}
-
-
-
-</section>
-
-
-
-
-
-
 {% endblock %}
 

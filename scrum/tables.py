@@ -227,7 +227,8 @@ class UserStoryTable(tables.Table):
     def render_task_info(self, record):
         tasks = Task.objects.filter(user_story = record.id,rejected = False,deleted = False).count()
         complete_tasks = Task.objects.filter(user_story = record.id,done = True,rejected = False,deleted = False).count()
-        tasks_info = format_html("<strong>{}/{}</strong>", complete_tasks, tasks)
+        completed = int((complete_tasks/tasks)*100) if tasks != 0 else 0
+        tasks_info = format_html('<div class="progress progress-sm"><div class="progress-bar bg-green" role="progressbar" aria-valuenow="{}" aria-valuemin="0" aria-valuemax="{}" style="width: {}%"></div></div><small>{}% Complete</small>', complete_tasks, tasks, completed, completed)
         return tasks_info
 
     def render_finish_button(self, record):
@@ -337,8 +338,8 @@ class TaskTable(tables.Table):
     assigned_user = tables.Column(orderable=False)
     #assigned_user = tables.Column(empty_values=(1))
     estimate = tables.Column(orderable=False, verbose_name='Estimate[h]')
-    time_spent = tables.Column(orderable=False, verbose_name='Time spent[h]')
-    time_to_finish = tables.Column(orderable=False, verbose_name='Time left[h]')
+    # time_spent = tables.Column(orderable=False, verbose_name='Time spent[h]')
+    # time_to_finish = tables.Column(orderable=False, verbose_name='Time left[h]')
     accepted = tables.Column(orderable=False, visible=False)
     user_story = tables.Column(visible= False, orderable=False)
     started = tables.Column(visible= False, orderable=False)
@@ -350,6 +351,7 @@ class TaskTable(tables.Table):
     # log_button = tables.Column(empty_values=(), orderable=False, verbose_name='')
     # complete_button = tables.Column(empty_values=(), orderable=False, verbose_name='Complete')
     status = tables.Column(empty_values=(), orderable=False, verbose_name='Status')
+    time_spent_left = tables.Column(empty_values=(), orderable=False, verbose_name='')
     actions_edit = tables.Column(empty_values=(), orderable=False, verbose_name='')
     actions_accept = tables.Column(empty_values=(), orderable=False, verbose_name='')
     actions_logging = tables.Column(empty_values=(), orderable=False, verbose_name='')
@@ -452,6 +454,11 @@ class TaskTable(tables.Table):
             return self.render_log_button(record)
         else:
             return self.render_start_button(record) + self.render_log_button(record)
+        
+    def render_time_spent_left(self, record):
+        time_spent = self.render_time_spent(record.time_spent)
+        time_left = record.time_to_finish
+        return format_html('<span title="Time Spent / Time Left" class="badge badge-warning">{} / {} hours</span>', time_spent,  time_left)
     
     def render_status(self, record):
         if record.done:
@@ -478,7 +485,7 @@ class TaskTable(tables.Table):
     #         print("NE DELA")
     class Meta:
         model = Task
-        fields = ('task_number','description', 'assigned_user', 'estimate','time_spent', 'status', 'time_to_finish', 'actions_accept', 'actions_logging')
+        fields = ('task_number','description', 'assigned_user', 'estimate', 'status', 'time_spent_left', 'actions_accept', 'actions_logging')
         template_name = "table-custom.html"
 
 
