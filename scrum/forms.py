@@ -4,6 +4,7 @@ from .models import User,Project,AssignedRole,UserStory, Sprint, ProjectWall,Tas
 from django.utils import timezone
 from django.forms.models import inlineformset_factory
 from datetime import datetime, time
+import hashlib
 
 #from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm
 class UserLoginForm(forms.ModelForm):
@@ -33,6 +34,15 @@ class UserRegisterForm1(forms.ModelForm):
 
         if password != confirm_password:
             raise forms.ValidationError("Passwords do not match. Please enter the same password in both fields.")
+        
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        password = self.cleaned_data.get('password')
+        # Hash the password before saving
+        user.password = hashlib.sha256(password.encode('utf-8')).hexdigest()
+        if commit:
+            user.save()
+        return user
 
     # def save(self, commit=True):
     #     user = super(UserRegisterForm, self).save(commit=False)
