@@ -240,7 +240,7 @@ def edit_deleted_user(request, user_id):
         user.active = True
         user.save()
         messages.success(request,"User " + user.username + " successfully reactivated.")
-        return redirect("home")
+        return redirect("dashboard")
         
     else:#GET
         form = UserRegisterForm(instance=user)    
@@ -261,7 +261,7 @@ def delete_user(request, user_id):
     user.active = False
     user.save()
     messages.success(request,"User " + user.username + " successfully deactivated.")
-    return redirect("home")
+    return redirect("dashboard")
 
 def new_project(request):  
      if request.method == 'POST':
