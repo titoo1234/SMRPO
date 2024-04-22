@@ -63,7 +63,7 @@
                         <div class="form-group">
                             <label for="comment">Comment</label>
                             {% if user_story.comment %}
-                            <input class="form-control" id="comment" value="{{user_story.comment}}" style="color:red" disabled></input>
+                            <textarea class="form-control" id="comment" style="color:red" disabled>{{ user_story.comment|striptags }}</textarea>
                             {%else %}
                             <input class="form-control" id="comment" value="" style="color:red" disabled></input>
                             {%endif %}

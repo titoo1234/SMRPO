@@ -460,7 +460,7 @@ class TaskTable(tables.Table):
         time_spent = self.render_time_spent(record.time_spent)
         time_left = record.time_to_finish
         time_estimate = record.estimate
-        return format_html('<span title="Time Estimate" class="badge badge-success" style="margin: 3px">{} points</span>', time_estimate) + format_html('<span title="Time Spent / Time Left" class="badge badge-warning" style="margin: 3px">{} / {} hours</span>', time_spent,  time_left)
+        return format_html('<span title="Time Estimate" class="badge badge-success" style="margin: 3px">{} h</span>', time_estimate) + format_html('<span title="Time Spent / Time Left" class="badge badge-warning" style="margin: 3px">{} / {} hours</span>', time_spent,  time_left)
     
     def render_status(self, record):
         if record.done:

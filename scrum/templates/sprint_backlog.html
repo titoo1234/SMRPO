@@ -42,6 +42,23 @@
         <!-- /.card-body -->
     </div>
     {% endfor %}
+    <h5 class="mb-2">Accepted User Stories</h5>
+    {% for table, user_story in user_stories1 %}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">{{user_story.name}}</h3>
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                    <i class="fas fa-minus"></i>
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            {% render_table table %}
+        </div>
+        <!-- /.card-body -->
+    </div>
+    {% endfor %}
     <!-- /.card -->
 </section>
 <!-- /.content -->

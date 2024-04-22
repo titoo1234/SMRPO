@@ -787,7 +787,16 @@ def sprint_backlog(request, project_name):
     project = Project.objects.get(name=project_name)
     context['project'] = project
     sprint = get_active_sprint(project_name)
-    user_stories = UserStory.objects.filter(project=project, sprint=sprint)
+    user_stories = UserStory.objects.filter(project=project, sprint=sprint,accepted= False)
+    user_stories_table = []
+    for user_story in user_stories:
+        tasks = Task.objects.filter(user_story=user_story, deleted=False)
+        print(len(tasks))
+        user_stories_table.append((TaskTable(tasks, info=True), user_story))
+
+    context['user_stories'] = user_stories_table
+
+    user_stories1 = UserStory.objects.filter(project=project, sprint=sprint,accepted= True)
     
     # accepted_userstories = UserStory.objects.filter(project=project, sprint=sprint, accepted = True)
     # accepted_userstories = UserStoryTable(accepted_userstories, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
@@ -795,8 +804,8 @@ def sprint_backlog(request, project_name):
     # unaccepted_userstories = UserStoryTable(unaccepted_userstories, admin = context['admin'],user_id = context['id'],product_owner = (len(product_owner) == 1))
     # context['accepted_userstories'] = accepted_userstories
     # context['unaccepted_userstories'] = unaccepted_userstories
-    user_stories_table = []
-    for user_story in user_stories:
+    user_stories_table1 = []
+    for user_story in user_stories1:
         # context[user_story.id] = {}
         # accepted_tasks = Task.objects.filter(user_story=user_story, accepted=True, completed=False, started=False)
         # unaccepted_tasks = Task.objects.filter(user_story=user_story, accepted=False, completed=False, started=False)
@@ -808,8 +817,8 @@ def sprint_backlog(request, project_name):
         # context[user_story.id]['active_tasks'] = active_tasks
         tasks = Task.objects.filter(user_story=user_story, deleted=False)
         print(len(tasks))
-        user_stories_table.append((TaskTable(tasks, info=True), user_story))
-    context['user_stories'] = user_stories_table
+        user_stories_table1.append((TaskTable(tasks, info=True), user_story))
+    context['user_stories1'] = user_stories_table1
 
     return render(request, 'sprint_backlog.html', context)
 
