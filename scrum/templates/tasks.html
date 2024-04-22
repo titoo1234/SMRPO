@@ -59,9 +59,14 @@
                             <label for="user">User</label>
                             <input rows="5" class="form-control" id="user" value="{{user_story.user}}" disabled></input>
                         </div>
+                        
                         <div class="form-group">
                             <label for="comment">Comment</label>
+                            {% if user_story.comment %}
                             <input class="form-control" id="comment" value="{{user_story.comment}}" style="color:red" disabled></input>
+                            {%else %}
+                            <input class="form-control" id="comment" value="" style="color:red" disabled></input>
+                            {%endif %}
                         </div>
                     </div>
                 </form>
