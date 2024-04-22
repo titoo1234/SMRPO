@@ -362,13 +362,14 @@ class TaskTable(tables.Table):
         self.product_owner = kwargs.pop('product_owner', False)
         self.active_sprint = kwargs.pop('active_sprint', False)
         self.deleted = kwargs.pop('deleted', False)
+        
         super().__init__(*args, **kwargs)
         if self.product_owner:
             self.exclude = ('edit_button','delete_button','actions_accept','complete_button','start_button','log_button')
         if not self.active_sprint:
             self.exclude = ('edit_button','delete_button','actions_accept','complete_button','start_button')
         if self.deleted:
-            self.exclude = ('edit_button','delete_button','actions_accept','complete_button','status', 'start_button','accepted','assigned_user')
+            self.exclude = ('edit_button','delete_button','actions_accept','actions_edit','complete_button','status', 'start_button','accepted','assigned_user')
     def render_description(self, value):
         # Uporabi HTML oznake za prikaz odstavkov v opisu
         return mark_safe(value.replace('\n', '<br>'))
