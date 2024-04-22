@@ -15,4 +15,9 @@ class Migration(migrations.Migration):
             name='mail',
             field=models.EmailField(default='', max_length=100),
         ),
+        migrations.AddField(
+            model_name='user',
+            name='last_login',
+            field=models.DateField(default=None, null=True),
+        ),
     ]

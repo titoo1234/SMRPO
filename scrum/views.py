@@ -23,15 +23,20 @@ def get_context(request):
         uporabnik = request.session.get('uporabnik')
         admin = request.session.get('admin')
         up_id = request.session.get('uporabnik_id')
+        last_login = request.session.get('last_login')#'asd'# 
+        print('asd')
     except:
         uporabnik = None
+        print('asd1')
         admin = False
         up_id = None
+        last_login = 'asd'
         
     context = {}
     context['user1'] = uporabnik #"ad"#
     context['admin'] = admin #"ad"#
     context['id'] = up_id #1#
+    context['last_login'] = last_login #1#
     return context
 
 def logout(request):
@@ -80,12 +85,18 @@ def user_login(request):
             # user = UserLoginForm(request, username=username, password=password)
         existing_user = User.objects.filter(username=username,password=password,active=True).first()
         if  existing_user:  
+            today = timezone.localtime(timezone.now())
+            
+            # today = timezone.localtime()
+            existing_user.last_login = today
+            existing_user.save()
             request.session['uporabnik'] = existing_user.username
             request.session['admin'] = existing_user.admin_user
             request.session['uporabnik_id'] = existing_user.id
+            request.session['last_login'] = str(existing_user.last_login.strftime('%d. %m. %Y %H:%M'))
             # set_cookie(existing_user.name)
             messages.success(request,"User " + existing_user.username +" successfully logged in.")
-            return redirect('home')
+            return redirect('dashboard')
             # if user is not None:
             #     login(request, user)
             #     return redirect('home')
@@ -124,7 +135,7 @@ def user_register(request):
                 #KO SE REGISTRIRA NOV UPORABNIK POTEM NE ZAMENJAJ KUKIJA
                 # request.session['uporabnik'] = username
                 # user = authenticate(request, username=username, password=password)
-                return redirect('home')
+                return redirect('dashboard')
         else:
             messages.error(request, form.errors)
             return redirect(request.path)
@@ -177,7 +188,7 @@ def edit_user(request, user_id):
         if user_id == context['id']:
                 request.session['uporabnik'] = form.data['username']
         messages.success(request,"User details successfully updated.")     
-        return redirect('home')
+        return redirect('dashboard')
         
 
 
@@ -625,11 +636,11 @@ def delete_project(request,project_name):
     methodology_manager = AssignedRole.objects.get(project=project,role = 'methodology_manager').user
     if (methodology_manager.id != context['id'] and not context['admin']):
         messages.error(request,"To pa ne bo šlo! Nisi admin ali methodology manager!")
-        return redirect('home')
+        return redirect('dashboard')
     else:
         project.delete()
         messages.success(request,"Project deleted successfully!")
-        return redirect('home')
+        return redirect('dashboard')
 
 
 def check_sprint_dates(start_date, end_date, velocity, sprints, sprint_id=-1):
@@ -1590,6 +1601,8 @@ def project_documentation_delete(request, project_name,doc_id):
 # ================================
 def dashboard(request):
     context = get_context(request)
+    if not context['id']:
+        return redirect('login-v2')
     try:
         my_projects = get_projects(context['id'])
     except:

@@ -13,6 +13,8 @@ class User(models.Model):
     password = models.CharField(max_length=100)
     admin_user = models.BooleanField(default=False)
     active = models.BooleanField(default=True)
+    last_login = models.DateField(default = None,null = True)
+
 
     def __str__(self):
         return self.name
