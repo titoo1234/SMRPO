@@ -98,16 +98,28 @@ class UserUpdateForm(forms.ModelForm):
         # Proverimo da li je staro geslo tačno
         user = self.instance
         # print(user.password)
-        if current_password and (current_password != user.password):
+        #print(hashlib.sha256(current_password.encode('utf-8')).hexdigest())
+        #print(user.password)
+        if current_password and (hashlib.sha256(current_password.encode('utf-8')).hexdigest() != user.password):
             raise forms.ValidationError( "Current password is incorrect. Please try again.")
 
         if new_password:
-            user.password = new_password
+            user.password = hashlib.sha256(new_password.encode('utf-8')).hexdigest()
+            #user.password = new_password
 
         # Nastavimo posodobljeni objekt uporabnika nazaj v instance
         self.instance = user
 
         return cleaned_data
+    
+    # def save(self, commit=True):
+    #     user = super().save(commit=False)
+    #     password = self.cleaned_data.get('new_password')
+    #     # Hash the password before saving
+    #     user.password = hashlib.sha256(password.encode('utf-8')).hexdigest()
+    #     if commit:
+    #         user.save()
+    #     return user
 
 
 class ProjectForm(forms.ModelForm):
