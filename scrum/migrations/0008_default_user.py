@@ -1,5 +1,6 @@
 from django.db import migrations
 from ..models import User
+import hashlib
 
 def create_default_user(apps, schema_editor):
     User.objects.create(
@@ -9,7 +10,7 @@ def create_default_user(apps, schema_editor):
         username='ad',
         admin_user=True,  # Assuming this is your admin user
         active=True,  # Assuming the user is active
-        password='ad'
+        password=hashlib.sha256("ad".encode('utf-8')).hexdigest()
     )
     User.objects.create(
         name='uporabnik',
@@ -18,7 +19,7 @@ def create_default_user(apps, schema_editor):
         username='uporabnik',
         admin_user=True,  # Assuming this is your admin user
         active=True,  # Assuming the user is active
-        password='uporabnik'
+        password=hashlib.sha256("uporabnik".encode('utf-8')).hexdigest()
     )
     User.objects.create(
         name='Veseli',
@@ -27,7 +28,7 @@ def create_default_user(apps, schema_editor):
         username='Veseli Ribnčan',
         admin_user=True,  # Assuming this is your admin user
         active=True,  # Assuming the user is active
-        password='Veseli Ribnčan'
+        password=hashlib.sha256("Veseli Ribnčan".encode('utf-8')).hexdigest()
     )
     User.objects.create(
         name='Lojze',
@@ -36,7 +37,7 @@ def create_default_user(apps, schema_editor):
         username='lojz',
         admin_user=False,  # Assuming this is your admin user
         active=True,  # Assuming the user is active
-        password='lojz'
+        password=hashlib.sha256("lojz".encode('utf-8')).hexdigest()
     )
     User.objects.create(
         name='tit',
@@ -45,7 +46,7 @@ def create_default_user(apps, schema_editor):
         username='tit',
         admin_user=True,  # Assuming this is your admin user
         active=True,  # Assuming the user is active
-        password='tit'
+        password= hashlib.sha256("tit".encode('utf-8')).hexdigest()
     )
 
 class Migration(migrations.Migration):

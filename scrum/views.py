@@ -16,6 +16,7 @@ from django.utils import timezone
 from .tables import *
 from django_tables2 import RequestConfig
 from datetime import timedelta
+import hashlib
 # Create your views here.
 def get_context(request):
     
@@ -82,14 +83,19 @@ def user_login(request):
         form = UserLoginForm(request.POST)
         username = form.data['username']
         password = form.data['password']
+        encoded_password = password.encode("utf-8")
+        hashed = hashlib.sha256(encoded_password)
             # user = UserLoginForm(request, username=username, password=password)
-        existing_user = User.objects.filter(username=username,password=password,active=True).first()
-        if  existing_user:  
+
+        existing_user = User.objects.filter(username=username,active=True).first()
+        if  existing_user and existing_user.password == hashed.hexdigest():  
             today = timezone.localtime(timezone.now())
             
             # today = timezone.localtime()
             existing_user.last_login = today
             existing_user.save()
+
+
             request.session['uporabnik'] = existing_user.username
             request.session['admin'] = existing_user.admin_user
             request.session['uporabnik_id'] = existing_user.id
