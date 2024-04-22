@@ -635,10 +635,10 @@ def sprint_details_handler(request, project_name, sprint_id):
             project = Project.objects.get(name=project_name)
             context = get_context(request)
             show_edit = True
-
+            user = User.objects.get(id = context['id'])
             ########
             #user_stories = UserStory.objects.filter(project=project,sprint=sprint)
-            product_owner = AssignedRole.objects.filter(project = project,role = 'product_owner')
+            product_owner = AssignedRole.objects.filter(project = project,role = 'product_owner',user = user)
             #methodology_manager = AssignedRole.objects.get(project = project,role = 'methodology_manager').user
             all_userstories = UserStory.objects.filter(project=project, sprint=sprint)
             load = sum([story.size for story in all_userstories])
@@ -1137,8 +1137,11 @@ def start_stop_task(request,project_name,user_story_id,task_id):
             time_entry.end_time = end_time1
             if time_entry.start_time:
                 porabljen_cas = (end_time1 - time_entry.start_time).seconds
-            else:
-                porabljen_cas = 0
+            else:#Smo pustili preko noči, torej bomo dali kar cel dan?
+                trenurni = datetime(end_time1.year, end_time1.month, end_time1.day, end_time1.hour, end_time1.minute, end_time1.second)
+                midnight = datetime(end_time1.year, end_time1.month, end_time1.day, 0, 0, 0)
+                difference = trenurni - midnight
+                porabljen_cas = difference.total_seconds()
             time_entry.logged_time = time_entry.logged_time +  porabljen_cas
             task.time_spent += porabljen_cas
 
@@ -1148,6 +1151,8 @@ def start_stop_task(request,project_name,user_story_id,task_id):
                 task.done = True
                 task.save()
                 time_entry_id = time_entry.id
+                time_entry.save()
+                messages.success(request,"Out of time for the task. You can extend it or mark it as completed.")
                 return redirect('edit_time_entry',project_name,user_story_id,task_id,time_entry_id)
 
             else:
