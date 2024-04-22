@@ -442,16 +442,15 @@ def project_view(request,project_name):
         count_user_stories = 0
         count_completed_user_stories = 0
         for user_story in userstories:
-            count_user_stories += user_story.original_estimate
-            tasks = Task.objects.filter(user_story=user_story)
-            completed = True
-            for task in tasks:
-                if not task.done:
-                    completed = False
-            if completed:
-                count_completed_user_stories += user_story.original_estimate
-        print(count_user_stories)
-        print(count_completed_user_stories)
+            count_user_stories += user_story.size
+            tasks = Task.objects.filter(user_story=user_story, deleted=False,  rejected=False)
+            if tasks.count() != 0:
+                completed = True
+                for task in tasks:
+                    if not task.done:
+                        completed = False
+                if completed:
+                    count_completed_user_stories += user_story.original_estimate
         sprint_completion = int((count_completed_user_stories/count_user_stories)*100) if count_completed_user_stories != 0 else 0
         deleteable = False
         #print(len(userstories))
