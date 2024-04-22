@@ -434,7 +434,7 @@ class TaskTable(tables.Table):
     
     def render_complete_button(self, record):
         if record.assigned_user:
-            if (record.assigned_user.id == self.user_id) and (record.accepted): 
+            if (record.assigned_user.id == self.user_id) and (record.accepted) and not record.done: 
                 project = record.user_story.project
                 url = reverse('complete_task', kwargs={'project_name': project.name,'user_story_id': record.user_story.id,'task_id': record.id}) #project_name,user_story_id,task_id
                 return format_html('<a href="{}" class="btn btn-warning btn-sm" style="margin-right:1px" onclick="return confirm(\'Do you really want to complete this task?\')"><i class="fa fa-check-circle-o" style="margin-right:2px"></i>Complete</a>', url)
